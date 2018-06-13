@@ -1,9 +1,6 @@
 const bcrypt = require('bcrypt');
-const jwt = require ('./jwt');
 const query = require('./query');
 module.exports = (router) => {
-
-
     router.post('/signup', async (req, res, next) => {
         const body = req.body
         const username = body.username
@@ -33,7 +30,6 @@ module.exports = (router) => {
     router.put('/update', function (req, res, next) {
 
     })
-
 
     return router
 }
