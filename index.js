@@ -4,7 +4,7 @@ const router = express.Router();
 const bodyParser = require('body-parser');
 const userRouter = require('./components/user/route')(router);
 const otpRouter = require('./components/otp/route')(router);
-const leaderboardRouter = require('./components/otp/route')(router);
+const leaderboardRouter = require('./components/leaderboard/route')(router);
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
 app.use('/user', userRouter);

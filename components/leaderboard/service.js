@@ -1,22 +1,25 @@
-const scoreboard = require('scoreboard')
-const Score = scoreboard.Score;
-const scores = new Score();
-scoreboard.redis.createClient = () => {
-    const client = redis.createClient();
-    client.auth('7ds7s7sa7DFSDS213a');
-    return client;
-};
+const Leaderboard = require('leaderboard-promise')
+const redis = require('redis'),
+    client = redis.createClient();
+// const Score = scoreboard.Score;
+// const scores = new Score();
+client.on("error", function (err) {
+    console.log("Error " + err);
+});
+const lb = new Leaderboard('otp', client)
 
-const getLeaderboard = () => {
-    scores.leader({keys:['otp']}).run(function(err, leaderboard) {
+const getLeaderboard = async () => {
+    scores.rank({keys:['otp']}).run(function(err, leaderboard) {
         console.log(leaderboard);
     });
 }
 
-const addScore = () => {
-    scores.index('otp', 100, 'edward');
+const addScore = async () => {
+    return await lb.add('ramin', 10)
+    // return await scores.index('otp', 100, 'edward');
 }
 
-return {
-    getLeaderboard: getLeaderboard
+module.exports = {
+    getLeaderboard: getLeaderboard,
+    addScore: addScore
 }
