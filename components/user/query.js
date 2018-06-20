@@ -9,7 +9,7 @@ const insertUser = async (username, hashedPassword, phoneNumber) => {
         password: hashedPassword,
         phoneNumber: phoneNumber
     })
-    return await user.save()
+    return await user.save({lean: true})
 }
 
 const updateUser = (query, update) => {

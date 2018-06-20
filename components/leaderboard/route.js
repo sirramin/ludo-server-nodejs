@@ -1,26 +1,29 @@
-const auth = require ('../../common/authMiddleware');
+const auth = require('../../common/authMiddleware');
 // const query = require('./query');
 const service = require('./service');
 const response = require('../../common/response')
 module.exports = (router) => {
 
-    router.get('/:operator', async (req, res, next) => {
+    router.get('/:operator', auth, async (req, res) => {
+        const {userId} = req.userInfo
         try {
-            await service.getLeaderboard()
-            response(res, '', 200, {token: token})
+            const leaders = await service.getLeaderboard(userId)
+            response(res, '', 200, {leaders: leaders})
         }
-        catch(err){
+        catch (err) {
             res.send(err)
         }
     })
 
-    router.post('/gameResult', async (req, res, next) => {
-        // const userId = req.headers.id
+    router.post('/gameResult', async (req, res) => {
+        const league = req.body.league
+        const isWinner = req.body.isWinner
+        const {userId} = req.userInfo
         try {
-            await service.addScore()
+            await service.addScore(userId, league, score)
             response(res, 'score added')
         }
-        catch(err){
+        catch (err) {
             response(res, 'error adding score', 1001)
         }
     })

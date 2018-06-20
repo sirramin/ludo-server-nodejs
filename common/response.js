@@ -3,7 +3,7 @@ const response = (res, message, statusCode = 200, data = {}) => {
     res.send({
         statusCode: statusCode,
         message: message,
-        result: data
+        data: data
     })
 }
 module.exports = response

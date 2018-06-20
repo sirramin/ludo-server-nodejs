@@ -1,4 +1,5 @@
-const bcrypt = require('bcrypt');
+// const bcrypt = require('bcryptjs');
+const jwt = require('../../common/jwt')
 const query = require('./query');
 module.exports = (router) => {
     router.post('/signup', async (req, res, next) => {
@@ -7,10 +8,11 @@ module.exports = (router) => {
         const password = body.password
         const phoneNumber = body.phoneNumber
         try {
-            await query.insertUser(username, password, phoneNumber)
+            const user = await query.insertUser(username, password, phoneNumber)
             const token = await jwt.generateJwt({
                 username: username,
-                password: password
+                password: password,
+                _id: (user._doc._id).toString()
             })
             res.send({token: token})
         }
