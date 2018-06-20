@@ -18,9 +18,9 @@ module.exports = (router) => {
     router.post('/gameResult', async (req, res) => {
         const league = req.body.league
         const isWinner = req.body.isWinner
-        const {userId} = req.userInfo
+        const userInfo = req.userInfo
         try {
-            await service.addScore(userId, league, score)
+            await service.addScore(userInfo, league, isWinner)
             response(res, 'score added')
         }
         catch (err) {
