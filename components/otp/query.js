@@ -15,6 +15,7 @@ const insertUser = async (username, hashedPassword, phoneNumber) => {
 const updateUser = (query, update) => {
 
 }
+
 module.exports = {
     checkUserExists: checkUserExists,
     insertUser: insertUser,

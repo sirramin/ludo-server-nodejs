@@ -1,8 +1,8 @@
 const mongoose = require('../../common/mongoose-client');
 const userSchema = mongoose.Schema({
-    username: String,
+    username: {type: String, unique: true},
     password: String,
-    phoneNumber: Number
+    phoneNumber: {type: Number, unique: true},
 });
 const userModel = mongoose.model('users', userSchema);
 

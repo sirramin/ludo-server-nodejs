@@ -1,6 +1,7 @@
-const leaderboardModel = require('./model')
+const {leagueModel} = require('./model')
 const findLeagueScore = async (leagueId) => {
-    leaderboardModel.findOne({leagueId: leagueId})
+    const league = await leagueModel.findOne({leagueId: leagueId}).lean().exec()
+    return league.winsBaseScore
 }
 
 module.exports = {

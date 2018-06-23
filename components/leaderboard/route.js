@@ -5,9 +5,9 @@ const response = require('../../common/response')
 module.exports = (router) => {
 
     router.get('/:operator', auth, async (req, res) => {
-        const {userId} = req.userInfo
+        const {username} = req.userInfo
         try {
-            const leaders = await service.getLeaderboard(userId)
+            const leaders = await service.getLeaderboard(username)
             response(res, '', 200, {leaders: leaders})
         }
         catch (err) {
@@ -15,12 +15,12 @@ module.exports = (router) => {
         }
     })
 
-    router.post('/gameResult', async (req, res) => {
+    router.post('/gameResult', auth, async (req, res) => {
         const league = req.body.league
         const isWinner = req.body.isWinner
         const userInfo = req.userInfo
         try {
-            await service.addScore(userInfo, league, isWinner)
+            await service.addScore(userInfo.username, league, isWinner)
             response(res, 'score added')
         }
         catch (err) {
