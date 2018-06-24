@@ -24,14 +24,23 @@ const getLeaderboard = async (username) => {
             top20: top20
         }
         const userRank = await lb.rank(userInfo)
+        const userScore = await lb.score(userInfo)
         let middleRank = []
         if (userRank > 20) {
             let prevUser = await lb.at(userRank - 1);
             prevUser.rank = userRank - 1;
-            let nextUser = await lb.at(userRank + 1);
-            prevUser.rank = userRank + 1;
+            prevUser.member = JSON.parse(prevUser.member)
 
-            [prevUser, userInfo, nextUser].forEach(user => {
+            let nextUser = await lb.at(userRank + 1);
+            nextUser.rank = userRank + 1;
+            nextUser.member = JSON.parse(nextUser.member)
+
+            const userTotalInfo = {}
+            userTotalInfo.member = JSON.parse(userInfo)
+            userTotalInfo.rank = userRank;
+            userTotalInfo.score = userScore;
+
+            [prevUser, userTotalInfo, nextUser].forEach(user => {
                 if (user)
                     middleRank.push(user)
             })

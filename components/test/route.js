@@ -1,5 +1,9 @@
-const _ = require('lodash');
-const rpn = require('request-promise-native')
+const _ = require('lodash'),
+    rpn = require('request-promise-native'),
+    Leaderboard = require('leaderboard-promise'),
+    asyncRedis = require("async-redis"),
+    redisClient = asyncRedis.createClient(),
+    lb = new Leaderboard('master-of-minds:otp', redisClient);
 
 module.exports = (router) => {
 
@@ -39,9 +43,22 @@ module.exports = (router) => {
             await rpn.post(options)
         }
 
-        await addUser()
+        const addScoreDirect = async () => {
+            for (let i = 0; i <= 500000; i++) {
+                const username = 'sirramin' + _.random(0, 9999999)
+                userInfo = {
+                    "username": username,
+                    "win": _.random(0, 1000),
+                    "lose": _.random(0, 1000)
+                }
+                await lb.add(JSON.stringify(userInfo), _.random(1, 99999))
+                await redisClient.hmset('users', username, JSON.stringify(userInfo))
+            }
+        }
 
+        await addScoreDirect()
     })
+
 
     return router
 }
