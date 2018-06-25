@@ -1,7 +1,7 @@
-const response = (res, message, statusCode = 200, data = {}) => {
-    console.info(message + ' ' + statusCode + ' ' + data)
+const response = (res, message, code = 200, data = {}) => {
+    console.info(message + ' ' + code + ' ' + data)
     res.send({
-        statusCode: statusCode,
+        code: code,
         message: message,
         data: data
     })

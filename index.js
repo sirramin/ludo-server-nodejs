@@ -1,6 +1,8 @@
 const express = require('express');
 const app = express();
 const router = express.Router();
+const path = require('path')
+app.use(express.static('apidoc'))
 const bodyParser = require('body-parser');
 const userRouter = require('./components/user/route')(router);
 const testRouter = require('./components/test/route')(router);
@@ -14,4 +16,8 @@ app.use('/otp', otpRouter);
 app.use('/leaderboard', leaderboardRouter);
 app.use('/unitTest', testRouter);
 
-app.listen(4000, () => console.log('app listening on port 4000!'))
+app.get('/apidoc', function(req, res) {
+    res.sendFile(path.join(__dirname + '/apidoc/index.html'));
+});
+
+app.listen(3000, () => console.log('app listening on port 3000!'))

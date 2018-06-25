@@ -1,7 +1,7 @@
 const rpn = require('request-promise-native'),
-    query = require('./configData'),
+    query = require('./query'),
     jwt = require('../../common/jwt'),
-    configData = require('../../config-data');
+    configData = require('../../common/config-data');
 
 const checkSubscriptionStatus = async (phoneNumber) => {
     let path = configData.vasValidationUrl;
@@ -11,13 +11,22 @@ const checkSubscriptionStatus = async (phoneNumber) => {
         method: 'get',
         uri: url,
     };
-
-    const isActive = await rpn(options)
-    return isActive.statusCode !== 'inactive'
+    try {
+        const isActive = await rpn(options)
+        return isActive.statusCode !== 'inactive'
+    }
+    catch (e) {
+        throw new Error({message: 'Check SubscriptionStatus error', statusCode: 7})
+    }
 }
 
 const checkUserExists = async (phoneNumber) => {
-    return await query.checkUserExists(user)
+    try {
+        return await query.checkUserExists(phoneNumber)
+    }
+    catch (e) {
+        throw new Error({message: 'Check user db error', statusCode: 6})
+    }
 }
 
 const requestSms = async (phoneNumber) => {
@@ -40,7 +49,7 @@ const requestSms = async (phoneNumber) => {
             throw new Error()
     }
     catch (e) {
-        return {message: 'OTP error', statusCode: 500}
+        return {message: 'Request sms error', statusCode: 5}
     }
 }
 
@@ -63,20 +72,26 @@ const insertUser = async (phoneNumber) => {
 }
 
 const getUserInfo = async (phoneNumber) => {
-    const returnedUser = await query.findUser(phoneNumber)
-    const user = {
-        name: returnedUser.name,
-        userId: returnedUser._id,
-        phoneNumber: phoneNumber,
-        market: returnedUser.market
+    try {
+        const returnedUser = await query.findUser(phoneNumber)
+        const user = {
+            name: returnedUser.name,
+            userId: returnedUser._id,
+            phoneNumber: phoneNumber,
+            market: returnedUser.market
+        }
+        const token = await jwt.generateJwt(user)
+        return {
+            name: returnedUser.name,
+            userId: returnedUser._id,
+            phoneNumber: phoneNumber,
+            token: token,
+            coin: 0
+        }
     }
-    const token = await jwt.generateJwt(user)
-    return {
-        name: returnedUser.name,
-        userId: returnedUser._id,
-        phoneNumber: phoneNumber,
-        token: token,
-        coin: 0
+    catch (e) {
+        return {message: 'Get user info error', statusCode: 8}
+
     }
 }
 
@@ -96,16 +111,15 @@ const confirmation = async (phoneNumber, verificationCode, cpUniqueToken, otpTra
     };
     try {
         result = await rpn.post(options)
+        console.log('confirmation result: ' + result)
         if (result.statusCode === 200) {
-            query.insertUser()
-            return {message: 'Successfully registered', statusCode: 409}
-
+            return {message: 'Successfully registered', statusCode: 9}
         }
         else
-            return {message: 'OTP error', statusCode: 510}
+            throw new Error()
     }
     catch (e) {
-        return {message: 'OTP error', statusCode: 510}
+        return {message: 'confirmation OTP error', statusCode: 10}
     }
 }
 
