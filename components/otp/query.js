@@ -1,15 +1,13 @@
-const userModel = require('./model')
-const checkUserExists = (username) => {
-    return users.findOne({username: username})
+const userModel = require('../user/model'),
+    _ = require('lodash');
+
+
+const checkUserExists = async (username) => {
+    return await userModel.findOne({username: username})
 }
 
-const insertUser = async (username, hashedPassword, phoneNumber) => {
-    const user = new userModel({
-        username: username,
-        password: hashedPassword,
-        phoneNumber: phoneNumber
-    })
-    return await user.save()
+const insertUser = async (user) => {
+    return await user.save(user)
 }
 
 const updateUser = (query, update) => {
