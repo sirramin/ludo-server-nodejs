@@ -1,70 +1,56 @@
 const service = require('./service'),
-    response = require('../../common/response')
-jwt = require('../../common/jwt');
+    response = require('../../common/response');
+
 module.exports = (router) => {
 
     /**
      * @api {get} /otp/check/:phoneNumber Check User
      * @apiName check
      * @apiGroup otp
-     * @apiParam {Number} phoneNumber phone number.
-
-     * @apiSuccess (Success 1) {Object} userData user data on database
-        * @apiSuccess (Success 1) {String}  userData.name
-        * @apiSuccess (Success 1) {String}  userData.userId
-        * @apiSuccess (Success 1) {Number}  userData.phoneNumber
-        * @apiSuccess (Success 1) {String}  userData.token
-        * @apiSuccess (Success 1) {Number}  userData.coin
-
-     * @apiSuccess (Success 2) {Object} smsData sms data for sending to confirmation aip
-        * @apiSuccess (Success 2) {String}  smsData.cpUniqueToken
-        * @apiSuccess (Success 2) {String}  smsData.otpTransactionId
-     * @apiSuccess (Success 2) {Object} userData
-
-     * @apiSuccess (Success 3) {Object} userData
-
-     * @apiSuccess (Success 4) {Object} userData
-     * @apiSuccess (Success 4) {Object} smsData
+     * @apiParam {Number} phoneNumber
+     * @apiSuccess (Success 1) {String} message Code sent
+     * @apiSuccess (Success 2) {Object} smsData sms data for sending to confirmation api
+     * @apiSuccess (Success 2) {String}  smsData.cpUniqueToken
+     * @apiSuccess (Success 2) {String}  smsData.otpTransactionId
+     * @apiSuccess (Success 3) {String} message Code sent
+     * @apiSuccess (Success 4) {Object} smsData sms data for sending to confirmation api
+     * @apiSuccess (Success 4) {String}  smsData.cpUniqueToken
+     * @apiSuccess (Success 4) {String}  smsData.otpTransactionId
      *
      * @apiError (Errors) 5 Request sms error
      * @apiError (Errors) 6 Check user db error
      * @apiError (Errors) 7 Check SubscriptionStatus error
      * @apiError (Errors) 8 Get user info error
+     * @apiError (Errors) 9 Request login sms error
+     * @apiError (Errors) 10 phoneNumber required
 
      */
     router.get('/check/:phoneNumber', async (req, res, next) => {
-        if (!req.body.phoneNumber) {
-            response(res, "phoneNumber required", 1)
+        if (!req.params.phoneNumber) {
+            response(res, "phoneNumber required", 10)
         }
-        const phoneNumber = req.params.phoneNumber
+        const phoneNumber = (req.params.phoneNumber).toString()
         try {
             const isUserExists = await service.checkUserExists(phoneNumber)
             const isUserSubscribed = await service.checkSubscriptionStatus(phoneNumber)
-            let userData, smsData, statusCode;
             if (isUserSubscribed && !isUserExists) {
-                userData = await service.insertUser(phoneNumber)
-                await service.requestSms2(phoneNumber)
-                statusCode = 1
+                await service.addUser(phoneNumber)
+                await service.requestLoginSms(phoneNumber)
+                response(res, 'Code sent', 1)
             }
             if (!isUserSubscribed && isUserExists) {
-                userData = await service.getUserInfo(phoneNumber)
-                smsData = await service.requestSms(phoneNumber)
-                statusCode = 2
+                const smsData = await service.requestSms(phoneNumber)
+                response(res, '', 2, {smsData: smsData})
             }
             if (isUserSubscribed && isUserExists) {
-                userData = await service.getUserInfo(phoneNumber)
-                await service.requestSms2(phoneNumber)
-                statusCode = 3
+                await service.requestLoginSms(phoneNumber)
+                response(res, 'code sent', 3)
             }
             if (!isUserSubscribed && !isUserExists) {
-                userData = await service.insertUser(phoneNumber)
-                smsData = await service.requestSms(phoneNumber)
-                statusCode = 4
+                await service.addUser(phoneNumber)
+                const smsData = await service.requestSms(phoneNumber)
+                response(res, '', 4, {smsData: smsData})
             }
-            response(res, '', statusCode, {
-                userData: userData,
-                smsData: smsData
-            })
         }
         catch (e) {
             response(res, e.message, e.statusCode)
@@ -73,7 +59,7 @@ module.exports = (router) => {
 
 
     /**
-     * @api {post} /otp/confirmation/:phoneNumber Check User
+     * @api {post} /otp/confirmation/:phoneNumber confirmation
      * @apiName confirmation
      * @apiGroup otp
      * @apiParam {Number} phoneNumber
@@ -82,13 +68,27 @@ module.exports = (router) => {
      * @apiParam {String} otpTransactionId
 
 
-     * @apiSuccess (Success 9) {String} message Successfully registered
+     * @apiSuccess (Success 1) {Object} userData user data on database
+     * @apiSuccess (Success 1) {String}  userData.name
+     * @apiSuccess (Success 1) {String}  userData.userId
+     * @apiSuccess (Success 1) {Number}  userData.phoneNumber
+     * @apiSuccess (Success 1) {String}  userData.token
+     * @apiSuccess (Success 1) {Number}  userData.coin
      *
-     * @apiError (Errors) 10 confirmation OTP error
-
+     * @apiError (Errors) 21 confirmation OTP error
+     * @apiError (Errors) 22 phoneNumber required
+     * @apiError (Errors) 23 verificationCode required
+     * @apiError (Errors) 24 Get user info error
+     * @apiError (Errors) 25 Code is not valid
      */
     router.post('/confirmation/:phoneNumber', async (req, res, next) => {
-        const phoneNumber = req.params.phoneNumber
+        if (!req.params.phoneNumber) {
+            response(res, "phoneNumber required", 22)
+        }
+        if (!req.body.verificationCode) {
+            response(res, "verificationCode required", 23)
+        }
+        const phoneNumber = (req.params.phoneNumber).toString()
         const verificationCode = req.body.verificationCode
         const cpUniqueToken = req.body.cpUniqueToken
         const otpTransactionId = req.body.otpTransactionId
@@ -97,7 +97,7 @@ module.exports = (router) => {
             response(res, result.message, result.statusCode)
         }
         catch (err) {
-            response(res, e.message, e.statusCode)
+            response(res, err.message, err.statusCode)
         }
     })
 

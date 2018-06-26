@@ -3,11 +3,13 @@ const checkUserExists = (username) => {
     return users.findOne({username: username})
 }
 
-const insertUser = async (username, hashedPassword, phoneNumber) => {
+const insertUser = async (username, hashedPassword, phoneNumber, name, market) => {
     const user = new userModel({
         username: username,
         password: hashedPassword,
-        phoneNumber: phoneNumber
+        phoneNumber: phoneNumber,
+        market: market,
+        name: name
     })
     return await user.save({lean: true})
 }

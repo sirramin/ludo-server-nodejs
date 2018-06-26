@@ -11,20 +11,23 @@ redisClient.on("error", function (err) {
     console.log("Error " + err);
 });
 
-const getLeaderboard = async (username) => {
-    const userInfo = await redisClient.hget('users', username)
+const getLeaderboard = async (name, userId) => {
+    const userInfo = await redisClient.hget('users', userId)
+    const userRank = await lb.rank(userId) + 1
+    const userScore = await lb.score(userId)
 
     try {
         const top20 = await lb.membersInRankRange(0, 19)
         top20.forEach(user => {
-            user.member = JSON.parse(user.member)
+            const otherUserInfo = redisClient.hget('users', user.member)
+            user.member = JSON.parse(otherUserInfo)
+            user.rank += 1
         })
 
         let leaders = {
             top20: top20
         }
-        const userRank = await lb.rank(userInfo)
-        const userScore = await lb.score(userInfo)
+
         let middleRank = []
         if (userRank > 20) {
             let prevUser = await lb.at(userRank - 1);
@@ -55,35 +58,37 @@ const getLeaderboard = async (username) => {
     }
 }
 
-const addScore = async (username, league = 1, isWinner) => {
-    const userGameDetails = await redisClient.hget('users', username)
+const addScore = async (userData, league = 1, isWinner) => {
+    const userId = userData.userId
+    const userGameDetails = await redisClient.hget('users', userId)
     const score = await query.findLeagueScore(league)
     let userInfo = {}
-    if (userGameDetails) { //early user
-        const userWins = JSON.parse(userGameDetails).win
-        const userloses = JSON.parse(userGameDetails).lose
-        userInfo = {
-            "username": username,
-            "win": isWinner ? userWins + 1 : userWins,
-            "lose": !isWinner ? userloses + 1 : userloses
-        }
-        await lb.incr(JSON.stringify(userInfo), score)
+    const userWins = JSON.parse(userGameDetails).win
+    const userloses = JSON.parse(userGameDetails).lose
+    userInfo = {
+        "name": userData.name,
+        "userId": userId,
+        "win": isWinner ? userWins + 1 : userWins,
+        "lose": !isWinner ? userloses + 1 : userloses
     }
-    else { // first time
-        userInfo = {
-            "username": username,
-            "win": isWinner ? 1 : 0,
-            "lose": !isWinner ? 1 : 0
-        }
-        // await lb.add(JSON.stringify(userInfo), score)
-        await lb.add(JSON.stringify(userInfo), _.random(1, 99999))
-    }
+    await lb.incr(userId, score)
+    return await redisClient.hmset('users', userId, JSON.stringify(userInfo))
+}
 
-    return await redisClient.hmset('users', username, JSON.stringify(userInfo))
+const firstTimeScore = async (name, userId) => {
+    userInfo = {
+        "name": name,
+        "userId": userId,
+        "win": 0,
+        "lose": 0
+    }
+    await lb.add(userId, 0)
+    return await redisClient.hmset('users', userId, JSON.stringify(userInfo))
 }
 
 
 module.exports = {
     getLeaderboard: getLeaderboard,
-    addScore: addScore
+    addScore: addScore,
+    firstTimeScore: firstTimeScore
 }

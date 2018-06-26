@@ -7,16 +7,19 @@ module.exports = (router) => {
         const username = body.username
         const password = body.password
         const phoneNumber = body.phoneNumber
+        const market = body.market
+        const name = 'user' + _.random(1, 99999)
         try {
-            const user = await query.insertUser(username, password, phoneNumber)
+            const user = await query.insertUser(username, password, phoneNumber, name, market)
             const token = await jwt.generateJwt({
+                name: name,
                 username: username,
                 password: password,
-                _id: (user._doc._id).toString()
+                userId: (user._doc._id).toString()
             })
             res.send({token: token})
         }
-        catch(err){
+        catch (err) {
             res.send(err)
         }
     })

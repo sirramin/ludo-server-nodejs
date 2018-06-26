@@ -1,19 +1,18 @@
 const rpn = require('request-promise-native'),
     query = require('./query'),
     jwt = require('../../common/jwt'),
-    configData = require('../../common/config-data');
+    _ = require('lodash'),
+    leaderboardService = require('../leaderboard/service'),
+    base64 = require('base-64'),
+    configData = require('../../common/config');
 
 const checkSubscriptionStatus = async (phoneNumber) => {
-    let path = configData.vasValidationUrl;
-    let number = '98' + phoneNumber.substr(1);
-    let url = String.format(path, number);
-    let options = {
-        method: 'get',
-        uri: url,
-    };
+    const number = '98' + phoneNumber.substr(1)
+    const urlTemplate = _.template(configData.vas.validationUrl)
+    const url = urlTemplate({'number': number})
     try {
-        const isActive = await rpn(options)
-        return isActive.statusCode !== 'inactive'
+        const isActive = await rpn({uri: url, json: true})
+        return isActive.status === 'active'
     }
     catch (e) {
         throw new Error({message: 'Check SubscriptionStatus error', statusCode: 7})
@@ -34,41 +33,51 @@ const requestSms = async (phoneNumber) => {
         method: 'POST',
         uri: 'https://otp.artatel.ir/api/otp/v1/request/masterOfMind/' + phoneNumber,
         headers: {
-            'Authorization': 'Basic ' + base64_encode(configData.otp.username + configData.otp.password)
+            'Authorization': 'Basic ' + base64.encode(configData.otp.username + configData.otp.password)
         },
         json: true
     };
     try {
         result = await rpn.post(options)
         if (result.statusCode === 200)
-            return {
-                statusCode: 409,
-                data: {cpUniqueToken: result.cpUniqueToken, otpTransactionId: result.otpTransactionId}
-            }
+            return {cpUniqueToken: result.cpUniqueToken, otpTransactionId: result.otpTransactionId}
         else
             throw new Error()
     }
     catch (e) {
-        return {message: 'Request sms error', statusCode: 5}
+        throw new Error({message: 'Request sms error', statusCode: 5})
     }
 }
 
+const requestLoginSms = async (phoneNumber) => {
+    const code = _.random(1, 99999)
+    const number = '98' + phoneNumber.substr(1);
+    const urlTemplate = _.template(configData.vas.smsUrl)
+    const url = urlTemplate({'number': number, 'smsVerifyCode': code})
+    try {
+        await query.updateVerifyCode(phoneNumber, code)
+        await rpn({uri: url, json: true})
+    }
+    catch (e) {
+        throw new Error({message: 'Request login sms error', statusCode: 9})
+    }
+}
 
-const insertUser = async (phoneNumber) => {
+const verifySms = async (code, phoneNumber) => {
+    await query.validateSmsCode(code)
+}
+
+
+const addUser = async (phoneNumber) => {
     const user = {
         name: 'user' + _.random(1, 99999),
         phoneNumber: phoneNumber,
         market: 'mci'
     }
-    const returnedUser = await query.insetUser(user)
-    const token = await jwt.generateJwt(user)
-    return {
-        name: returnedUser.name,
-        userId: returnedUser._id,
-        phoneNumber: phoneNumber,
-        token: token,
-        coin: 0
-    }
+    const returnedUser = await query.insertUser(user)
+    const returnedUserId = (returnedUser._doc._id).toString()
+    const returneduserName = returnedUser._doc.name
+    return await leaderboardService.firstTimeScore(returneduserName, returnedUserId)
 }
 
 const getUserInfo = async (phoneNumber) => {
@@ -86,16 +95,22 @@ const getUserInfo = async (phoneNumber) => {
             userId: returnedUser._id,
             phoneNumber: phoneNumber,
             token: token,
-            coin: 0
+            coin: returnedUser.coin
         }
     }
     catch (e) {
-        return {message: 'Get user info error', statusCode: 8}
-
+        return {message: 'Get user info error', statusCode: 24}
     }
 }
 
 const confirmation = async (phoneNumber, verificationCode, cpUniqueToken, otpTransactionId) => {
+    if (cpUniqueToken && otpTransactionId)
+        return await verifyOtpSMS(phoneNumber, verificationCode, cpUniqueToken, otpTransactionId)
+    else
+        return await verifyLoginSms(phoneNumber, verificationCode)
+}
+
+const verifyOtpSMS = async (phoneNumber, verificationCode, cpUniqueToken, otpTransactionId) => {
     const options = {
         method: 'POST',
         uri: 'https://otp.artatel.ir/api/otp/v1/confirmation/masterOfMind/' + phoneNumber,
@@ -105,22 +120,33 @@ const confirmation = async (phoneNumber, verificationCode, cpUniqueToken, otpTra
             "otpTransactionId": otpTransactionId
         },
         headers: {
-            'Authorization': 'Basic ' + base64_encode(configData.otp.username + configData.otp.password)
+            'Authorization': 'Basic ' + base64.encode(configData.otp.username + ' ' + configData.otp.password)
         },
         json: true
     };
     try {
-        result = await rpn.post(options)
+        const result = await rpn.post(options)
         console.log('confirmation result: ' + result)
         if (result.statusCode === 200) {
-            return {message: 'Successfully registered', statusCode: 9}
+            return await getUserInfo(phoneNumber)
         }
         else
-            throw new Error()
+            throw new Error({message: 'Code is not valid', statusCode: 25})
     }
     catch (e) {
-        return {message: 'confirmation OTP error', statusCode: 10}
+        if (!e.statusCode)
+            throw new Error({message: 'confirmation OTP error', statusCode: 21})
+        else
+            throw new Error(e)
     }
+}
+
+const verifyLoginSms = async (phoneNumber, verificationCode) => {
+    const isCodeValid = await query.checkCodeIsValid(phoneNumber, verificationCode)
+    if (isCodeValid)
+        return await getUserInfo(phoneNumber)
+    else
+        return {message: 'Code is not valid', statusCode: 25}
 }
 
 module.exports = {
@@ -128,6 +154,8 @@ module.exports = {
     checkSubscriptionStatus: checkSubscriptionStatus,
     confirmation: confirmation,
     requestSms: requestSms,
-    insertUser: insertUser,
-    getUserInfo: getUserInfo
+    addUser: addUser,
+    getUserInfo: getUserInfo,
+    requestLoginSms: requestLoginSms,
+    verifySms: verifySms
 }
