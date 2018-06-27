@@ -75,11 +75,12 @@ module.exports = (router) => {
      * @apiSuccess (Success 1) {String}  userData.token
      * @apiSuccess (Success 1) {Number}  userData.coin
      *
-     * @apiError (Errors) 21 confirmation OTP error
+     * @apiError (Errors) 21 OTP error
      * @apiError (Errors) 22 phoneNumber required
      * @apiError (Errors) 23 verificationCode required
      * @apiError (Errors) 24 Get user info error
      * @apiError (Errors) 25 Code is not valid
+     * @apiError (Errors) 26 error adding user
      */
     router.post('/confirmation/:phoneNumber', async (req, res, next) => {
         if (!req.params.phoneNumber) {

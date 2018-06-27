@@ -4,7 +4,9 @@ const rpn = require('request-promise-native'),
     _ = require('lodash'),
     leaderboardService = require('../leaderboard/service'),
     base64 = require('base-64'),
-    configData = require('../../common/config');
+    response = require('../../common/response'),
+    configData = require('../../common/config'),
+    otpHeader = 'Basic ' + base64.encode(configData.otp.username + ':' + configData.otp.password).toString();
 
 const checkSubscriptionStatus = async (phoneNumber) => {
     const number = '98' + phoneNumber.substr(1)
@@ -15,7 +17,7 @@ const checkSubscriptionStatus = async (phoneNumber) => {
         return isActive.status === 'active'
     }
     catch (e) {
-        throw new Error({message: 'Check SubscriptionStatus error', statusCode: 7})
+        throw ({message: 'Check SubscriptionStatus error', statusCode: 7})
     }
 }
 
@@ -24,7 +26,7 @@ const checkUserExists = async (phoneNumber) => {
         return await query.checkUserExists(phoneNumber)
     }
     catch (e) {
-        throw new Error({message: 'Check user db error', statusCode: 6})
+        throw ({message: 'Check user db error', statusCode: 6})
     }
 }
 
@@ -33,19 +35,16 @@ const requestSms = async (phoneNumber) => {
         method: 'POST',
         uri: 'https://otp.artatel.ir/api/otp/v1/request/masterOfMind/' + phoneNumber,
         headers: {
-            'Authorization': 'Basic ' + base64.encode(configData.otp.username + configData.otp.password)
+            'Authorization': otpHeader
         },
         json: true
     };
     try {
         result = await rpn.post(options)
-        if (result.statusCode === 200)
-            return {cpUniqueToken: result.cpUniqueToken, otpTransactionId: result.otpTransactionId}
-        else
-            throw new Error()
+        return {cpUniqueToken: result.cpUniqueToken, otpTransactionId: result.otpTransactionId}
     }
     catch (e) {
-        throw new Error({message: 'Request sms error', statusCode: 5})
+        throw ({message: 'Request sms error', statusCode: 5})
     }
 }
 
@@ -59,7 +58,7 @@ const requestLoginSms = async (phoneNumber) => {
         await rpn({uri: url, json: true})
     }
     catch (e) {
-        throw new Error({message: 'Request login sms error', statusCode: 9})
+        throw ({message: 'Request login sms error', statusCode: 9})
     }
 }
 
@@ -69,15 +68,20 @@ const verifySms = async (code, phoneNumber) => {
 
 
 const addUser = async (phoneNumber) => {
-    const user = {
-        name: 'user' + _.random(1, 99999),
-        phoneNumber: phoneNumber,
-        market: 'mci'
+    try {
+        const user = {
+            name: 'user' + _.random(1, 99999),
+            phoneNumber: phoneNumber,
+            market: 'mci'
+        }
+        const returnedUser = await query.insertUser(user)
+        const returnedUserId = (returnedUser._doc._id).toString()
+        const returneduserName = returnedUser._doc.name
+        return await leaderboardService.firstTimeScore(returneduserName, returnedUserId)
     }
-    const returnedUser = await query.insertUser(user)
-    const returnedUserId = (returnedUser._doc._id).toString()
-    const returneduserName = returnedUser._doc.name
-    return await leaderboardService.firstTimeScore(returneduserName, returnedUserId)
+    catch (e) {
+        throw {message: 'error adding user', statusCode: 26}
+    }
 }
 
 const getUserInfo = async (phoneNumber) => {
@@ -99,7 +103,7 @@ const getUserInfo = async (phoneNumber) => {
         }
     }
     catch (e) {
-        return {message: 'Get user info error', statusCode: 24}
+        throw {message: 'Get user info error', statusCode: 24}
     }
 }
 
@@ -120,24 +124,20 @@ const verifyOtpSMS = async (phoneNumber, verificationCode, cpUniqueToken, otpTra
             "otpTransactionId": otpTransactionId
         },
         headers: {
-            'Authorization': 'Basic ' + base64.encode(configData.otp.username + ' ' + configData.otp.password)
+            'Authorization': otpHeader
         },
         json: true
     };
     try {
         const result = await rpn.post(options)
         console.log('confirmation result: ' + result)
-        if (result.statusCode === 200) {
-            return await getUserInfo(phoneNumber)
-        }
-        else
-            throw new Error({message: 'Code is not valid', statusCode: 25})
+        return await getUserInfo(phoneNumber)
     }
     catch (e) {
-        if (!e.statusCode)
-            throw new Error({message: 'confirmation OTP error', statusCode: 21})
+        if (e.statusCode === 500)
+            throw {message: 'Code is not valid', statusCode: 25}
         else
-            throw new Error(e)
+            throw {message: 'OTP error', statusCode: 21}
     }
 }
 
@@ -146,7 +146,7 @@ const verifyLoginSms = async (phoneNumber, verificationCode) => {
     if (isCodeValid)
         return await getUserInfo(phoneNumber)
     else
-        return {message: 'Code is not valid', statusCode: 25}
+        throw {message: 'Code is not valid', statusCode: 25}
 }
 
 module.exports = {
