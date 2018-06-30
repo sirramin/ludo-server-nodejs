@@ -4,7 +4,6 @@ const rpn = require('request-promise-native'),
     _ = require('lodash'),
     leaderboardService = require('../leaderboard/service'),
     base64 = require('base-64'),
-    response = require('../../common/response'),
     configData = require('../../common/config'),
     otpHeader = 'Basic ' + base64.encode(configData.otp.username + ':' + configData.otp.password).toString();
 

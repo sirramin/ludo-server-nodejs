@@ -1,10 +1,8 @@
 const query = require('./query')
 Leaderboard = require('leaderboard-promise'),
     _ = require('lodash'),
-    asyncRedis = require("async-redis"),
-    // redis = require('redis'),
-    redisClient = asyncRedis.createClient(),
-    lb = new Leaderboard('master-of-minds:otp', redisClient)
+    redisClient = require('../../common/redis-client');
+    const lb = new Leaderboard('master-of-minds:otp', {}, redisClient)
 
 
 redisClient.on("error", function (err) {
@@ -54,7 +52,7 @@ const getLeaderboard = async (name, userId) => {
         return leaders
     }
     catch (e) {
-        return err
+        throw e
     }
 }
 
