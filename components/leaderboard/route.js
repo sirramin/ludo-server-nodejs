@@ -1,5 +1,4 @@
 const auth = require('../../common/authMiddleware');
-// const query = require('./query');
 const service = require('./service');
 const response = require('../../common/response')
 module.exports = (router) => {
@@ -72,8 +71,7 @@ module.exports = (router) => {
      */
 
     router.post('/gameResult', auth, async (req, res) => {
-        const league = req.body.league
-        const isWinner = req.body.isWinner
+        const {league, isWinner}  = req.body
         const userInfo = req.userInfo
         try {
             await service.addScore(userInfo, league, isWinner)

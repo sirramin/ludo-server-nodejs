@@ -9,6 +9,7 @@
   "author": "ramin sarmadi",
   "license": "ISC",
   "dependencies": {
+    "async": "^2.6.1",
     "async-redis": "^1.1.4",
     "base-64": "^0.1.0",
     "bcryptjs": "^2.4.3",

@@ -1,11 +1,10 @@
-const asyncRedis = require("redis");
-let redisClient
-if (process.env.docker) {
-    console.info('redis on the Docker')
-    redisClient = asyncRedis.createClient(6379, "redis")
-}
-else {
-    console.info('redis on local')
-    redisClient = asyncRedis.createClient()
-}
-module.exports = redisClient
+// const redis = require("redis");
+// const redisClient = redis.createClient()
+const asyncRedis = require("async-redis");
+const redisClientAsync = asyncRedis.createClient()
+
+redisClientAsync.on("error", function (err) {
+    console.log("Error " + err);
+});
+
+module.exports = redisClientAsync

@@ -1,13 +1,8 @@
-const query = require('./query')
-Leaderboard = require('leaderboard-promise'),
+const query = require('./query'),
+    Leaderboard = require('leaderboard-promise'),
     _ = require('lodash'),
-    redisClient = require('../../common/redis-client');
-    const lb = new Leaderboard('master-of-minds:otp', {}, redisClient)
-
-
-redisClient.on("error", function (err) {
-    console.log("Error " + err);
-});
+    redisClient = require('../../common/redis-client'),
+    lb = new Leaderboard('master-of-minds:otp')
 
 const getLeaderboard = async (name, userId) => {
     const userInfo = await redisClient.hget('users', userId)
@@ -16,14 +11,22 @@ const getLeaderboard = async (name, userId) => {
 
     try {
         const top20 = await lb.membersInRankRange(0, 19)
-        top20.forEach(user => {
-            const otherUserInfo = redisClient.hget('users', user.member)
-            user.member = JSON.parse(otherUserInfo)
-            user.rank += 1
-        })
+        const top20WithInfo = []
+        const asyncLoop = async (top20) => {
+            for (let i = 0; i < top20.length; i++) {
+                const otherUser = top20[i]
+                const otherUserInfo = await redisClient.hget('users', otherUser.member)
+                top20WithInfo.push({
+                    rank: otherUser.rank + 1,
+                    memberInfo: JSON.parse(otherUserInfo),
+                    score: otherUser.score
+                })
+            }
+        }
+        await asyncLoop(top20)
 
         let leaders = {
-            top20: top20
+            top20: top20WithInfo
         }
 
         let middleRank = []
@@ -52,6 +55,7 @@ const getLeaderboard = async (name, userId) => {
         return leaders
     }
     catch (e) {
+        console.log(e)
         throw e
     }
 }
