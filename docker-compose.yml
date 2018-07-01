@@ -15,9 +15,9 @@ services:
     volumes:
       - ./data:/data/db
     ports:
-      - "27017"
+      - "27018:27017"
   redis:
     container_name: redis
     image: "redis:alpine"
     ports:
-      - "6379"
+      - "6378:6379"
