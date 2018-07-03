@@ -3,20 +3,11 @@ const jwt = require('../../common/jwt')
 const query = require('./query');
 module.exports = (router) => {
     router.post('/signup', async (req, res, next) => {
-        const body = req.body
-        const username = body.username
-        const password = body.password
-        const phoneNumber = body.phoneNumber
-        const market = body.market
+        const {username, password, phoneNumber, market, gameId} = req.body
         const name = 'user' + _.random(1, 99999)
         try {
             const user = await query.insertUser(username, password, phoneNumber, name, market)
-            const token = await jwt.generateJwt({
-                name: name,
-                username: username,
-                password: password,
-                userId: (user._doc._id).toString()
-            })
+            const token = await jwt.generateJwt()
             res.send({token: token})
         }
         catch (err) {

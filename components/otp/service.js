@@ -4,7 +4,7 @@ const rpn = require('request-promise-native'),
     _ = require('lodash'),
     leaderboardService = require('../leaderboard/service'),
     base64 = require('base-64'),
-    configData = require('../../common/config'),
+    configData = require('./config'),
     otpHeader = 'Basic ' + base64.encode(configData.otp.username + ':' + configData.otp.password).toString();
 
 const checkSubscriptionStatus = async (phoneNumber) => {
@@ -86,12 +86,6 @@ const addUser = async (phoneNumber) => {
 const getUserInfo = async (phoneNumber) => {
     try {
         const returnedUser = await query.findUser(phoneNumber)
-        const user = {
-            name: returnedUser.name,
-            userId: returnedUser._id,
-            phoneNumber: phoneNumber,
-            market: returnedUser.market
-        }
         const token = await jwt.generateJwt(user)
         return {
             name: returnedUser.name,
