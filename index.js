@@ -1,6 +1,7 @@
 const express = require('express')
 const app = express()
 const router = express.Router()
+global.connections = {}
 app.use('/apidoc8574636', express.static('apidoc'))
 const bodyParser = require('body-parser')
 const userRouter = require('./components/user/route')(router)
@@ -13,5 +14,4 @@ app.use('/user', userRouter)
 app.use('/otp', otpRouter)
 app.use('/leaderboard', leaderboardRouter)
 // app.use('/unitTest', testRouter)
-global.connections = {};
 app.listen(3000, () => console.log('app listening on port 3000!'))

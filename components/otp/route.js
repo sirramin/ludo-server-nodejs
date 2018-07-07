@@ -30,7 +30,7 @@ module.exports = (router) => {
         if (!req.params.phoneNumber) {
             response(res, "phoneNumber required", 10)
         }
-        const service = require('./service')(req.dbUrl)
+        const service = require('./service')(req.gameMeta.dbUrl)
         const phoneNumber = req.params.phoneNumber
         try {
             const isUserExists = await service.checkUserExists(phoneNumber)

@@ -1,17 +1,17 @@
-// const bcrypt = require('bcryptjs');
-const jwt = require('../../common/jwt')
-const query = require('./query');
+const gameIdentifier = require('../../common/gameIdentifier'),
+    response = require('../../common/response')
+
+
 module.exports = (router) => {
-    router.post('/signup', async (req, res, next) => {
-        const {username, password, phoneNumber, market, gameId} = req.body
-        const name = 'user' + _.random(1, 99999)
-        try {
-            const user = await query.insertUser(username, password, phoneNumber, name, market)
-            const token = await jwt.generateJwt()
-            res.send({token: token})
-        }
-        catch (err) {
-            res.send(err)
+    router.post('/signup', gameIdentifier, async (req, res, next) => {
+        const service = require('./service')(req.dbUrl)
+        const {username, password, phoneNumber, market} = req.body
+        const isUserExists = await service.checkUserExists(username)
+        if (isUserExists)
+            response(res, 'User already registered')
+        else {
+            const user = await service.registerUser(username, password, phoneNumber, market)
+            response(res, undefined, undefined, user)
         }
     })
 

@@ -1,7 +1,7 @@
 const _ = require('lodash')
 
-module.exports = (dbName) => {
-    const userModel = require('../user/model')(dbName)
+module.exports = (dbUrl) => {
+    const userModel = require('../user/model')(dbUrl)
 
     const checkUserExists = async (phoneNumber) => {
         return await userModel.findOne({phoneNumber: phoneNumber}).lean().exec()

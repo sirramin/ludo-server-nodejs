@@ -1,24 +1,13 @@
-module.exports = (dbName) => {
+module.exports = (dbUrl) => {
     const mongooseClient = require('mongoose');
-    // exports.getDatabaseConnection = function (dbName) {
-    //     if (connections[dbName]) {
-    //         //database connection already exist. Return connection object
-    //         return connections['dbName'];
-    //     } else {
-    //         connections[dbName] = mongoose.createConnection('mongodb://localhost:27017/' + dbName);
-    //         return connections['dbName'];
-    //     }
-    // }
-    if(!connections[dbName])
-    connections[dbName] = mongooseClient.createConnection('mongodb://localhost/' + dbName);
-
-    // const db = mongooseClient.connection;
-    connections[dbName].on('error', console.error.bind(console, 'connection error:'));
-    connections[dbName].once('open', function () {
+    if(!connections[dbUrl])
+    connections[dbUrl] = mongooseClient.createConnection('mongodb://localhost/' + dbUrl);
+    connections[dbUrl].on('error', console.error.bind(console, 'connection error:'));
+    connections[dbUrl].once('open', function () {
         console.info('mongoose connected')
     });
     return {
-        connections: connections[dbName],
+        connections: connections,
         mongooseClient: mongooseClient
     }
 }

@@ -6,8 +6,8 @@ const rpn = require('request-promise-native'),
     configData = require('./config'),
     otpHeader = 'Basic ' + base64.encode(configData.otp.username + ':' + configData.otp.password).toString();
 
-module.exports = (dbName) => {
-    const query = require('./query')(dbName)
+module.exports = (dbUrl) => {
+    const query = require('./query')(dbUrl)
 
     const checkSubscriptionStatus = async (phoneNumber) => {
         const number = '98' + phoneNumber.substr(1)

@@ -1,5 +1,6 @@
-module.exports = (dbName) => {
-    const {mongooseClient, connections} = require('../../common/mongoose-client')(dbName);
+const _ = require('lodash')
+module.exports = (dbUrl) => {
+    const {mongooseClient, connections} = require('../../common/mongoose-client')(dbUrl);
     const userSchema = new mongooseClient.Schema({
         name: {type: String, required: true},
         username: {type: String, unique: true, index: false},
@@ -11,5 +12,8 @@ module.exports = (dbName) => {
         verificationCode: Number
     });
     userSchema.set('autoIndex', false);
-    return connections.model('users', userSchema);
+    if (_.has(connections[dbUrl].models, 'users'))
+        return connections[dbUrl].model('users');
+    else
+        return connections[dbUrl].model('users', userSchema);
 }

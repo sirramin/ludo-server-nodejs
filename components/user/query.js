@@ -1,24 +1,28 @@
-const userModel = require('./model')
-const checkUserExists = (username) => {
-    return users.findOne({username: username})
-}
+module.exports = (dbUrl) => {
+    const userModel = require('./model')(dbUrl)
 
-const insertUser = async (username, hashedPassword, phoneNumber, name, market) => {
-    const user = new userModel({
-        username: username,
-        password: hashedPassword,
-        phoneNumber: phoneNumber,
-        market: market,
-        name: name
-    })
-    return await user.save({lean: true})
-}
+    const checkUserExists = async (username) => {
+        return await userModel.findOne({username: username}).lean().exec()
+    }
 
-const updateUser = (query, update) => {
+    const insertUser = async (username, hashedPassword, phoneNumber, market, name) => {
+        const user = new userModel({
+            username: username,
+            password: hashedPassword,
+            phoneNumber: phoneNumber,
+            market: market,
+            name: name
+        })
+        return await user.save({lean: true})
+    }
 
-}
-module.exports = {
-    checkUserExists: checkUserExists,
-    insertUser: insertUser,
-    updateUser: updateUser
+    const updateUser = async (query, update) => {
+
+    }
+
+    return {
+        checkUserExists: checkUserExists,
+        insertUser: insertUser,
+        updateUser: updateUser
+    }
 }
