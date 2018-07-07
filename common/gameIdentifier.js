@@ -1,15 +1,16 @@
-const mongooseClient = require('mongoose');
-mongooseClient.connect('mongodb://localhost/arta-game-platform');
+const {mongooseClient, db} = require('./mongoose-client')('arta-game-platform')
+const response = require('./response')
 const gamesSchema = new mongooseClient.Schema({
     name: {type: String, required: true}
 })
-const gamesModel = mongooseClient.model('games', gamesSchema);
+const gamesModel = db.model('games', gamesSchema);
 
 const findGameName = async (req, res, next) => {
-    const gameId = req.headers['gameId']
+    const gameId = req.headers['gameid']
     if (!gameId) response(res, 'gameId is required!', 700);
     try {
-        req.dbName = await gamesModel.findOne({_id: gameId}).lean().exec()
+        const game = await gamesModel.findOne({_id: gameId}).lean().exec()
+        req.dbUrl = game.dbUrl
         next()
     }
     catch (err) {

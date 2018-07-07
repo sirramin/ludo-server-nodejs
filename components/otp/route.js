@@ -1,5 +1,6 @@
-const service = require('./service'),
-    response = require('../../common/response');
+const response = require('../../common/response'),
+    gameIdentifier = require('../../common/gameIdentifier')
+
 
 module.exports = (router) => {
 
@@ -7,7 +8,7 @@ module.exports = (router) => {
      * @api {get} /otp/check/:phoneNumber Check User
      * @apiName check
      * @apiGroup otp
-     * @apiParam {Number} phoneNumber
+     * @apiParam {String} phoneNumber
      * @apiSuccess (Success 1) {String} message Code sent
      * @apiSuccess (Success 2) {Object} smsData sms data for sending to confirmation api
      * @apiSuccess (Success 2) {String}  smsData.cpUniqueToken
@@ -25,11 +26,12 @@ module.exports = (router) => {
      * @apiError (Errors) 10 phoneNumber required
 
      */
-    router.get('/check/:phoneNumber', async (req, res, next) => {
+    router.get('/check/:phoneNumber', gameIdentifier, async (req, res, next) => {
         if (!req.params.phoneNumber) {
             response(res, "phoneNumber required", 10)
         }
-        const phoneNumber = (req.params.phoneNumber).toString()
+        const service = require('./service')(req.dbUrl)
+        const phoneNumber = req.params.phoneNumber
         try {
             const isUserExists = await service.checkUserExists(phoneNumber)
             const isUserSubscribed = await service.checkSubscriptionStatus(phoneNumber)
@@ -89,6 +91,7 @@ module.exports = (router) => {
         if (!req.body.verificationCode) {
             response(res, "verificationCode required", 23)
         }
+        const service = require('./service')(req.dbUrl)
         const phoneNumber = (req.params.phoneNumber).toString()
         const verificationCode = req.body.verificationCode
         const cpUniqueToken = req.body.cpUniqueToken
