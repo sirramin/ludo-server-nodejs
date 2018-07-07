@@ -1,19 +1,18 @@
 const jsonwebtoken = require('jsonwebtoken');
 const secret = 'F3D7F9733FD81DB87B57AC54D4D17'
 
-const generateJwt = async (gameId, userId, name, market, phoneNumber = '', username, password) => {
+const generateJwt = async (dbUrl, userId, name, market, phoneNumber, username) => {
     const payload = {
-        gameId: gameId,
+        dbUrl: dbUrl,
         userId: userId,
         name: name,
-        market: market,
+        market: market
     }
-    if(phoneNumber !== ''){
+    if(phoneNumber){
         payload.phoneNumber = phoneNumber
     }
-    if(username && password){
+    if(username){
         payload.username = username
-        payload.password = password
     }
 
     return await jsonwebtoken.sign(payload, secret, {expiresIn: '10 days'});

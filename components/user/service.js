@@ -12,7 +12,7 @@ module.exports = (dbUrl) => {
         const name = 'user' + _.random(1, 99999)
         try {
             const user = await query.insertUser(username, password, phoneNumber, market, name)
-            const token = await jwt.generateJwt(dbUrl, user._id, name, market, phoneNumber = '', username, password)
+            const token = await jwt.generateJwt(dbUrl, user._id, name, market, undefined, username)
             return {token: token}
         }
         catch (err) {

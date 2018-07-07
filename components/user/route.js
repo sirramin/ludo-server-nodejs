@@ -11,7 +11,7 @@ module.exports = (router) => {
             response(res, 'User already registered')
         else {
             const user = await service.registerUser(username, password, phoneNumber, market)
-            response(res, undefined, undefined, user)
+            response(res, '', 2, user)
         }
     })
 

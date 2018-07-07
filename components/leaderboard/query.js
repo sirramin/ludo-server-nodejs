@@ -1,9 +1,12 @@
-const {leagueModel} = require('./model')
-const findLeagueScore = async (leagueId) => {
-    const league = await leagueModel.findOne({leagueId: leagueId}).lean().exec()
-    return league.winsBaseScore
-}
+module.exports = ()=> {
+    const {leagueModel} = require('./model')(dbUrl)
 
-module.exports = {
-    findLeagueScore: findLeagueScore
+    const findLeagueScore = async (leagueId) => {
+        const league = await leagueModel.findOne({leagueId: leagueId}).lean().exec()
+        return league.winsBaseScore
+    }
+
+    return {
+        findLeagueScore: findLeagueScore
+    }
 }

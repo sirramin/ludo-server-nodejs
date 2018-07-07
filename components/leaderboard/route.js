@@ -1,5 +1,4 @@
-const auth = require('../../common/authMiddleware');
-const service = require('./service');
+const auth = require('../../common/authMiddleware')
 const response = require('../../common/response')
 module.exports = (router) => {
 
@@ -48,7 +47,8 @@ module.exports = (router) => {
      * @apiError (Errors) 31 Error getting leaderboard
      */
     router.get('/:operator', auth, async (req, res) => {
-        const {name, userId} = req.userInfo
+        const {name, userId, dbUrl, market} = req.userInfo
+        const service = require('./service')(dbUrl, market)
         try {
             const leaders = await service.getLeaderboard(name, userId)
             response(res, '', 200, {leaders: leaders})
@@ -71,8 +71,9 @@ module.exports = (router) => {
      */
 
     router.post('/gameResult', auth, async (req, res) => {
+        const service = require('./service')(dbUrl, market)
         const {league, isWinner}  = req.body
-        const userInfo = req.userInfo
+        const {name, userId, dbUrl, market} = req.userInfo
         try {
             await service.addScore(userInfo, league, isWinner)
             response(res, 'score added', 40)
