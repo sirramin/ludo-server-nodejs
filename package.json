@@ -21,6 +21,7 @@
     "mongoose": "^5.1.5",
     "request": "^2.87.0",
     "request-promise-native": "^1.0.5",
-    "scoreboard": "0.0.5"
+    "scoreboard": "0.0.5",
+    "socket.io": "^2.1.1"
   }
 }

@@ -1,7 +1,6 @@
 const rpn = require('request-promise-native'),
     jwt = require('../../common/jwt'),
     _ = require('lodash'),
-    leaderboardService = require('../leaderboard/service'),
     base64 = require('base-64'),
     configData = require('./config'),
     otpHeader = 'Basic ' + base64.encode(configData.otp.username + ':' + configData.otp.password).toString();
@@ -69,6 +68,7 @@ module.exports = (dbUrl) => {
 
 
     const addUser = async (phoneNumber) => {
+        const leaderboardService = require('../leaderboard/service')(dbUrl)
         try {
             const user = {
                 name: 'user' + _.random(1, 99999),

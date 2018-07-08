@@ -2,8 +2,8 @@ module.exports = (dbUrl, market) => {
     const query = require('./query')(dbUrl, market),
         Leaderboard = require('leaderboard-promise'),
         _ = require('lodash'),
-        leaderboardPath = dbUrl + ':' + market,
-        usersPath = dbUrl + ':usersPath:' + market,
+        leaderboardPath = dbUrl + ':leaders:' + market,
+        usersPath = dbUrl + ':users:' + market,
         redisClient = require('../../common/redis-client'),
         lb = new Leaderboard(leaderboardPath)
 
@@ -63,14 +63,17 @@ module.exports = (dbUrl, market) => {
         }
     }
 
-    const addScore = async (userData, league = 1, isWinner) => {
-        const userId = userData.userId
-        const userGameDetails = await redisClient.hget(usersPath, userId)
+    const addScore = async (name, userId, league = 1, isWinner) => {
+        let userGameDetails = await redisClient.hget(usersPath, userId)
+        if (!userGameDetails) {
+            await firstTimeScore(name, userId)
+            userGameDetails = await redisClient.hget(usersPath, userId)
+        }
         const score = await query.findLeagueScore(league)
         const userWins = JSON.parse(userGameDetails).win
         const userloses = JSON.parse(userGameDetails).lose
         const userInfo = {
-            "name": userData.name,
+            "name": name,
             "userId": userId,
             "win": isWinner ? userWins + 1 : userWins,
             "lose": !isWinner ? userloses + 1 : userloses

@@ -71,11 +71,11 @@ module.exports = (router) => {
      */
 
     router.post('/gameResult', auth, async (req, res) => {
+        const {name, userId, dbUrl, market} = req.userInfo
         const service = require('./service')(dbUrl, market)
         const {league, isWinner}  = req.body
-        const {name, userId, dbUrl, market} = req.userInfo
         try {
-            await service.addScore(userInfo, league, isWinner)
+            await service.addScore(name, userId, league, isWinner)
             response(res, 'score added', 40)
         }
         catch (err) {

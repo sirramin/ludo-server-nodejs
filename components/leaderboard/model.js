@@ -1,3 +1,4 @@
+const _ = require('lodash')
 module.exports = (dbUrl) => {
     const {mongooseClient, connections} = require('../../common/mongoose-client')(dbUrl);
     const leagueSchema = mongooseClient.Schema({
@@ -8,9 +9,8 @@ module.exports = (dbUrl) => {
         defeatsUnit: Number,
         winsBaseScore: Number
     });
-    const leagueModel = connections[dbUrl].model('leagues', leagueSchema);
-
-    module.exports = {
-        leagueModel: leagueModel
-    }
+    if (_.has(connections[dbUrl].models, 'leagues'))
+        return connections[dbUrl].model('leagues');
+    else
+        return connections[dbUrl].model('leagues', leagueSchema);
 }
