@@ -17,4 +17,12 @@ const findGameName = async (req, res, next) => {
         response(res, 'Game not found', 700);
     }
 }
-module.exports = findGameName
+
+const getGameMeta = async (dbUrl) => {
+    return gameMeta = await gamesModel.findOne({dbUrl: dbUrl}).lean().exec()
+}
+
+module.exports = {
+    findGameName: findGameName,
+    getGameMeta: getGameMeta
+}

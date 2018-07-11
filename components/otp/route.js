@@ -1,5 +1,5 @@
 const response = require('../../common/response'),
-    gameIdentifier = require('../../common/gameIdentifier')
+    gameIdentifier = require('../../common/gameIdentifier').findGameName
 
 
 module.exports = (router) => {

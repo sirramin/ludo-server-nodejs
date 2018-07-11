@@ -1,4 +1,4 @@
-const gameIdentifier = require('../../common/gameIdentifier'),
+const gameIdentifier = require('../../common/gameIdentifier').findGameName,
     response = require('../../common/response')
 
 
