@@ -19,6 +19,7 @@
     "jsonwebtoken": "^8.3.0",
     "leaderboard-promise": "^1.1.0",
     "mongoose": "^5.1.5",
+    "promise-redis": "0.0.5",
     "request": "^2.87.0",
     "request-promise-native": "^1.0.5",
     "scoreboard": "0.0.5",

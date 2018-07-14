@@ -1,5 +1,4 @@
 const jwt = require('../../common/jwt'),
-    redisClient = require('../../common/redis-client'),
     gameIdentifier = require('../../common/gameIdentifier')
 
 module.exports = (router, io) => {
@@ -22,22 +21,12 @@ module.exports = (router, io) => {
         })
         .on('connection', async (socket) => {
             const gameMeta = await gameIdentifier.getGameMeta(socket.userInfo.dbUrl)
-            socket.on('join', function (message) {
-                joinPlayerToRoom(socket, gameMeta)
+            const matchMaking = require('matchMaking')(socket, gameMeta)
+            socket.on('joinRoom', (message) => {
+                matchMaking.findAvailableRooms()
             });
-            socket.on('chat message', function (message) {
+            socket.on('chat message', (message) => {
                 io.emit('message', 'message recived: ' + message);
             });
         });
-
-    const joinPlayerToRoom = async (socket, gameMeta) => {
-            redisClient.
-
-    }
-
-    const findAvailableRooms = async (socket, gameMeta) => {
-        for (let i = gameMeta.roomCapacity - 1; i < gameMeta.roomMin; i--) {
-            redisClient.ZRANGEBYSCORE()
-        }
-    }
 }

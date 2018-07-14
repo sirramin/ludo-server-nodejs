@@ -7,10 +7,7 @@
 <h1>Arta platfrom socket client</h1>
 
 <ul id="messages"></ul>
-<form action="">
-    <input id="m" autocomplete="off"/>
-    <button>Send</button>
-</form>
+<button id="joinRoom">joinRoom</button>
 <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
 <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
 <script>
@@ -18,11 +15,10 @@
     $(function () {
         socket = io('http://localhost:3000', {transports: ['websocket'], query: {token: token}});
         // const socket = io('http://localhost:3000', {transports: ['websocket']});
-        $('form').submit(function () {
-            socket.emit('chat message', $('#m').val());
-            $('#m').val('');
-            return false;
-        });
+
+        $('#joinRoom').click(() => {
+            socket.emit('joinRoom', '')
+        })
 
         socket.on('message', function (msg) {
             console.log(msg)
