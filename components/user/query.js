@@ -16,6 +16,14 @@ module.exports = (dbUrl) => {
         return await user.save({lean: true})
     }
 
+    const insertGuestUser = async (market, name) => {
+        const user = new userModel({
+            market: market,
+            name: name
+        })
+        return await user.save({lean: true})
+    }
+
     const updateUser = async (query, update) => {
 
     }
@@ -23,6 +31,7 @@ module.exports = (dbUrl) => {
     return {
         checkUserExists: checkUserExists,
         insertUser: insertUser,
-        updateUser: updateUser
+        updateUser: updateUser,
+        insertGuestUser: insertGuestUser
     }
 }

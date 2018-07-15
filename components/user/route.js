@@ -15,11 +15,15 @@ module.exports = (router) => {
         }
     })
 
-    router.post('/signin', function (req, res, next) {
+    router.post('/signin', async (req, res, next) => {
 
     })
 
-    router.post('/signinasguest', function (req, res, next) {
+    router.post('/signInAsGuest', async (req, res, next) => {
+        const service = require('./service')(req.dbUrl)
+        const {market} = req.body
+        const guest = await service.registerGuestUser(market)
+        response(res, '', 2, guest)
 
     })
 

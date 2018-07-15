@@ -1,51 +1,68 @@
-const redisClient = require('../../common/redis-client')
+const redisClient = require('../../common/redis-client'),
+    uniqid = require('uniqid')
 
 module.exports = (socket, gameMeta) => {
     const userId = socket.userInfo.userId,
-        roomsListPrefix = roomsListPrefix,
-    roomsPrefix = gameMeta.name + ':rooms:'
+        roomsListPrefix = gameMeta.name + ':rooms:roomsList',
+        roomsPrefix = gameMeta.name + ':rooms:'
 
     const findAvailableRooms = async () => {
         try {
-            let foundedRoom
-            const asyncLoop = async (socket, gameMeta) => {
-                for (let i = gameMeta.roomMax - 1; i >= gameMeta.roomMin; i--) {
-                    const path = roomsListPrefix
-                    const args = [path, i, i, 'LIMIT', 1, 1]
-                    const availableRooms = await redisClient.ZRANGEBYSCORE(args)
-                    if (availableRooms.length) {
-                        availableRooms.forEach((room, index) => {
-                            if (room.state === 'waiting') {
-                                foundedRoom = room
-                                break
-                            }
-                        })
-                        await joinPlayerToRoom(socket, gameMeta, foundedRoom)
-                    }
-                }
-            }
-            await asyncLoop(socket, gameMeta)
+            const foundedRoom = await asyncLoop()
             if (!foundedRoom)
-                createNewRoom(socket, gameMeta)
+                createNewRoom()
+            else
+                joinPlayerToRoom(foundedRoom)
         }
         catch (e) {
             console.log(e)
         }
     }
 
-    const joinPlayerToRoom = async (socket, gameMeta, roomId) => {
-
-        const newRoomInfo = {
-            "roomId": roomId,
-            "state": "waiting",
-            "creationDateTime": currentTimeStamp
+    const asyncLoop = async () => {
+        for (let i = gameMeta.roomMax - 1; i >= 1; i--) {
+            const args = [roomsListPrefix, i, i]
+            const availableRooms = await redisClient.ZRANGEBYSCORE(args)
+            if (availableRooms.length) {
+                return await asyncForeach(availableRooms)
+            }
         }
-        redisClient.SADD(roomId, userId)
-        redisClient.ZADD(roomsListPrefix, JSON.stringify(newRoomInfo))
+        return false
     }
 
-    const createNewRoom = async (socket, gameMeta) => {
-        const roomId = uuid()
+    const asyncForeach = async (availableRooms) => {
+        for (let i = 0; i <= availableRooms.length ; i++) {
+            const roomCurrentInfo = await redisClient.HGET(roomsPrefix + availableRooms[i], 'info')
+            const roomCurrentInfoParsed = JSON.parse(roomCurrentInfo)
+            if (roomCurrentInfoParsed.state === 'waiting') {
+                return roomCurrentInfoParsed.roomId
+            }
+        }
+        return false
+    }
+
+    const joinPlayerToRoom = async (roomId) => {
+        const roomCurrentInfo = await redisClient.HMGET(roomsPrefix + roomId, 'info', 'players')
+        const currentPlayers = JSON.parse(roomCurrentInfo[1])
+        const currentPlayersLength =currentPlayers.length
+        let newState
+        if (currentPlayersLength === 4)
+            socket.emit('message', 'Room is fll')
+
+        currentPlayersLength === 3 ? newState = "started" : newState = "waiting"
+
+        const roomInfo = {
+            "roomId": roomId,
+            "state": newState,
+            "creationDateTime": JSON.parse(roomCurrentInfo[0]).creationDateTime
+        }
+        currentPlayers.push(userId)
+        await redisClient.HMSET(roomsPrefix + roomId, 'info', JSON.stringify(roomInfo), 'players', JSON.stringify(currentPlayers))
+        await redisClient.ZINCRBY(roomsListPrefix, 1, roomId)
+    }
+
+    const createNewRoom = async () => {
+        const roomId = uniqid()
         const currentTimeStamp = new Date().getTime()
         const newRoomInfo = {
             "roomId": roomId,
@@ -54,17 +71,20 @@ module.exports = (socket, gameMeta) => {
         }
         const newRoomPlayers = [socket.userInfo.userId]
         const hmArgs = [roomsPrefix + roomId, 'info', JSON.stringify(newRoomInfo), 'players', JSON.stringify(newRoomPlayers)]
-        redisClient.HMSET(hmArgs)
-        redisClient.ZADD(roomsListPrefix, roomId)
+        await redisClient.HMSET(hmArgs)
+        await redisClient.ZADD(roomsListPrefix, 1, roomId)
         setTimeout(() => {
-            roomWaitingTimeOver()
-        }, 60)
+            roomWaitingTimeOver(roomId)
+        }, gameMeta.waitingTime)
     }
 
-    const roomWaitingTimeOver = async () => {
-        if (room.currentPlayers >= room.roomMin)
+    const roomWaitingTimeOver = async (roomId) => {
+        const roomCurrentInfo = await redisClient.HMGET(roomsPrefix + roomId, 'info', 'players')
+        const currentPlayers = JSON.parse(roomCurrentInfo[1]).length
+        const roomState = JSON.parse(roomCurrentInfo[0]).state
+        if (currentPlayers >= gameMeta.roomMin && roomState !== 'started')
             gameStart()
-        else
+        else if (roomState !== 'started')
             DestroyRoom()
     }
 
@@ -74,5 +94,10 @@ module.exports = (socket, gameMeta) => {
 
     const DestroyRoom = () => {
 
+    }
+
+
+    return {
+        findAvailableRooms: findAvailableRooms
     }
 }

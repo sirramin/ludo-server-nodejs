@@ -21,7 +21,7 @@ module.exports = (router, io) => {
         })
         .on('connection', async (socket) => {
             const gameMeta = await gameIdentifier.getGameMeta(socket.userInfo.dbUrl)
-            const matchMaking = require('matchMaking')(socket, gameMeta)
+            const matchMaking = require('./matchMaking')(socket, gameMeta)
             socket.on('joinRoom', (message) => {
                 matchMaking.findAvailableRooms()
             });

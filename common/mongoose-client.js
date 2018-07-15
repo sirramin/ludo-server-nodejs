@@ -5,7 +5,7 @@ module.exports = (dbUrl) => {
     connections[dbUrl].on('error', console.error.bind(console, 'connection error:'));
     connections[dbUrl].once('open', function () {
         console.info('mongoose connected')
-    });
+    })
     return {
         connections: connections,
         mongooseClient: mongooseClient

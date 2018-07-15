@@ -20,8 +20,21 @@ module.exports = (dbUrl) => {
         }
     }
 
+    const registerGuestUser = async (market) => {
+        const name = 'guest' + _.random(1, 99999)
+        try {
+            const guest = await query.insertGuestUser(market, name)
+            const token = await jwt.generateJwt(dbUrl, guest._id, name, market)
+            return {token: token}
+        }
+        catch (err) {
+            return ({message: 'error registering guest user', statusCode: 2})
+        }
+    }
+
     return {
         registerUser: registerUser,
+        registerGuestUser: registerGuestUser,
         checkUserExists: checkUserExists
     }
 }
