@@ -8,6 +8,7 @@ module.exports = (router) => {
      * @api {get} /otp/check/:phoneNumber Check User
      * @apiName check
      * @apiGroup otp
+     * @apiHeader {String} gameid
      * @apiParam {String} phoneNumber
      * @apiSuccess (Success 1) {String} message Code sent
      * @apiSuccess (Success 2) {Object} smsData sms data for sending to confirmation api
@@ -24,13 +25,12 @@ module.exports = (router) => {
      * @apiError (Errors) 8 Get user info error
      * @apiError (Errors) 9 Request login sms error
      * @apiError (Errors) 10 phoneNumber required
-
      */
     router.get('/check/:phoneNumber', gameIdentifier, async (req, res, next) => {
         if (!req.params.phoneNumber) {
             response(res, "phoneNumber required", 10)
         }
-        const service = require('./service')(req.gameMeta.dbUrl)
+        const service = require('./service')(req.dbUrl)
         const phoneNumber = req.params.phoneNumber
         try {
             const isUserExists = await service.checkUserExists(phoneNumber)
@@ -59,18 +59,50 @@ module.exports = (router) => {
         }
     })
 
+    /**
+     * @api {get} /otp/check/:phoneNumber Check User without sending sms
+     * @apiName checkWithoutSMS
+     * @apiGroup otp
+     * @apiHeader {String} gameid
+     * @apiParam {String} phoneNumber
+     * @apiSuccess (Success 1) {Boolean}  isUserSubscribed
+     * @apiSuccess (Success 1) {Number} coin
+     *
+     * @apiError (Errors) 7 Check SubscriptionStatus error
+     * @apiError (Errors) 8 Get user info error
+     * @apiError (Errors) 10 phoneNumber required
+     */
+    router.get('/checkWithoutSMS/:phoneNumber', gameIdentifier, async (req, res, next) => {
+        if (!req.params.phoneNumber) {
+            response(res, "phoneNumber required", 10)
+        }
+        const service = require('./service')(req.dbUrl)
+        const phoneNumber = req.params.phoneNumber
+        try {
+            const isUserSubscribed = await service.checkSubscriptionStatus(phoneNumber)
+            const coin = await service.getUserCoin(phoneNumber)
+            response(res, '', 1, {
+                "isUserSubscribed": isUserSubscribed,
+                "coin": coin
+            })
+        }
+        catch (e) {
+            response(res, e.message, e.statusCode)
+        }
+    })
+
 
     /**
      * @api {post} /otp/confirmation/:phoneNumber confirmation
      * @apiName confirmation
      * @apiGroup otp
+     * @apiHeader {String} gameid
      * @apiParam {Number} phoneNumber
      * @apiParam {String} verificationCode
      * @apiParam {String} cpUniqueToken
      * @apiParam {String} otpTransactionId
 
 
-     * @apiSuccess (Success 1) {Object} userData user data on database
      * @apiSuccess (Success 1) {String}  userData.name
      * @apiSuccess (Success 1) {String}  userData.userId
      * @apiSuccess (Success 1) {Number}  userData.phoneNumber
@@ -81,10 +113,10 @@ module.exports = (router) => {
      * @apiError (Errors) 22 phoneNumber required
      * @apiError (Errors) 23 verificationCode required
      * @apiError (Errors) 24 Get user info error
-     * @apiError (Errors) 25 Code is not valid
      * @apiError (Errors) 26 error adding user
+     *             throw {message: 'Get user coin', statusCode: 27}
      */
-    router.post('/confirmation/:phoneNumber', async (req, res, next) => {
+    router.post('/confirmation/:phoneNumber', gameIdentifier, async (req, res, next) => {
         if (!req.params.phoneNumber) {
             response(res, "phoneNumber required", 22)
         }
@@ -98,7 +130,7 @@ module.exports = (router) => {
         const otpTransactionId = req.body.otpTransactionId
         try {
             const result = await service.confirmation(phoneNumber, verificationCode, cpUniqueToken, otpTransactionId)
-            response(res, result.message, result.statusCode)
+            response(res, '', 1, result)
         }
         catch (err) {
             response(res, err.message, err.statusCode)

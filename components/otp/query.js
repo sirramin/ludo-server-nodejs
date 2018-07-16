@@ -20,7 +20,8 @@ module.exports = (dbUrl) => {
     }
 
     const checkCodeIsValid = async (phoneNumber, code) => {
-        return await userModel.findOne({phoneNumber: phoneNumber, verificationCode: code}).lean().exec()
+       const user =  await userModel.findOne({phoneNumber: phoneNumber, verificationCode: code}).lean().exec()
+        return user
     }
 
     return {

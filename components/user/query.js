@@ -25,7 +25,7 @@ module.exports = (dbUrl) => {
     }
 
     const updateUser = async (query, update) => {
-
+        userModel.update()
     }
 
     return {

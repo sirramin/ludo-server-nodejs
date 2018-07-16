@@ -130,12 +130,25 @@ define({ "api": [
     "title": "Check User",
     "name": "check",
     "group": "otp",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "gameid",
+            "description": ""
+          }
+        ]
+      }
+    },
     "parameter": {
       "fields": {
         "Parameter": [
           {
             "group": "Parameter",
-            "type": "Number",
+            "type": "String",
             "optional": false,
             "field": "phoneNumber",
             "description": ""
@@ -258,11 +271,104 @@ define({ "api": [
     "groupTitle": "otp"
   },
   {
+    "type": "get",
+    "url": "/otp/check/:phoneNumber",
+    "title": "Check User without sending sms",
+    "name": "checkWithoutSMS",
+    "group": "otp",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "gameid",
+            "description": ""
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "phoneNumber",
+            "description": ""
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 1": [
+          {
+            "group": "Success 1",
+            "type": "Boolean",
+            "optional": false,
+            "field": "isUserSubscribed",
+            "description": ""
+          },
+          {
+            "group": "Success 1",
+            "type": "Number",
+            "optional": false,
+            "field": "coin",
+            "description": ""
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Errors": [
+          {
+            "group": "Errors",
+            "optional": false,
+            "field": "7",
+            "description": "<p>Check SubscriptionStatus error</p>"
+          },
+          {
+            "group": "Errors",
+            "optional": false,
+            "field": "8",
+            "description": "<p>Get user info error</p>"
+          },
+          {
+            "group": "Errors",
+            "optional": false,
+            "field": "10",
+            "description": "<p>phoneNumber required</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "components/otp/route.js",
+    "groupTitle": "otp"
+  },
+  {
     "type": "post",
     "url": "/otp/confirmation/:phoneNumber",
     "title": "confirmation",
     "name": "confirmation",
     "group": "otp",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "gameid",
+            "description": ""
+          }
+        ]
+      }
+    },
     "parameter": {
       "fields": {
         "Parameter": [
@@ -300,13 +406,6 @@ define({ "api": [
     "success": {
       "fields": {
         "Success 1": [
-          {
-            "group": "Success 1",
-            "type": "Object",
-            "optional": false,
-            "field": "userData",
-            "description": "<p>user data on database</p>"
-          },
           {
             "group": "Success 1",
             "type": "String",
@@ -375,14 +474,8 @@ define({ "api": [
           {
             "group": "Errors",
             "optional": false,
-            "field": "25",
-            "description": "<p>Code is not valid</p>"
-          },
-          {
-            "group": "Errors",
-            "optional": false,
             "field": "26",
-            "description": "<p>error adding user</p>"
+            "description": "<p>error adding user throw {message: 'Get user coin', statusCode: 27}</p>"
           }
         ]
       }

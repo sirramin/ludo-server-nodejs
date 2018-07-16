@@ -9,7 +9,7 @@ module.exports = (dbUrl) => {
         market: {type: String, required: true},
         coin: {type: Number, default: 0},
         registerDate: {type: Date, default: new Date()},
-        verificationCode: Number
+        verificationCode: String
     });
     userSchema.set('autoIndex', false);
     if (_.has(connections[dbUrl].models, 'users'))

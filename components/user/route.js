@@ -31,5 +31,13 @@ module.exports = (router) => {
 
     })
 
+    router.put('/changeName', function (req, res, next) {
+        const service = require('./service')(req.dbUrl)
+        const {userId} = req.userInfo
+        const {newName} = req.body
+        service.updateUser({_id: userId}, {name: newName})
+    })
+
+
     return router
 }

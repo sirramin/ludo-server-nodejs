@@ -41,7 +41,7 @@ module.exports = (dbUrl) => {
         };
         try {
             result = await rpn.post(options)
-            return {cpUniqueToken: result.cpUniqueToken, otpTransactionId: result.otpTransactionId}
+            return {cpUniqueToken: result.result.cpUniqueToken, otpTransactionId: result.result.otpTransactionId}
         }
         catch (e) {
             throw ({message: 'Request sms error', statusCode: 5})
@@ -54,7 +54,7 @@ module.exports = (dbUrl) => {
         const urlTemplate = _.template(configData.vas.smsUrl)
         const url = urlTemplate({'number': number, 'smsVerifyCode': code})
         try {
-            await query.updateVerifyCode(phoneNumber, code)
+            await query.updateVerifyCode(phoneNumber, code.toString())
             await rpn({uri: url, json: true})
         }
         catch (e) {
@@ -87,8 +87,8 @@ module.exports = (dbUrl) => {
 
     const getUserInfo = async (phoneNumber) => {
         try {
-            const returnedUser = await query.findUser(phoneNumber)
-            const token = await jwt.generateJwt(user)
+            const returnedUser = await query.checkUserExists(phoneNumber)
+            const token = await jwt.generateJwt(dbUrl, returnedUser._id, returnedUser.name, returnedUser.market, phoneNumber)
             return {
                 name: returnedUser.name,
                 userId: returnedUser._id,
@@ -96,6 +96,16 @@ module.exports = (dbUrl) => {
                 token: token,
                 coin: returnedUser.coin
             }
+        }
+        catch (e) {
+            throw {message: 'Get user info error', statusCode: 24}
+        }
+    }
+
+    const getUserCoin = async (phoneNumber) => {
+        try {
+            const returnedUser = await query.checkUserExists(phoneNumber)
+            return returnedUser.coin
         }
         catch (e) {
             throw {message: 'Get user info error', statusCode: 24}
@@ -125,14 +135,14 @@ module.exports = (dbUrl) => {
         };
         try {
             const result = await rpn.post(options)
-            console.log('confirmation result: ' + result)
+            console.log('confirmation result: ' + result.result)
             return await getUserInfo(phoneNumber)
         }
         catch (e) {
-            if (e.statusCode === 500)
-                throw {message: 'Code is not valid', statusCode: 25}
-            else
-                throw {message: 'OTP error', statusCode: 21}
+            // if (e.statusCode === 500)
+            //     throw {message: 'Code is not valid', statusCode: 25}
+            // else
+            throw {message: 'OTP error', statusCode: 21}
         }
     }
 
@@ -152,6 +162,7 @@ module.exports = (dbUrl) => {
         addUser: addUser,
         getUserInfo: getUserInfo,
         requestLoginSms: requestLoginSms,
-        verifySms: verifySms
+        verifySms: verifySms,
+        getUserCoin: getUserCoin
     }
 }
