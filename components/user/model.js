@@ -7,7 +7,7 @@ module.exports = (dbUrl) => {
         password: String,
         phoneNumber: {type: String, unique: true, index: false},
         market: {type: String, required: true},
-        coin: {type: Number, default: 0},
+        coin: {type: Number, default: 1400},
         registerDate: {type: Date, default: new Date()},
         verificationCode: String
     });
