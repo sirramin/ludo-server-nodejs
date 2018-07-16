@@ -54,6 +54,7 @@ module.exports = (router) => {
             response(res, '', 200, {leaders: leaders})
         }
         catch (err) {
+            console.error(err)
             response(res, 'Error getting leaderboard', 31)
         }
     })
@@ -79,6 +80,7 @@ module.exports = (router) => {
             response(res, 'score added', 40)
         }
         catch (err) {
+            console.error(err)
             response(res, 'error adding score', 41)
         }
     })
