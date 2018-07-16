@@ -23,7 +23,6 @@ module.exports = (dbUrl) => {
     return {
         checkUserExists: checkUserExists,
         insertUser: insertUser,
-        updateUser: updateUser,
         updateVerifyCode: updateVerifyCode,
         checkCodeIsValid: checkCodeIsValid
     }
