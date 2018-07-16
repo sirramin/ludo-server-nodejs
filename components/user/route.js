@@ -33,7 +33,7 @@ module.exports = (router) => {
     })
 
     /**
-     * @api {get} /user/changeName changeName
+     * @api {put} /user/changeName changeName
      * @apiName changeName
      * @apiGroup user
      * @apiHeader {String} gameid
@@ -60,7 +60,7 @@ module.exports = (router) => {
     })
 
     router.put('/increaseCoin', auth, async (req, res, next) => {
-        if (!req.body.newName) {
+        if (!req.body.coin) {
             response(res, "new name required", 1)
         }
         const {userId, dbUrl} = req.userInfo
