@@ -1,6 +1,6 @@
 const gameIdentifier = require('../../common/gameIdentifier').findGameName,
     response = require('../../common/response'),
-     auth = require('../../common/authMiddleware')
+    auth = require('../../common/authMiddleware')
 
 
 module.exports = (router) => {
@@ -59,15 +59,31 @@ module.exports = (router) => {
         }
     })
 
+    /**
+     * @api {put} /user/increaseCoin increase coin
+     * @apiName increaseCoin
+     * @apiGroup user
+     * @apiHeader {String} gameid
+     * @apiParam {Number} coin
+     * @apiSuccess (Success 2) {Number} newCoin
+     *
+     * @apiError (Errors) 1 coin required
+     * @apiError (Errors) 3 error updating coin
+     */
     router.put('/increaseCoin', auth, async (req, res, next) => {
         if (!req.body.coin) {
-            response(res, "new name required", 1)
+            response(res, "coin newCoin", 1)
         }
         const {userId, dbUrl} = req.userInfo
         const query = require('./query')(dbUrl)
-        const {newName} = req.body
-        await query.updateUser({_id: userId}, {name: newName})
-        response(res, 'Name updated', 2)
+        const {coin} = req.body
+        try {
+            const updatedUser = await query.updateUser({_id: userId}, {$inc: {coin: coin}})
+            response(res, '', 2, {"newCoin": updatedUser.coin})
+        }
+        catch (e) {
+            response(res, 'error updating coin', 3)
+        }
     })
 
 

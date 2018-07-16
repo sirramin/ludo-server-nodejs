@@ -25,7 +25,7 @@ module.exports = (dbUrl) => {
     }
 
     const updateUser = async (query, update) => {
-        return await userModel.update(query, update, {returnNewDocument: true})
+        return await userModel.findOneAndUpdate(query, update, {returnNewDocument: true}).lean().exec()
     }
 
     return {

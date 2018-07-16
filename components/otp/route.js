@@ -99,8 +99,8 @@ module.exports = (router) => {
      * @apiHeader {String} gameid
      * @apiParam {Number} phoneNumber
      * @apiParam {String} verificationCode
-     * @apiParam {String} cpUniqueToken
-     * @apiParam {String} otpTransactionId
+     * @apiParam {String} cpUniqueToken Only if check status == 1 or 3
+     * @apiParam {String} otpTransactionId Only if check status == 1 or 3
 
 
      * @apiSuccess (Success 1) {String}  userData.name
