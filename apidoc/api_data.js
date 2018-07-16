@@ -272,7 +272,7 @@ define({ "api": [
   },
   {
     "type": "get",
-    "url": "/otp/check/:phoneNumber",
+    "url": "/otp/checkWithoutSMS/:phoneNumber",
     "title": "Check User without sending sms",
     "name": "checkWithoutSMS",
     "group": "otp",

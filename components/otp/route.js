@@ -60,7 +60,7 @@ module.exports = (router) => {
     })
 
     /**
-     * @api {get} /otp/check/:phoneNumber Check User without sending sms
+     * @api {get} /otp/checkWithoutSMS/:phoneNumber Check User without sending sms
      * @apiName checkWithoutSMS
      * @apiGroup otp
      * @apiHeader {String} gameid

@@ -11,10 +11,6 @@ module.exports = (dbUrl) => {
         return await userModel.create(user)
     }
 
-    const updateUser = async (query, update) => {
-
-    }
-
     const updateVerifyCode = async (phoneNumber, code) => {
         return await userModel.findOneAndUpdate({phoneNumber: phoneNumber}, {verificationCode: code}).lean().exec()
     }

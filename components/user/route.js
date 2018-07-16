@@ -1,5 +1,6 @@
 const gameIdentifier = require('../../common/gameIdentifier').findGameName,
-    response = require('../../common/response')
+    response = require('../../common/response'),
+     auth = require('../../common/authMiddleware')
 
 
 module.exports = (router) => {
@@ -27,15 +28,30 @@ module.exports = (router) => {
 
     })
 
-    router.put('/update', function (req, res, next) {
+    router.put('/update', async (req, res, next) => {
 
     })
 
-    router.put('/changeName', function (req, res, next) {
-        const service = require('./service')(req.dbUrl)
-        const {userId} = req.userInfo
+    router.put('/changeName', auth, async (req, res, next) => {
+        if (!req.body.newName) {
+            response(res, "new name required", 1)
+        }
+        const {userId, dbUrl} = req.userInfo
+        const query = require('./query')(dbUrl)
         const {newName} = req.body
-        service.updateUser({_id: userId}, {name: newName})
+        await query.updateUser({_id: userId}, {name: newName})
+        response(res, 'Name updated', 2)
+    })
+
+    router.put('/increaseCoin', auth, async (req, res, next) => {
+        if (!req.body.newName) {
+            response(res, "new name required", 1)
+        }
+        const {userId, dbUrl} = req.userInfo
+        const query = require('./query')(dbUrl)
+        const {newName} = req.body
+        await query.updateUser({_id: userId}, {name: newName})
+        response(res, 'Name updated', 2)
     })
 
 
