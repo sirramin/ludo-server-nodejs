@@ -1,9 +1,11 @@
 const express = require('express')
+const morgan = require('morgan')
 const app = express()
 const http = require('http').Server(app);
 const io = require('socket.io')(http);
 const router = express.Router()
 global.connections = {}
+app.use(morgan('combined'))
 app.use('/apidoc8574636', express.static('apidoc'))
 const bodyParser = require('body-parser')
 app.use(bodyParser.urlencoded({extended: false}))
