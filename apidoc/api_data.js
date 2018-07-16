@@ -485,7 +485,7 @@ define({ "api": [
     "groupTitle": "otp"
   },
   {
-    "type": "get",
+    "type": "put",
     "url": "/user/changeName",
     "title": "changeName",
     "name": "changeName",
