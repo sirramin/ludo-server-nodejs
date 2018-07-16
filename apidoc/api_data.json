@@ -391,14 +391,14 @@
             "type": "String",
             "optional": false,
             "field": "cpUniqueToken",
-            "description": ""
+            "description": "<p>Only if check status == 1 or 3</p>"
           },
           {
             "group": "Parameter",
             "type": "String",
             "optional": false,
             "field": "otpTransactionId",
-            "description": ""
+            "description": "<p>Only if check status == 1 or 3</p>"
           }
         ]
       }
@@ -543,6 +543,73 @@
             "optional": false,
             "field": "3",
             "description": "<p>error updating name</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "components/user/route.js",
+    "groupTitle": "user"
+  },
+  {
+    "type": "put",
+    "url": "/user/increaseCoin",
+    "title": "increase coin",
+    "name": "increaseCoin",
+    "group": "user",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "gameid",
+            "description": ""
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": false,
+            "field": "coin",
+            "description": ""
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 2": [
+          {
+            "group": "Success 2",
+            "type": "Number",
+            "optional": false,
+            "field": "newCoin",
+            "description": ""
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Errors": [
+          {
+            "group": "Errors",
+            "optional": false,
+            "field": "1",
+            "description": "<p>coin required</p>"
+          },
+          {
+            "group": "Errors",
+            "optional": false,
+            "field": "3",
+            "description": "<p>error updating coin</p>"
           }
         ]
       }
