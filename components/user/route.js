@@ -32,6 +32,17 @@ module.exports = (router) => {
 
     })
 
+    /**
+     * @api {get} /user/changeName changeName
+     * @apiName changeName
+     * @apiGroup user
+     * @apiHeader {String} gameid
+     * @apiParam {String} newName
+     * @apiSuccess (Success 2) {String} Name updated
+     *
+     * @apiError (Errors) 1 new name required
+     * @apiError (Errors) 3 error updating name
+     */
     router.put('/changeName', auth, async (req, res, next) => {
         if (!req.body.newName) {
             response(res, "new name required", 1)
@@ -39,8 +50,13 @@ module.exports = (router) => {
         const {userId, dbUrl} = req.userInfo
         const query = require('./query')(dbUrl)
         const {newName} = req.body
-        await query.updateUser({_id: userId}, {name: newName})
-        response(res, 'Name updated', 2)
+        try {
+            await query.updateUser({_id: userId}, {name: newName})
+            response(res, 'Name updated ', 2)
+        }
+        catch (e) {
+            response(res, 'error updating name', 3)
+        }
     })
 
     router.put('/increaseCoin', auth, async (req, res, next) => {

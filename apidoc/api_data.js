@@ -483,5 +483,72 @@ define({ "api": [
     "version": "0.0.0",
     "filename": "components/otp/route.js",
     "groupTitle": "otp"
+  },
+  {
+    "type": "get",
+    "url": "/user/changeName",
+    "title": "changeName",
+    "name": "changeName",
+    "group": "user",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "gameid",
+            "description": ""
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "newName",
+            "description": ""
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 2": [
+          {
+            "group": "Success 2",
+            "type": "String",
+            "optional": false,
+            "field": "Name",
+            "description": "<p>updated</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Errors": [
+          {
+            "group": "Errors",
+            "optional": false,
+            "field": "1",
+            "description": "<p>new name required</p>"
+          },
+          {
+            "group": "Errors",
+            "optional": false,
+            "field": "3",
+            "description": "<p>error updating name</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "components/user/route.js",
+    "groupTitle": "user"
   }
 ] });
