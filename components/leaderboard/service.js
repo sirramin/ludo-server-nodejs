@@ -58,7 +58,7 @@ module.exports = (dbUrl, market) => {
             return leaders
         }
         catch (e) {
-            console.log(e)
+            logger.log(e)
             throw e
         }
     }

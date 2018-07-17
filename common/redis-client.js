@@ -5,7 +5,7 @@ const redis = require('promise-redis')()
 const redisClientAsync = redis.createClient()
 
 redisClientAsync.on("error", function (err) {
-    console.log("Error " + err);
+    logger.log("Error " + err);
 });
 
 module.exports = redisClientAsync

@@ -1,2 +1,4 @@
 node_modules/
 .idea/
+error.log
+combined.log

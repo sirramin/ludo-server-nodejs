@@ -1,12 +1,13 @@
 const rpn = require('request-promise-native'),
     jwt = require('../../common/jwt'),
     _ = require('lodash'),
-    base64 = require('base-64'),
-    configData = require('./config'),
-    otpHeader = 'Basic ' + base64.encode(configData.otp.username + ':' + configData.otp.password).toString();
+    base64 = require('base-64')
 
 module.exports = (dbUrl) => {
-    const query = require('./query')(dbUrl)
+    const query = require('./query')(dbUrl),
+        configData = require('./config')[dbUrl],
+        otpHeader = 'Basic ' + base64.encode(configData.otp.username + ':' + configData.otp.password).toString()
+
 
     const checkSubscriptionStatus = async (phoneNumber) => {
         const number = '98' + phoneNumber.substr(1)
@@ -33,7 +34,7 @@ module.exports = (dbUrl) => {
     const requestSms = async (phoneNumber) => {
         const options = {
             method: 'POST',
-            uri: 'https://otp.artatel.ir/api/otp/v1/request/masterOfMind/' + phoneNumber,
+            uri: configData.artatelOtp.request + phoneNumber,
             headers: {
                 'Authorization': otpHeader
             },
@@ -49,7 +50,8 @@ module.exports = (dbUrl) => {
     }
 
     const requestLoginSms = async (phoneNumber) => {
-        const code = _.random(1, 99999)
+        const code = _.random(10000, 99999)
+        logger.info('Login Sms code: ' + code)
         const number = '98' + phoneNumber.substr(1);
         const urlTemplate = _.template(configData.vas.smsUrl)
         const url = urlTemplate({'number': number, 'smsVerifyCode': code})
@@ -122,7 +124,7 @@ module.exports = (dbUrl) => {
     const verifyOtpSMS = async (phoneNumber, verificationCode, cpUniqueToken, otpTransactionId) => {
         const options = {
             method: 'POST',
-            uri: 'https://otp.artatel.ir/api/otp/v1/confirmation/masterOfMind/' + phoneNumber,
+            uri: configData.artatelOtp.confirmation + phoneNumber,
             body: {
                 "verificationCode": verificationCode,
                 "cpUniqueToken": cpUniqueToken,
@@ -135,7 +137,7 @@ module.exports = (dbUrl) => {
         };
         try {
             const result = await rpn.post(options)
-            console.log('confirmation result: ' + result.result)
+            logger.log('confirmation result: ' + result.result)
             return await getUserInfo(phoneNumber)
         }
         catch (e) {
@@ -147,6 +149,7 @@ module.exports = (dbUrl) => {
     }
 
     const verifyLoginSms = async (phoneNumber, verificationCode) => {
+        logger.info('login verificationCode:', verificationCode)
         const isCodeValid = await query.checkCodeIsValid(phoneNumber, verificationCode)
         if (isCodeValid)
             return await getUserInfo(phoneNumber)

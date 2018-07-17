@@ -4,7 +4,7 @@ module.exports = (dbUrl) => {
     connections[dbUrl] = mongooseClient.createConnection('mongodb://localhost/' + dbUrl);
     connections[dbUrl].on('error', console.error.bind(console, 'connection error:'));
     connections[dbUrl].once('open', function () {
-        console.info('mongoose connected')
+        logger.info('mongoose connected to:', dbUrl)
     })
     return {
         connections: connections,

@@ -15,7 +15,7 @@ module.exports = (socket, gameMeta) => {
                 joinPlayerToRoom(foundedRoom)
         }
         catch (e) {
-            console.log(e)
+            logger.log(e)
         }
     }
 
