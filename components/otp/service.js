@@ -64,9 +64,9 @@ module.exports = (dbUrl) => {
         }
     }
 
-    const verifySms = async (code, phoneNumber) => {
-        await query.validateSmsCode(code)
-    }
+    // const verifySms = async (code, phoneNumber) => {
+    //     await query.validateSmsCode(code)
+    // }
 
 
     const addUser = async (phoneNumber) => {
@@ -165,7 +165,7 @@ module.exports = (dbUrl) => {
         addUser: addUser,
         getUserInfo: getUserInfo,
         requestLoginSms: requestLoginSms,
-        verifySms: verifySms,
+        // verifySms: verifySms,
         getUserCoin: getUserCoin
     }
 }

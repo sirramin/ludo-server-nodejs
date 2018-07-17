@@ -247,6 +247,10 @@ module.exports = (dbUrl) => {
         })
     }
 
+    const verifySms = async (phoneNumber, code) => {
+        await query.checkCodeIsValid(phoneNumber, code)
+    }
+
     return {
         checkSubscriptionStatus: checkSubscriptionStatus,
         verifySubscriptionPurchase: verifySubscriptionPurchase,
@@ -254,6 +258,7 @@ module.exports = (dbUrl) => {
         verifyProductPurchase: verifyProductPurchase,
         response: response,
         checkStatusAfterLogin: checkStatusAfterLogin,
-        upsertUserFromVas: upsertUserFromVas
+        upsertUserFromVas: upsertUserFromVas,
+        verifySms: verifySms
     }
 }

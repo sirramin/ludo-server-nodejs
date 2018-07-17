@@ -69,6 +69,10 @@ module.exports = (dbUrl) => {
         return await userModel.findOne({phoneNumber: phoneNumber}).lean().exec()
     }
 
+    const checkCodeIsValid = async (phoneNumber, code) => {
+        return await userModel.findOne({phoneNumber: phoneNumber, verificationCode: code}).lean().exec()
+    }
+
     return {
         upsertCharkhonehHistory: upsertCharkhonehHistory,
         upsertCharkhonehProducts: upsertCharkhonehProducts,
@@ -76,6 +80,7 @@ module.exports = (dbUrl) => {
         updateVerifyCode: updateVerifyCode,
         insertUser: insertUser,
         updateUser: updateUser,
-        findByPhoneNumber: findByPhoneNumber
+        findByPhoneNumber: findByPhoneNumber,
+        checkCodeIsValid: checkCodeIsValid
     }
 }

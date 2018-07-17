@@ -16,12 +16,24 @@ module.exports = (router) => {
         })
     });
 
-    router.post('/smsLoginVerify/', gameIdentifier, (req, res) => {
+
+    router.post('/verifySmsCode/', gameIdentifier, async (req, res) => {
         if (!req.body.phoneNumber) {
             return service.response(res, "phoneNumber required", 1)
         }
         if (!req.body.verificationCode) {
             return service.response(res, "verificationCode required", 1)
+        }
+        const service = require('./service')(req.dbUrl)
+        const {phoneNumber, verificationCode} = req.body
+        try {
+            const userInfo = await service.verifySms(phoneNumber, verificationCode)
+            service.response(res, "", 2, userInfo)
+        }
+        catch (e) {
+            logger.error(e)
+            service.response(res, 'Code is not valid', 3)
+
         }
     });
 
@@ -60,14 +72,12 @@ module.exports = (router) => {
             return service.response(res, "charkhonehToken required", 204)
         }
         const service = require('./service')(req.dbUrl)
-        const phoneNumber = req.body.phoneNumber;
-        const charkhonehToken = req.body.charkhonehToken;
+        const {phoneNumber, charkhonehToken} = req.body;
         service.verifySubscriptionPurchase(phoneNumber, charkhonehToken).then((user) => {
             const response = {
                 name: user.name,
                 coin: user.coin,
                 phoneNumber: user.phoneNumber,
-                tempId: user.tempId,
                 userId: user._id
             }
             service.response(res, "", 200, response)
