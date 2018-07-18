@@ -1,40 +1,33 @@
 module.exports = (dbUrl) => {
-    const userModel = require('../user/model')(dbUrl)
+    const userModel = require('../user/model')(dbUrl),
+        _ = require('lodash')
 
-    const upsertCharkhonehHistory = (phoneNumber, subscriptionDetails, charkhonehToken) => {
+    const upsertCharkhonehHistory = async (phoneNumber, subscriptionDetails, charkhonehToken) => {
         subscriptionDetails.token = charkhonehToken
-        return new Promise((resolve, reject) => {
-            userModel.findOneAndUpdate({phoneNumber: phoneNumber},
-                {
-                    $set: {charkhonehCancelled: false},
-                    $addToSet: {charkhonehHistory: subscriptionDetails}
-                }).exec().then((user) => {
-                logger.info('user: ' + user)
-                if (user) {
-                    resolve(user._doc)
-                }
-                else {
-                    insertUser({
-                        charkhonehCancelled: false,
-                        name: {type: String, required: true},
-                        username: {type: String, unique: true, index: false},
-                        password: String,
-                        phoneNumber: {type: String, unique: true, index: false},
-                        market: {type: String, required: true},
-                        coin: {type: Number, default: 1400},
-                        registerDate: {type: Date, default: new Date()},
-                        verificationCode: String
-                    })
-
-                }
-            })
-                .catch(err => {
-                    reject(err)
+        try {
+            const user = await userModel.findOneAndUpdate({phoneNumber: phoneNumber}, {
+                $set: {charkhonehCancelled: false},
+                $addToSet: {charkhonehHistory: subscriptionDetails}
+            }).lean().exec()
+            if (user) {
+                return user
+            }
+            else {
+                const insertedUser = await insertUser({
+                    name: 'user' + _.random(10000, 99999),
+                    phoneNumber: phoneNumber,
+                    market: "mtn",
+                    charkhonehCancelled: false
                 })
-        })
+                return insertedUser
+            }
+        }
+        catch (e) {
+            logger.error(e)
+        }
     }
 
-    const upsertCharkhonehProducts = (phoneNumber, productDetails, charkhonehToken) => {
+    const upsertCharkhonehProducts = (phoneNumber, productDetails, token) => {
         productDetails.token = token
         return userModel.findOneAndUpdate({phoneNumber: phoneNumber}, {
             $addToSet: {charkhonehProducts: productDetails}
@@ -47,12 +40,12 @@ module.exports = (dbUrl) => {
         })
     }
 
-    const updateVerifyCode = ((phoneNumber, verificationCode) => {
-        return Models.verificationCodes.updateVerifyCode({
+    const updateVerifyCode = async (phoneNumber, verificationCode) => {
+        return await userModel.update({phoneNumber: phoneNumber}, {
             phoneNumber: phoneNumber,
             verificationCode: verificationCode
         })
-    })
+    }
 
     const insertUser = async (profile) => {
         const newUser = new userModel(profile)

@@ -1,9 +1,10 @@
 const gameIdentifier = require('../../common/gameIdentifier').findGameName,
     response = require('../../common/response'),
     auth = require('../../common/authMiddleware')
+const router = require('express').Router()
 
 
-module.exports = (router) => {
+module.exports = () => {
     router.post('/signup', gameIdentifier, async (req, res, next) => {
         const service = require('./service')(req.dbUrl)
         const {username, password, phoneNumber, market} = req.body

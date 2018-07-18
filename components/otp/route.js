@@ -1,8 +1,9 @@
+const router = require('express').Router()
 const response = require('../../common/response'),
     gameIdentifier = require('../../common/gameIdentifier').findGameName
 
 
-module.exports = (router) => {
+module.exports = () => {
 
     /**
      * @api {get} /otp/check/:phoneNumber Check User

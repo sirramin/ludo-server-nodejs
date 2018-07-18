@@ -15,7 +15,7 @@ const generateJwt = async (dbUrl, userId, name, market, phoneNumber, username) =
         payload.username = username
     }
 
-    return await jsonwebtoken.sign(payload, secret, {expiresIn: '10 days'});
+    return await jsonwebtoken.sign(payload, secret, {expiresIn: '100 days'});
 }
 const verifyJwt = async (token) => {
     return await jsonwebtoken.verify(token, secret)

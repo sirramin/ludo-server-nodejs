@@ -3,9 +3,9 @@ const rpn = require('request-promise-native'),
     _ = require('lodash')
 
 module.exports = (dbUrl) => {
-    const jhoobinConfig = require('./config')[dbUrl].jhoobin,
+    const config = require('./config')[dbUrl]
+    const jhoobinConfig = config.jhoobin,
         query = require('./query')(dbUrl),
-        sendCode = require('./sendSms')(dbUrl),
         jhoobinBaseUrl = jhoobinConfig.url + jhoobinConfig.packageName + '/purchases/subscriptions/' + jhoobinConfig.sku + '/tokens/',
         jhoobinBaseUrlProducts = jhoobinConfig.url + jhoobinConfig.packageName + '/purchases/products/'
 
@@ -54,16 +54,16 @@ module.exports = (dbUrl) => {
         const currentTime = new Date().getTime()
         return new Promise((resolve, reject) => {
             if (!user)
-                reject({message: 'User not exist', statusCode: 404})
+                reject({message: 'User not exist', statusCode: 3})
             if (!user.charkhonehHistory.length)
-                reject({message: 'User has no subscription history', statusCode: 405})
+                reject({message: 'User has no subscription history', statusCode: 4})
 
             const lastSubscription = user.charkhonehHistory[user.charkhonehHistory.length - 1]
             if (lastSubscription.expiryTimeMillis < currentTime)
-                reject({message: 'Subscription expired', statusCode: 406})
+                reject({message: 'Subscription expired', statusCode: 5})
             if (user.charkhonehCancelled)
-                reject({message: 'User cancelled subscription', statusCode: 407})
-            resolve(lastSubscription.charkhonehToken)
+                reject({message: 'User cancelled subscription', statusCode: 6})
+            resolve(lastSubscription.token)
         })
     }
 
@@ -79,32 +79,33 @@ module.exports = (dbUrl) => {
                     if (subscriptionDetails.autoRenewing && subscriptionDetails.paymentState && subscriptionDetails.expiryTimeMillis >= currentTime)
                         resolve()
                     else
-                        reject({message: 'Subscription is not valid', statusCode: 408})
+                        reject({message: 'Subscription is not valid', statusCode: 7})
                 })
                 .catch(err => {
-                    reject({message: 'problem verifying subscription', statusCode: 502})
+                    reject({message: 'problem verifying subscription', statusCode: 8})
                 })
         })
     }
 
-    const sendSms = (phoneNumber, verificationCode) => {
-        const smsData = {
-            phoneNumber: phoneNumber,
-            content: verificationCode,
-            market: "MTN"
-        }
+    const sendSms = async (phoneNumber, verificationCode) => {
+        const number = '98' + phoneNumber.substr(1)
+        const urlTemplate = _.template(config.verificationCodeProvider)
+        const url = urlTemplate({'number': number, 'smsVerifyCode': verificationCode})
 
-        return new Promise((resolve, reject) => {
-            sendCode.sendVerificationCodeByVas(smsData)
-                .then(() => {
-                    logger.info('sms sent')
-                    resolve()
-                })
-                .catch(err => {
-                    logger.error('vas sms error' + err)
-                    reject({message: 'vas sms error', statusCode: 504})
-                })
-        })
+        const options = {
+            url: url,
+            method: 'get',
+            timeout: 45000,
+            json: true
+        }
+        try {
+            await rpn(options)
+            logger.info('sms sent to:', phoneNumber, 'code:', verificationCode)
+        }
+        catch (e) {
+            logger.error('vas sms error' + e)
+            throw({message: 'vas sms error', statusCode: 9})
+        }
     }
 
     const verifySubscriptionPurchase = (phoneNumber, charkhonehToken) => {
@@ -116,20 +117,21 @@ module.exports = (dbUrl) => {
         return new Promise((resolve, reject) => {
             rpn(jhoobinVerify)
                 .catch(err => {
-                    reject({message: 'problem verifying subscription', statusCode: 502})
+                    reject({message: 'problem verifying subscription', statusCode: 10})
                 })
                 .then((subscriptionDetails) => {
                     if (subscriptionDetails.autoRenewing && subscriptionDetails.paymentState && subscriptionDetails.expiryTimeMillis >= currentTime) {
                         query.upsertCharkhonehHistory(phoneNumber, subscriptionDetails, charkhonehToken)
-                            .then(user => {
+                            .then(async user => {
+                                user.token = await jwt.generateJwt(dbUrl, user._id, user.name, user.market, phoneNumber)
                                 resolve(user)
                             }).catch(err => {
                             logger.error('database error: ' + err)
-                            reject({message: 'problem verifying subscription', statusCode: 502})
+                            reject({message: 'problem verifying subscription', statusCode: 11})
                         })
                     }
                     else
-                        reject({message: 'Subscription is not valid', statusCode: 408})
+                        reject({message: 'Subscription is not valid', statusCode: 12})
                 })
         })
     }
@@ -140,7 +142,7 @@ module.exports = (dbUrl) => {
                 return userErrors(user)
                     .then((user) => {
                         const lastSubscription = user.charkhonehHistory[user.charkhonehHistory.length - 1]
-                        const jhoobinCancel = jhoobinBaseUrl + lastSubscription.charkhonehToken + ':cancel?access_token=' + jhoobinConfig.accessToken
+                        const jhoobinCancel = jhoobinBaseUrl + lastSubscription.token + ':cancel?access_token=' + jhoobinConfig.accessToken
                         return new Promise((resolve, reject) => {
                             rpn(jhoobinCancel)
                                 .then((cancelDetails) => {
@@ -149,7 +151,7 @@ module.exports = (dbUrl) => {
                                             resolve()
                                         })
                                 }).catch((err) => {
-                                reject({message: 'Error requesting charkhoneh', statusCode: 503})
+                                reject({message: 'Error requesting charkhoneh', statusCode: 13})
                             })
                         })
                     })
@@ -159,14 +161,14 @@ module.exports = (dbUrl) => {
     const userErrors = ((user) => {
         return new Promise((resolve, reject) => {
             if (!user)
-                reject({message: 'user not exists', statusCode: 404})
+                reject({message: 'user not exists', statusCode: 14})
             const lastSubscription = user.charkhonehHistory[user.charkhonehHistory.length - 1]
-            if (!user.charkhonehHistory.length || !user.charkhonehHistory || !lastSubscription || !lastSubscription.charkhonehToken)
-                reject({message: 'User has no subscription history', statusCode: 405})
+            if (!user.charkhonehHistory.length || !user.charkhonehHistory || !lastSubscription || !lastSubscription.token)
+                reject({message: 'User has no subscription history', statusCode: 15})
             if (user.charkhonehCancelled)
-                reject({message: 'User has cancelled before', statusCode: 409})
+                reject({message: 'User has cancelled before', statusCode: 16})
             if (!user.charkhonehHistory[user.charkhonehHistory.length - 1].autoRenewing)
-                reject({message: 'Subscription is not autoRenew', statusCode: 410})
+                reject({message: 'Subscription is not autoRenew', statusCode: 17})
 
             return resolve(user)
         })
@@ -186,10 +188,10 @@ module.exports = (dbUrl) => {
                 if (subscriptionDetails.purchaseState === 0)
                     return query.upsertCharkhonehProducts(phoneNumber, subscriptionDetails, charkhonehToken)
                 else
-                    return Promise.reject({message: 'Product is not valid', statusCode: 411})
+                    return Promise.reject({message: 'Product is not valid', statusCode: 18})
             }).catch((err) => {
                 logger.error(err)
-                return Promise.reject({message: 'Problem Verifying product', statusCode: 504})
+                return Promise.reject({message: 'Problem Verifying product', statusCode: 19})
             })
     }
 
@@ -241,14 +243,16 @@ module.exports = (dbUrl) => {
     const response = (res, message, statusCode = 200, data = {}) => {
         logger.info(message + ' ' + statusCode + ' ' + data)
         res.send({
-            statusCode: statusCode,
+            code: statusCode,
             message: message,
-            result: data
+            data: data
         })
     }
 
     const verifySms = async (phoneNumber, code) => {
-        await query.checkCodeIsValid(phoneNumber, code)
+        const user = await query.checkCodeIsValid(phoneNumber, code)
+        user.token = await jwt.generateJwt(dbUrl, user._id, user.name, user.market, phoneNumber)
+        return user
     }
 
     return {

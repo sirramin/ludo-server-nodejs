@@ -1,6 +1,7 @@
 const auth = require('../../common/authMiddleware')
 const response = require('../../common/response')
-module.exports = (router) => {
+const router = require('express').Router();
+module.exports = () => {
 
 
     /**

@@ -1,5 +1,440 @@
 [
   {
+    "type": "get",
+    "url": "/charkhoneh/subscription/cancel/:phoneNumber",
+    "title": "cancel subscription",
+    "name": "cancel_subscription",
+    "group": "charkhoneh",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": false,
+            "field": "phoneNumber",
+            "description": ""
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 2": [
+          {
+            "group": "Success 2",
+            "type": "String",
+            "optional": false,
+            "field": "Subscription",
+            "description": "<p>cancelled</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Errors": [
+          {
+            "group": "Errors",
+            "optional": false,
+            "field": "1",
+            "description": "<p>phoneNumber required</p>"
+          },
+          {
+            "group": "Errors",
+            "optional": false,
+            "field": "13",
+            "description": "<p>Error requesting charkhoneh</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "components/charkhoneh/route.js",
+    "groupTitle": "charkhoneh"
+  },
+  {
+    "type": "get",
+    "url": "/charkhoneh/check/:phoneNumber",
+    "title": "check charkhoneh subscription",
+    "name": "check_charkhoneh",
+    "group": "charkhoneh",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": false,
+            "field": "phoneNumber",
+            "description": ""
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 2": [
+          {
+            "group": "Success 2",
+            "type": "String",
+            "optional": false,
+            "field": "name",
+            "description": ""
+          },
+          {
+            "group": "Success 2",
+            "type": "Number",
+            "optional": false,
+            "field": "coin",
+            "description": ""
+          },
+          {
+            "group": "Success 2",
+            "type": "Number",
+            "optional": false,
+            "field": "phoneNumber",
+            "description": ""
+          },
+          {
+            "group": "Success 2",
+            "type": "String",
+            "optional": false,
+            "field": "token",
+            "description": ""
+          },
+          {
+            "group": "Success 2",
+            "type": "String",
+            "optional": false,
+            "field": "userId",
+            "description": ""
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Errors": [
+          {
+            "group": "Errors",
+            "optional": false,
+            "field": "1",
+            "description": "<p>phoneNumber required</p>"
+          },
+          {
+            "group": "Errors",
+            "optional": false,
+            "field": "3",
+            "description": "<p>User not exist</p>"
+          },
+          {
+            "group": "Errors",
+            "optional": false,
+            "field": "4",
+            "description": "<p>User has no subscription history</p>"
+          },
+          {
+            "group": "Errors",
+            "optional": false,
+            "field": "5",
+            "description": "<p>Subscription expired</p>"
+          },
+          {
+            "group": "Errors",
+            "optional": false,
+            "field": "6",
+            "description": "<p>User cancelled subscription</p>"
+          },
+          {
+            "group": "Errors",
+            "optional": false,
+            "field": "7",
+            "description": "<p>Subscription is not valid</p>"
+          },
+          {
+            "group": "Errors",
+            "optional": false,
+            "field": "8",
+            "description": "<p>problem verifying subscription</p>"
+          },
+          {
+            "group": "Errors",
+            "optional": false,
+            "field": "9",
+            "description": "<p>vas sms error</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "components/charkhoneh/route.js",
+    "groupTitle": "charkhoneh"
+  },
+  {
+    "type": "get",
+    "url": "/charkhoneh/statusAfterLogin/:phoneNumber",
+    "title": "status After Login",
+    "name": "status_After_Login",
+    "group": "charkhoneh",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": false,
+            "field": "phoneNumber",
+            "description": ""
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 2": [
+          {
+            "group": "Success 2",
+            "type": "Boolean",
+            "optional": false,
+            "field": "isSubscribed",
+            "description": ""
+          },
+          {
+            "group": "Success 2",
+            "type": "Number",
+            "optional": false,
+            "field": "coin",
+            "description": ""
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Errors": [
+          {
+            "group": "Errors",
+            "optional": false,
+            "field": "1",
+            "description": "<p>phoneNumber required</p>"
+          },
+          {
+            "group": "Errors",
+            "optional": false,
+            "field": "3",
+            "description": "<p>Error checking status</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "components/charkhoneh/route.js",
+    "groupTitle": "charkhoneh"
+  },
+  {
+    "type": "post",
+    "url": "/charkhoneh/verifySmsCode",
+    "title": "verify sms",
+    "name": "verify_sms",
+    "group": "charkhoneh",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": false,
+            "field": "phoneNumber",
+            "description": ""
+          },
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": false,
+            "field": "verificationCode",
+            "description": ""
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 2": [
+          {
+            "group": "Success 2",
+            "type": "String",
+            "optional": false,
+            "field": "name",
+            "description": ""
+          },
+          {
+            "group": "Success 2",
+            "type": "Number",
+            "optional": false,
+            "field": "coin",
+            "description": ""
+          },
+          {
+            "group": "Success 2",
+            "type": "Number",
+            "optional": false,
+            "field": "phoneNumber",
+            "description": ""
+          },
+          {
+            "group": "Success 2",
+            "type": "String",
+            "optional": false,
+            "field": "token",
+            "description": ""
+          },
+          {
+            "group": "Success 2",
+            "type": "String",
+            "optional": false,
+            "field": "userId",
+            "description": ""
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Errors": [
+          {
+            "group": "Errors",
+            "optional": false,
+            "field": "1",
+            "description": "<p>phoneNumber required</p>"
+          },
+          {
+            "group": "Errors",
+            "optional": false,
+            "field": "3",
+            "description": "<p>verificationCode required</p>"
+          },
+          {
+            "group": "Errors",
+            "optional": false,
+            "field": "4",
+            "description": "<p>Code is not valid</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "components/charkhoneh/route.js",
+    "groupTitle": "charkhoneh"
+  },
+  {
+    "type": "post",
+    "url": "/charkhoneh/subscription/verify",
+    "title": "verifying subscription",
+    "name": "verifying_subscription",
+    "group": "charkhoneh",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": false,
+            "field": "phoneNumber",
+            "description": ""
+          },
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": false,
+            "field": "charkhonehToken",
+            "description": ""
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 2": [
+          {
+            "group": "Success 2",
+            "type": "String",
+            "optional": false,
+            "field": "name",
+            "description": ""
+          },
+          {
+            "group": "Success 2",
+            "type": "Number",
+            "optional": false,
+            "field": "coin",
+            "description": ""
+          },
+          {
+            "group": "Success 2",
+            "type": "Number",
+            "optional": false,
+            "field": "phoneNumber",
+            "description": ""
+          },
+          {
+            "group": "Success 2",
+            "type": "String",
+            "optional": false,
+            "field": "token",
+            "description": ""
+          },
+          {
+            "group": "Success 2",
+            "type": "String",
+            "optional": false,
+            "field": "userId",
+            "description": ""
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Errors": [
+          {
+            "group": "Errors",
+            "optional": false,
+            "field": "1",
+            "description": "<p>phoneNumber required</p>"
+          },
+          {
+            "group": "Errors",
+            "optional": false,
+            "field": "3",
+            "description": "<p>charkhonehToken required</p>"
+          },
+          {
+            "group": "Errors",
+            "optional": false,
+            "field": "10",
+            "description": "<p>problem verifying subscription</p>"
+          },
+          {
+            "group": "Errors",
+            "optional": false,
+            "field": "11",
+            "description": "<p>problem verifying subscription</p>"
+          },
+          {
+            "group": "Errors",
+            "optional": false,
+            "field": "12",
+            "description": "<p>Subscription is not valid</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "components/charkhoneh/route.js",
+    "groupTitle": "charkhoneh"
+  },
+  {
     "type": "post",
     "url": "/gameResult",
     "title": "send game result",

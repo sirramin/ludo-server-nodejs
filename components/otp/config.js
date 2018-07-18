@@ -10,8 +10,7 @@ module.exports = {
         },
         "artatelOtp": {
             "request": "https://otp.artatel.ir/api/otp/v1/request/masterOfMind/",
-            "confirmation": 'https://otp.artatel.ir/api/otp/v1/confirmation/masterOfMind/',
-
+            "confirmation": 'https://otp.artatel.ir/api/otp/v1/confirmation/masterOfMind/'
         }
     }
 }

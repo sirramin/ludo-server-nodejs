@@ -11,6 +11,6 @@ module.exports = {
                 {'menchman_coin_pack_3': 42000}
             ]
         },
-        verificationCodeProvider: 'http://31.47.36.133/~gatewayrdn/App/app_user_sendsms.php?number={0}&serviceName=test&content={1}'
+        verificationCodeProvider: 'http://31.47.36.133/~gatewayrdn/App/app_user_sendsms.php?number=${number}&serviceName=test&content=${smsVerifyCode}'
     }
 }

@@ -1,7 +1,6 @@
 const jwt = require('../../common/jwt'),
     gameIdentifier = require('../../common/gameIdentifier')
-
-module.exports = (router, io) => {
+module.exports = (io) => {
     io
         .use(async (socket, next) => {
             if (socket.handshake.query && socket.handshake.query.token) {
