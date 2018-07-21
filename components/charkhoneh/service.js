@@ -7,7 +7,9 @@ module.exports = (dbUrl) => {
     const jhoobinConfig = config.jhoobin,
         query = require('./query')(dbUrl),
         jhoobinBaseUrl = jhoobinConfig.url + jhoobinConfig.packageName + '/purchases/subscriptions/' + jhoobinConfig.sku + '/tokens/',
-        jhoobinBaseUrlProducts = jhoobinConfig.url + jhoobinConfig.packageName + '/purchases/products/'
+        jhoobinBaseUrlProducts = jhoobinConfig.url + jhoobinConfig.packageName + '/purchases/products/',
+        leaderboardService = require('../leaderboard/service')(dbUrl, 'mtn')
+
 
     if (!schedulerExecuted)
         require('./coin-scheduler')(dbUrl)
@@ -108,32 +110,27 @@ module.exports = (dbUrl) => {
         }
     }
 
-    const verifySubscriptionPurchase = (phoneNumber, charkhonehToken) => {
+    const verifySubscriptionPurchase = async (phoneNumber, charkhonehToken) => {
         const jhoobinVerify = {
             uri: jhoobinBaseUrl + charkhonehToken + '?access_token=' + jhoobinConfig.accessToken,
             json: true
         }
         const currentTime = new Date().getTime()
-        return new Promise((resolve, reject) => {
-            rpn(jhoobinVerify)
-                .catch(err => {
-                    reject({message: 'problem verifying subscription', statusCode: 10})
-                })
-                .then((subscriptionDetails) => {
-                    if (subscriptionDetails.autoRenewing && subscriptionDetails.paymentState && subscriptionDetails.expiryTimeMillis >= currentTime) {
-                        query.upsertCharkhonehHistory(phoneNumber, subscriptionDetails, charkhonehToken)
-                            .then(async user => {
-                                user.token = await jwt.generateJwt(dbUrl, user._id, user.name, user.market, phoneNumber)
-                                resolve(user)
-                            }).catch(err => {
-                            logger.error('database error: ' + err)
-                            reject({message: 'problem verifying subscription', statusCode: 11})
-                        })
-                    }
-                    else
-                        reject({message: 'Subscription is not valid', statusCode: 12})
-                })
-        })
+        try {
+            const subscriptionDetails = await rpn(jhoobinVerify)
+            if (subscriptionDetails.autoRenewing && subscriptionDetails.paymentState && subscriptionDetails.expiryTimeMillis >= currentTime) {
+                const user = await query.upsertCharkhonehHistory(phoneNumber, subscriptionDetails, charkhonehToken)
+                const userId = user._id.toString()
+                await leaderboardService.firstTimeScore(user.name, userId)
+                user.token = await jwt.generateJwt(dbUrl, userId, user.name, user.market, phoneNumber)
+                return user
+            }
+            else
+                throw({message: 'Subscription is not valid', statusCode: 12})
+        }
+        catch (e) {
+            throw({message: 'problem verifying subscription', statusCode: 10})
+        }
     }
 
     const cancelSubscription = (phoneNumber) => {

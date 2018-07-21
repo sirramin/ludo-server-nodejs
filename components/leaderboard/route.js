@@ -1,6 +1,7 @@
 const auth = require('../../common/authMiddleware')
 const response = require('../../common/response')
 const router = require('express').Router();
+// const textbox = require('textbox')
 module.exports = () => {
 
 
@@ -52,6 +53,7 @@ module.exports = () => {
         const service = require('./service')(dbUrl, market)
         try {
             const leaders = await service.getLeaderboard(name, userId)
+            // text box
             response(res, '', 200, {leaders: leaders})
         }
         catch (err) {

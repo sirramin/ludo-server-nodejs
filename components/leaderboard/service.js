@@ -1,5 +1,6 @@
 module.exports = (dbUrl, market) => {
-    const query = require('./query')(dbUrl, market),
+    const query = require('./query')(dbUrl),
+        userQuery = require('../user/query')(dbUrl)
         Leaderboard = require('leaderboard-promise'),
         _ = require('lodash'),
         leaderboardPath = dbUrl + ':leaders:' + market,
@@ -79,6 +80,8 @@ module.exports = (dbUrl, market) => {
             "lose": !isWinner ? userloses + 1 : userloses
         }
         await lb.incr(userId, score)
+        const newScore = await lb.score(userId)
+        await userQuery.updateScoreInMongo(userId, userInfo.win, userInfo.lose, newScore)
         return await redisClient.hmset(usersPath, userId, JSON.stringify(userInfo))
     }
 
@@ -90,13 +93,21 @@ module.exports = (dbUrl, market) => {
             "lose": 0
         }
         await lb.add(userId, 0)
-        return await redisClient.hmset(usersPath, userId, JSON.stringify(userInfo))
+        await redisClient.hmset(usersPath, userId, JSON.stringify(userInfo))
+    }
+
+    const changeName = async (newName, userId) => {
+        const userInfo = await redisClient.hget(usersPath, userId)
+        const userInfoParse = JSON.parse(userInfo)
+        userInfoParse.name = newName
+        await redisClient.hset(usersPath, userId, JSON.stringify(userInfoParse))
     }
 
 
     return {
         getLeaderboard: getLeaderboard,
         addScore: addScore,
-        firstTimeScore: firstTimeScore
+        firstTimeScore: firstTimeScore,
+        changeName: changeName
     }
 }

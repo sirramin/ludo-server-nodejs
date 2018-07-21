@@ -70,7 +70,7 @@ module.exports = (dbUrl) => {
 
 
     const addUser = async (phoneNumber) => {
-        const leaderboardService = require('../leaderboard/service')(dbUrl)
+        const leaderboardService = require('../leaderboard/service')(dbUrl, 'mci')
         try {
             const user = {
                 name: 'user' + _.random(1, 99999),

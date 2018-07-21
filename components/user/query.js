@@ -28,10 +28,22 @@ module.exports = (dbUrl) => {
         return await userModel.findOneAndUpdate(query, update, {returnNewDocument: true}).lean().exec()
     }
 
+    const updateScoreInMongo = async (userId, win, lose, score) => {
+        await userModel.update({_id: userId},
+            {
+                $set: {
+                    win: win,
+                    lose: lose,
+                    score: score
+                }
+            })
+    }
+
     return {
         checkUserExists: checkUserExists,
         insertUser: insertUser,
         updateUser: updateUser,
-        insertGuestUser: insertGuestUser
+        insertGuestUser: insertGuestUser,
+        updateScoreInMongo: updateScoreInMongo
     }
 }

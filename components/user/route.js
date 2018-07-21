@@ -48,11 +48,13 @@ module.exports = () => {
         if (!req.body.newName) {
             response(res, "new name required", 1)
         }
-        const {userId, dbUrl} = req.userInfo
+        const {userId, dbUrl, market} = req.userInfo
         const query = require('./query')(dbUrl)
+        const leaderboardService = require('../leaderboard/service')(dbUrl, market)
         const {newName} = req.body
         try {
             await query.updateUser({_id: userId}, {name: newName})
+            await leaderboardService.changeName(newName, userId)
             response(res, 'Name updated ', 2)
         }
         catch (e) {
