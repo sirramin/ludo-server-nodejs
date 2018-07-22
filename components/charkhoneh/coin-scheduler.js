@@ -4,7 +4,7 @@ module.exports = (dbUrl) => {
     const argv = process.argv.slice(2)
     logger.info('argv: ' + argv)
     if (argv[0] === 'platform-Master') {
-        const userModel = require('../user/models/users')(dbUrl)
+        const userModel = require('../user/model')(dbUrl)
         schedule.scheduleJob('0 59 23 * * *', function () {
             logger.log('Coin schedule exceuted at ' + Date());
             userModel.update({
