@@ -97,7 +97,20 @@ module.exports = () => {
         }
         catch (err) {
             logger.error(err.message)
-            response(res, 'error adding score', 41)
+            response(res, 'error adding fakes', 41)
+        }
+    })
+
+    router.post('/removeFakes', async (req, res) => {
+        const {dbUrl, market}  = req.body
+        const fakeUsers = require('./fakeUsers')(dbUrl, market)
+        try {
+            await fakeUsers.removeFakes()
+            response(res, 'fakes removed', 40)
+        }
+        catch (err) {
+            logger.error(err.message)
+            response(res, 'error removing fakes', 41)
         }
     })
 

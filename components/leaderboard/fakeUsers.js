@@ -13,11 +13,19 @@ module.exports = (dbUrl, market) => {
             const userInfo = {
                 "userId": item.userId,
                 "name": item.name,
-                "win": item.win,
+                "win": item.wins,
                 "lose": item.lose
             }
             await lb.add(item.userId, item.score)
             await redisClient.hset(usersPath, item.userId, JSON.stringify(userInfo))
+        }
+    }
+
+    const removeFakes = async () => {
+        for (let i = 0; i <= sampleData.length; i++) {
+            const userId = sampleData[i].userId
+            await redisClient.zrem(leaderboardPath, userId)
+            await redisClient.hdel(usersPath, userId)
         }
     }
 
@@ -49,13 +57,6 @@ module.exports = (dbUrl, market) => {
             "score": 77,
             "lose": 21,
             "wins": 18
-        },
-        {
-            "userId": "5b42550e4e2bed396cba3f65",
-            "name": "koni ha",
-            "score": 68,
-            "lose": 38,
-            "wins": 20
         },
         {
             "userId": "5b43d53bd019f139c0bef521",
@@ -165,6 +166,7 @@ module.exports = (dbUrl, market) => {
     ]
 
     return {
-        addFakes: addFakes
+        addFakes: addFakes,
+        removeFakes: removeFakes
     }
 }
