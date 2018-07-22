@@ -9,14 +9,15 @@ module.exports = (dbUrl, market) => {
 
     const addFakes = async () => {
         for (let i = 0; i <= sampleData.length; i++) {
+            const item = sampleData[i]
             const userInfo = {
-                "userId": sampleData.userId,
-                "name": sampleData.name,
-                "win": sampleData.win,
-                "lose": sampleData.lose
+                "userId": item.userId,
+                "name": item.name,
+                "win": item.win,
+                "lose": item.lose
             }
-            await lb.add(sampleData.userId, 0)
-            await redisClient.hset(usersPath, sampleData.userId, JSON.stringify(userInfo))
+            await lb.add(item.userId, item.score)
+            await redisClient.hset(usersPath, item.userId, JSON.stringify(userInfo))
         }
     }
 
@@ -163,4 +164,7 @@ module.exports = (dbUrl, market) => {
         }
     ]
 
+    return {
+        addFakes: addFakes
+    }
 }

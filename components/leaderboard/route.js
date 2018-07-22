@@ -57,7 +57,7 @@ module.exports = () => {
             response(res, '', 200, {leaders: leaders})
         }
         catch (err) {
-            logger.error(err)
+            logger.error(err.message)
             response(res, 'Error getting leaderboard', 31)
         }
     })
@@ -83,7 +83,7 @@ module.exports = () => {
             response(res, 'score added', 40)
         }
         catch (err) {
-            logger.error(err)
+            logger.error(err.message)
             response(res, 'error adding score', 41)
         }
     })
@@ -96,12 +96,12 @@ module.exports = () => {
             response(res, 'fakes added', 40)
         }
         catch (err) {
-            logger.error(err)
+            logger.error(err.message)
             response(res, 'error adding score', 41)
         }
     })
 
-
+    message = "Cannot read property 'addFakes' of undefined"
 
     return router
 }

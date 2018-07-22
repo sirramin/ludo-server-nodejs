@@ -186,7 +186,7 @@ module.exports = (dbUrl) => {
                 else
                     return Promise.reject({message: 'Product is not valid', statusCode: 18})
             }).catch((err) => {
-                logger.error(err)
+                logger.error(err.message)
                 return Promise.reject({message: 'Problem Verifying product', statusCode: 19})
             })
     }
