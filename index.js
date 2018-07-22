@@ -6,14 +6,16 @@ const io = require('socket.io')(http)
 global.connections = {}
 global.schedulerExecuted = false
 const winston = require('winston')
-global.logger = winston.createLogger({
+global.logger = ''
+logger = winston.createLogger({
     level: 'info',
     format: winston.format.json(),
     transports: [
-        new winston.transports.File({ filename: 'error.log', level: 'error' }),
-        new winston.transports.File({ filename: 'combined.log' })
+        new winston.transports.File({filename: 'error.log', level: 'error'}),
+        new winston.transports.File({filename: 'combined.log'})
     ]
 });
+
 app.use(morgan('combined'))
 app.use('/apidoc8574636', express.static('apidoc'))
 const bodyParser = require('body-parser')

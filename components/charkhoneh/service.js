@@ -118,6 +118,7 @@ module.exports = (dbUrl) => {
         const currentTime = new Date().getTime()
         try {
             const subscriptionDetails = await rpn(jhoobinVerify)
+            console.log(subscriptionDetails)
             if (subscriptionDetails.autoRenewing && subscriptionDetails.paymentState && subscriptionDetails.expiryTimeMillis >= currentTime) {
                 const user = await query.upsertCharkhonehHistory(phoneNumber, subscriptionDetails, charkhonehToken)
                 const userId = user._id.toString()
@@ -125,11 +126,9 @@ module.exports = (dbUrl) => {
                 user.token = await jwt.generateJwt(dbUrl, userId, user.name, user.market, phoneNumber)
                 return user
             }
-            else
-                throw({message: 'Subscription is not valid', statusCode: 12})
         }
         catch (e) {
-            throw({message: 'problem verifying subscription', statusCode: 10})
+            throw({message: 'Subscription is not valid', statusCode: 12})
         }
     }
 
