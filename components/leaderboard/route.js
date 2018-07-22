@@ -89,16 +89,16 @@ module.exports = () => {
     })
 
     router.post('/fakeUsers', async (req, res) => {
-        // const {dbUrl, market}  = req.body
-        // const fakeUsers = require('./fakeUsers')(dbUrl, market)
-        // try {
-        //     await fakeUsers.addScore(name, userId, league, isWinner)
-        //     response(res, 'fakes added', 40)
-        // }
-        // catch (err) {
-        //     logger.error(err)
-        //     response(res, 'error adding score', 41)
-        // }
+        const {dbUrl, market}  = req.body
+        const fakeUsers = require('./fakeUsers')(dbUrl, market)
+        try {
+            await fakeUsers.addFakes()
+            response(res, 'fakes added', 40)
+        }
+        catch (err) {
+            logger.error(err)
+            response(res, 'error adding score', 41)
+        }
     })
 
 

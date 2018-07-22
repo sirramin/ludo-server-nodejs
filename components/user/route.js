@@ -34,7 +34,7 @@ module.exports = () => {
     })
 
     /**
-     * @api {put} /user/changeName changeName
+     * @api {post} /user/changeName changeName
      * @apiName changeName
      * @apiGroup user
      * @apiHeader {String} gameid
@@ -53,9 +53,9 @@ module.exports = () => {
         const leaderboardService = require('../leaderboard/service')(dbUrl, market)
         const {newName} = req.body
         try {
-            await query.updateUser({_id: userId}, {name: newName})
+            const updatedUser = await query.updateUser({_id: userId}, {name: newName})
             await leaderboardService.changeName(newName, userId)
-            response(res, 'Name updated ', 2)
+            response(res, 'Name updated to: '+ updatedUser.name, 2)
         }
         catch (e) {
             response(res, 'error updating name', 3)
@@ -63,7 +63,7 @@ module.exports = () => {
     })
 
     /**
-     * @api {put} /user/increaseCoin increase coin
+     * @api {post} /user/increaseCoin increase coin
      * @apiName increaseCoin
      * @apiGroup user
      * @apiHeader {String} gameid

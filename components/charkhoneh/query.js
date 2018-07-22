@@ -17,7 +17,8 @@ module.exports = (dbUrl) => {
                     name: 'user' + _.random(10000, 99999),
                     phoneNumber: phoneNumber,
                     market: "mtn",
-                    charkhonehCancelled: false
+                    charkhonehCancelled: false,
+                    charkhonehHistory: subscriptionDetails
                 })
                 return insertedUser
             }

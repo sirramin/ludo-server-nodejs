@@ -1,11 +1,12 @@
+const Leaderboard = require('leaderboard-promise'),
+    redisClient = require('../../common/redis-client')
+_ = require('lodash')
+
 module.exports = (dbUrl, market) => {
     const query = require('./query')(dbUrl),
-        userQuery = require('../user/query')(dbUrl)
-        Leaderboard = require('leaderboard-promise'),
-        _ = require('lodash'),
+        userQuery = require('../user/query')(dbUrl),
         leaderboardPath = dbUrl + ':leaders:' + market,
         usersPath = dbUrl + ':users:' + market,
-        redisClient = require('../../common/redis-client'),
         lb = new Leaderboard(leaderboardPath)
 
     const getLeaderboard = async (name, userId) => {
@@ -59,7 +60,7 @@ module.exports = (dbUrl, market) => {
             return leaders
         }
         catch (e) {
-            logger.log(e)
+            logger.error(e)
             throw e
         }
     }
@@ -70,7 +71,7 @@ module.exports = (dbUrl, market) => {
             await firstTimeScore(name, userId)
             userGameDetails = await redisClient.hget(usersPath, userId)
         }
-        const score = await query.findLeagueScore(league)
+        const leagueScore = await query.findLeagueScore(league)
         const userWins = JSON.parse(userGameDetails).win
         const userloses = JSON.parse(userGameDetails).lose
         const userInfo = {
@@ -79,7 +80,8 @@ module.exports = (dbUrl, market) => {
             "win": isWinner ? userWins + 1 : userWins,
             "lose": !isWinner ? userloses + 1 : userloses
         }
-        await lb.incr(userId, score)
+        if (isWinner)
+            await lb.incr(userId, leagueScore)
         const newScore = await lb.score(userId)
         await userQuery.updateScoreInMongo(userId, userInfo.win, userInfo.lose, newScore)
         return await redisClient.hmset(usersPath, userId, JSON.stringify(userInfo))
@@ -100,6 +102,7 @@ module.exports = (dbUrl, market) => {
         const userInfo = await redisClient.hget(usersPath, userId)
         const userInfoParse = JSON.parse(userInfo)
         userInfoParse.name = newName
+        logger.info('newName: ' + userInfoParse.name)
         await redisClient.hset(usersPath, userId, JSON.stringify(userInfoParse))
     }
 

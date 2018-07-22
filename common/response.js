@@ -1,5 +1,5 @@
 const response = (res, message, code = 200, data = {}) => {
-    console.log(message + ' ' + code + ' ' + data !== {} ? data : '')
+    logger.info(message + ' ' + code + ' ' + data)
     res.send({
         code: code,
         message: message,

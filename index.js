@@ -8,14 +8,14 @@ global.schedulerExecuted = false
 const winston = require('winston')
 global.logger = ''
 logger = winston.createLogger({
-    level: 'info',
     format: winston.format.json(),
     transports: [
+        new winston.transports.Console(),
         new winston.transports.File({filename: 'error.log', level: 'error'}),
         new winston.transports.File({filename: 'combined.log'})
     ]
 });
-
+logger.info('test')
 app.use(morgan('combined'))
 app.use('/apidoc8574636', express.static('apidoc'))
 const bodyParser = require('body-parser')
@@ -27,4 +27,4 @@ require('./components/realtime/realtime')(io)
 
 // const testRouter = require('./components/test/route')(router)
 // app.use('/unitTest', testRouter)
-app.listen(3000, () => console.log('app listening on port 3000!'))
+app.listen(3000, () => logger.info('app listening on port 3000!'))
