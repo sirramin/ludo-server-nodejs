@@ -50,9 +50,6 @@ module.exports = (dbUrl) => {
                     "coin": coin
                 }
             })
-            .catch(e=>{
-                logger.error(e)
-            })
     }
 
     const userStatus = (user) => {
