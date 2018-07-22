@@ -44,7 +44,7 @@ module.exports = () => {
      * @apiError (Errors) 1 new name required
      * @apiError (Errors) 3 error updating name
      */
-    router.put('/changeName', auth, async (req, res, next) => {
+    router.post('/changeName', auth, async (req, res, next) => {
         if (!req.body.newName) {
             response(res, "new name required", 1)
         }
@@ -73,7 +73,7 @@ module.exports = () => {
      * @apiError (Errors) 1 coin required
      * @apiError (Errors) 3 error updating coin
      */
-    router.put('/increaseCoin', auth, async (req, res, next) => {
+    router.post('/increaseCoin', auth, async (req, res, next) => {
         if (!req.body.coin) {
             response(res, "coin newCoin", 1)
         }
