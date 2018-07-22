@@ -50,6 +50,9 @@ module.exports = (dbUrl) => {
                     "coin": coin
                 }
             })
+            .catch(e=>{
+                logger.error(e)
+            })
     }
 
     const userStatus = (user) => {
@@ -237,7 +240,7 @@ module.exports = (dbUrl) => {
     }
 
     const response = (res, message, statusCode = 200, data = {}) => {
-        logger.info(message + ' ' + statusCode + ' ' + data)
+        logger.info(message + ' ' + statusCode + ' ' + JSON.stringify(data))
         res.send({
             code: statusCode,
             message: message,
