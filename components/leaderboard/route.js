@@ -114,7 +114,5 @@ module.exports = () => {
         }
     })
 
-    message = "Cannot read property 'addFakes' of undefined"
-
     return router
 }
