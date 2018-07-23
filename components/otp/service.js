@@ -138,7 +138,7 @@ module.exports = (dbUrl) => {
         try {
             const result = await rpn.post(options)
             logger.info('result: ' + result)
-            logger.info('confirmation result: ' + result.result)
+            logger.info('confirmation result: ' + JSON.stringify(result.result))
             return await getUserInfo(phoneNumber)
         }
         catch (e) {
