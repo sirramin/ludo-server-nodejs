@@ -36,19 +36,22 @@ module.exports = (dbUrl, market) => {
 
             let middleRank = []
             if (userRank > 20) {
-                let prevUser = await lb.at(userRank - 1)
+                const userRankInSortedSet = userRank - 1
+                let prevUser = await lb.at(userRankInSortedSet - 1)
                 const prevUserInfo = await redisClient.hget(usersPath, prevUser.member)
                 prevUser.rank = userRank - 1
                 prevUser.memberInfo = JSON.parse(prevUserInfo)
+                delete prevUser.member
 
-                let nextUser = await lb.at(userRank + 1)
+                let nextUser = await lb.at(userRankInSortedSet + 1)
                 if (nextUser) {
                     const nextUserInfo = await redisClient.hget(usersPath, nextUser.member)
                     nextUser.rank = userRank + 1
                     nextUser.memberInfo = JSON.parse(nextUserInfo)
+                    delete nextUser.member
                 }
 
-                const userTotalInfo = {}
+                let userTotalInfo = {}
                 userTotalInfo.memberInfo = JSON.parse(userInfo)
                 userTotalInfo.rank = userRank
                 userTotalInfo.score = userScore
