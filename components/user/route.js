@@ -21,12 +21,11 @@ module.exports = () => {
 
     })
 
-    router.post('/signInAsGuest', async (req, res, next) => {
+    router.post('/signInAsGuest', gameIdentifier, async (req, res, next) => {
         const service = require('./service')(req.dbUrl)
         const {market} = req.body
         const guest = await service.registerGuestUser(market)
         response(res, '', 2, guest)
-
     })
 
     router.put('/update', async (req, res, next) => {

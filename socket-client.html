@@ -16,23 +16,37 @@
     $(function () {
         $('#connect').click(() => {
             $.ajax({
-                url: "localhost:3000/user/signInAsGuest",
-            }).done(function (token) {
-                socket = io('http://localhost:3000', {transports: ['websocket'], query: {token: token}});
-            });
-            // const socket = io('http://localhost:3000', {transports: ['websocket']});
+                url: "http://localhost:3000/user/signInAsGuest",
+                type: 'post',
+                data: {
+                    market: 'mtn'
+                },
+                headers: {
+                    gameid: '5b39d163afff3d2cf7833f6e', //menchman game
+                },
+                dataType: 'json',
+            }).done(function (res) {
+                socket = io('http://localhost:3000', {transports: ['websocket'], query: {token: res.data.token}})
 
+                $('#joinRoom').click(() => {
+                    socket.emit('joinRoom', '')
+                })
 
-            $('#joinRoom').click(() => {
-                socket.emit('joinRoom', '')
+                socket.on('message', function (msg) {
+                    $('#messages').append($('<li>').text(JSON.stringify(msg)))
+                })
+
+                socket.on('player joined', function (roomId) {
+                    $('#messages').append($('<li>').text('player joined: ' + roomId))
+                })
+
+                socket.on('game started', function (roomId) {
+                    $('#messages').append($('<li>').text('game started roomId: ' + roomId))
+                })
             })
 
-            socket.on('message', function (msg) {
-                console.log(msg)
-                $('#messages').append($('<li>').text(JSON.stringify(msg)))
-            });
         })
-    });
+    })
 </script>
 </body>
 </html>

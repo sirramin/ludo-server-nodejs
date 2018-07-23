@@ -134,7 +134,7 @@ module.exports = (dbUrl) => {
                 'Authorization': otpHeader
             },
             json: true
-        };
+        }
         try {
             const result = await rpn.post(options)
             logger.log('confirmation result: ' + result.result)
@@ -144,6 +144,7 @@ module.exports = (dbUrl) => {
             // if (e.statusCode === 500)
             //     throw {message: 'Code is not valid', statusCode: 25}
             // else
+            logger.error(e.message)
             throw {message: 'OTP error', statusCode: 21}
         }
     }

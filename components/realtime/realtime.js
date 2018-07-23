@@ -8,6 +8,7 @@ module.exports = (io) => {
                     const userInfo = await jwt.verifyJwt(socket.handshake.query.token)
                     socket.userInfo = userInfo
                     socket.emit('message', userInfo)
+                    socket.emit('message', socket.id)
                     next()
                 }
                 catch (err) {
@@ -20,12 +21,12 @@ module.exports = (io) => {
         })
         .on('connection', async (socket) => {
             const gameMeta = await gameIdentifier.getGameMeta(socket.userInfo.dbUrl)
-            const matchMaking = require('./matchMaking')(socket, gameMeta)
+            const matchMaking = require('./matchMaking')(io, socket, gameMeta)
             socket.on('joinRoom', (message) => {
                 matchMaking.findAvailableRooms()
-            });
-            socket.on('chat message', (message) => {
-                io.emit('message', 'message recived: ' + message);
-            });
-        });
+            })
+            socket.on('disconnect', (reason) => {
+                // matchMaking.
+            })
+        })
 }

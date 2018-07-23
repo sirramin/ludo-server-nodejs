@@ -3,6 +3,7 @@ const morgan = require('morgan')
 const app = express()
 const http = require('http').Server(app)
 const io = require('socket.io')(http)
+const cors = require('cors')
 global.connections = {}
 global.schedulerExecuted = false
 const winston = require('winston')
@@ -15,7 +16,7 @@ logger = winston.createLogger({
         new winston.transports.File({filename: 'combined.log'})
     ]
 });
-logger.info('test')
+app.use(cors())
 app.use(morgan('combined'))
 app.use('/apidoc8574636', express.static('apidoc'))
 const bodyParser = require('body-parser')
@@ -27,4 +28,4 @@ require('./components/realtime/realtime')(io)
 
 // const testRouter = require('./components/test/route')(router)
 // app.use('/unitTest', testRouter)
-app.listen(3000, () => logger.info('app listening on port 3000!'))
+http.listen(3000, () => logger.info('app listening on port 3000!'))
