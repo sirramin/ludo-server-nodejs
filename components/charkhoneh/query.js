@@ -59,6 +59,12 @@ module.exports = (dbUrl) => {
         })
     }
 
+    const cancelChakhoneh = async (phoneNumber) => {
+        return await userModel.update({phoneNumber: phoneNumber}, {
+            $set: {charkhonehCancelled: true}
+        })
+    }
+
     const findByPhoneNumber = async (phoneNumber) => {
         return await userModel.findOne({phoneNumber: phoneNumber}).lean().exec()
     }
@@ -75,6 +81,7 @@ module.exports = (dbUrl) => {
         insertUser: insertUser,
         updateUser: updateUser,
         findByPhoneNumber: findByPhoneNumber,
-        checkCodeIsValid: checkCodeIsValid
+        checkCodeIsValid: checkCodeIsValid,
+        cancelChakhoneh: cancelChakhoneh
     }
 }

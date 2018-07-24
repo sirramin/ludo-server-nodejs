@@ -138,5 +138,39 @@ module.exports = () => {
         }
     })
 
+    router.post('/subscriptionControl', async (req, res, next) => {
+        const {number, flag, operator, serviceName} = req.body
+        if (flag === null || !number || !operator || !serviceName) {
+            return res.json({'message': '4 params are required.'})
+        }
+        logger.info('vas called ' + serviceName + ' number: ' + number + ' flag: ' + flag + ' operator: ' + operator);
+        let gameName
+        if (serviceName === 'master')
+            gameName = 'master-of-minds'
+        const phoneNumber = "0" + number.substr(2)
+        try {
+            if (flag === 1) {
+                const service = require('./service')(gameName)
+                const isUserExists = await service.checkUserExists(phoneNumber)
+                if (isUserExists)
+                    response(res, 'User already registered', 1)
+                const user = await service.insertUserFromVas(phoneNumber, operator, gameName)
+                response(res, 'user added from vas', 2, user)
+            }
+            else if (flag === 0 && operator === 'mtn') {
+                const charkhonehService = require('../charkhoneh/service')(gameName)
+                await charkhonehService.cancelFromVas(phoneNumber)
+                response(res, 'charkhoneh cancelled from vas', 3)
+            }
+            else if (flag === 0 && operator === 'mci'){
+                response(res, 'mci cancelled', 4)
+            }
+        }
+        catch (e) {
+            logger.error(e)
+            response(res, 'subscription control error', 5)
+        }
+    })
+
     return router
 }

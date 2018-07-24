@@ -159,6 +159,44 @@ module.exports = (dbUrl) => {
             throw {message: 'Code is not valid', statusCode: 25}
     }
 
+    const insertUserFromVas = async (phoneNumber, operator, gameName) => {
+        const leaderboardService = require('../leaderboard/service')(gameName, operator)
+        const currentTime = new Date().getTime()
+        try {
+            const user = {
+                name: 'user' + _.random(1, 99999),
+                phoneNumber: phoneNumber,
+                market: operator
+            }
+            if(operator === 'mtn'){
+                user.charkhonehCancelled = false
+                user.charkhonehHistory = [{
+                    "token": "",
+                    "msisdn": phoneNumber,
+                    "totalPayment": 0,
+                    "todayPayment": 0,
+                    "paymentState": 1,
+                    "developerPayload": "",
+                    "countryCode": "IR",
+                    "priceAmountMicros": 3000,
+                    "priceCurrencyCode": "IRR",
+                    "autoRenewing": true,
+                    "expiryTimeMillis": "",
+                    "startTimeMillis": currentTime,
+                    "kind": "androidpublisher#subscriptionPurchase"
+                }]
+            }
+            const returnedUser = await query.insertUser(user)
+            const returnedUserId = (returnedUser._doc._id).toString()
+            const returneduserName = returnedUser._doc.name
+            return await leaderboardService.firstTimeScore(returneduserName, returnedUserId)
+        }
+        catch (e) {
+            logger.error(e)
+            throw {message: 'error adding user form vas', statusCode: 26}
+        }
+    }
+
     return {
         checkUserExists: checkUserExists,
         checkSubscriptionStatus: checkSubscriptionStatus,
@@ -168,6 +206,7 @@ module.exports = (dbUrl) => {
         getUserInfo: getUserInfo,
         requestLoginSms: requestLoginSms,
         // verifySms: verifySms,
-        getUserCoin: getUserCoin
+        getUserCoin: getUserCoin,
+        insertUserFromVas: insertUserFromVas
     }
 }

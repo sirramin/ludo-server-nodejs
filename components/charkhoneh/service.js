@@ -154,6 +154,10 @@ module.exports = (dbUrl) => {
             })
     }
 
+    const cancelFromVas = async (phoneNumber) => {
+        await query.cancelChakhoneh(phoneNumber)
+    }
+
     const userErrors = ((user) => {
         return new Promise((resolve, reject) => {
             if (!user)
@@ -259,6 +263,7 @@ module.exports = (dbUrl) => {
         response: response,
         checkStatusAfterLogin: checkStatusAfterLogin,
         upsertUserFromVas: upsertUserFromVas,
-        verifySms: verifySms
+        verifySms: verifySms,
+        cancelFromVas: cancelFromVas
     }
 }
