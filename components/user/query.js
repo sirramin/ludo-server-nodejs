@@ -17,11 +17,15 @@ module.exports = (dbUrl) => {
     }
 
     const insertGuestUser = async (market, name) => {
-        const user = new userModel({
+        // const user = new userModel({
+        //     market: market,
+        //     name: name
+        // })
+        // return await user.save()
+        return await userModel.create({
             market: market,
             name: name
         })
-        return await user.save({lean: true})
     }
 
     const updateUser = async (query, update) => {

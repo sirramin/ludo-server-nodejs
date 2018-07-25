@@ -5,8 +5,9 @@ _ = require('lodash')
 module.exports = (dbUrl, market) => {
     const query = require('./query')(dbUrl),
         userQuery = require('../user/query')(dbUrl),
-        leaderboardPath = dbUrl + ':leaders:' + market,
-        usersPath = dbUrl + ':users:' + market,
+        marketName = (market === 'mtn' || market === 'mci') ? market : 'market',
+        leaderboardPath = dbUrl + ':leaders:' + marketName,
+        usersPath = dbUrl + ':users:' + marketName,
         lb = new Leaderboard(leaderboardPath)
 
     const getLeaderboard = async (name, userId) => {

@@ -8,7 +8,7 @@ module.exports = (io) => {
                     const userInfo = await jwt.verifyJwt(socket.handshake.query.token)
                     socket.userInfo = userInfo
                     socket.emit('message', userInfo)
-                    socket.emit('message', socket.id)
+                    socket.emit('message', 'socket id: ' + socket.id)
                     next()
                 }
                 catch (err) {
@@ -26,7 +26,7 @@ module.exports = (io) => {
                 matchMaking.findAvailableRooms()
             })
             socket.on('disconnect', (reason) => {
-                // matchMaking.
+                matchMaking.kickUserFromRoom()
             })
         })
 }

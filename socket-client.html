@@ -19,7 +19,7 @@
                 url: "http://localhost:3000/user/signInAsGuest",
                 type: 'post',
                 data: {
-                    market: 'mtn'
+                    market: 'cafeBazaar'
                 },
                 headers: {
                     gameid: '5b39d163afff3d2cf7833f6e', //menchman game
@@ -42,6 +42,10 @@
 
                 socket.on('game started', function (roomId) {
                     $('#messages').append($('<li>').text('game started roomId: ' + roomId))
+                })
+
+                socket.on('room destroyed', function (roomId) {
+                    $('#messages').append($('<li>').text('room destroyed: ' + roomId))
                 })
             })
 

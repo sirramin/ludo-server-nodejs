@@ -5,11 +5,12 @@ module.exports = (io, socket, gameMeta) => {
     const userId = socket.userInfo.userId,
         roomsListPrefix = gameMeta.name + ':rooms:roomsList',
         roomsPrefix = gameMeta.name + ':rooms:',
-        marketKey = gameMeta.name + ':users:' + socket.userInfo.market
+        marketName = (socket.userInfo.market === 'mtn' || socket.userInfo.market === 'mci') ? socket.userInfo.market : 'market',
+        marketKey = gameMeta.name + ':users:' + marketName
 
     const findAvailableRooms = async () => {
         try {
-            const isPlayerJoinedBefore = findUserCurrentRoom()
+            const isPlayerJoinedBefore = await findUserCurrentRoom()
             if (isPlayerJoinedBefore) {
                 socket.emit('message', {
                     code: 1,
@@ -26,6 +27,16 @@ module.exports = (io, socket, gameMeta) => {
         catch (e) {
             logger.error(e.message)
         }
+    }
+
+    const findUserCurrentRoom = async () => {
+        const userData = await redisClient.hget(marketKey, userId)
+        if (userData){
+            const userDataParsed = JSON.parse(userData)
+            return userDataParsed.roomId ? userDataParsed.roomId : null
+        }
+        else
+            userData
     }
 
     const asyncLoop = async () => {
@@ -68,6 +79,7 @@ module.exports = (io, socket, gameMeta) => {
         currentPlayers.push(userId)
         await redisClient.HMSET(roomsPrefix + roomId, 'info', JSON.stringify(roomInfo), 'players', JSON.stringify(currentPlayers))
         await redisClient.ZINCRBY(roomsListPrefix, 1, roomId)
+        updateUserRoom(roomId)
         socket.join(roomId)
         io.to(roomId).emit('player joined', roomId)
         if (newState === "started")
@@ -86,6 +98,7 @@ module.exports = (io, socket, gameMeta) => {
         const hmArgs = [roomsPrefix + roomId, 'info', JSON.stringify(newRoomInfo), 'players', JSON.stringify(newRoomPlayers)]
         await redisClient.HMSET(hmArgs)
         await redisClient.ZADD(roomsListPrefix, 1, roomId)
+        updateUserRoom(roomId)
         socket.join(roomId);
         io.to(roomId).emit('player joined', roomId)
         setTimeout(() => {
@@ -93,8 +106,14 @@ module.exports = (io, socket, gameMeta) => {
         }, gameMeta.waitingTime)
     }
 
-    const updateUserRoom = async () => {
-        const userData = redisClient.hget(marketKey, userId)
+    const updateUserRoom = async (roomId) => {
+        const userData = await redisClient.HGET(marketKey, userId)
+        const userDataParsed = JSON.parse(userData)
+        if (userDataParsed.roomId)
+            userDataParsed.roomId = roomId
+        else
+            delete userDataParsed.roomId
+        await redisClient.hset(marketKey, userDataParsed.userId, JSON.stringify(userDataParsed))
 
     }
 
@@ -109,7 +128,7 @@ module.exports = (io, socket, gameMeta) => {
     }
 
     const gameStart = (roomId, reason) => {
-        logger.info(roomId + 'started because ' + reason)
+        logger.info(roomId + ' started because ' + reason)
         io.to(roomId).emit('game started', roomId)
     }
 
@@ -117,23 +136,26 @@ module.exports = (io, socket, gameMeta) => {
         await redisClient.DEL(roomsPrefix + roomId)
         await redisClient.ZREM(roomsListPrefix, roomId)
         io.to(roomId).emit('room destroyed', roomId)
-        io.sockets.clients(roomId).forEach(function (s) {
-            s.leave(roomId);
-        });
+        const clientsInSocketRoom = io.of('/').in(roomId).clients
+        if (clientsInSocketRoom.length) {
+            clientsInSocketRoom.forEach(function (s) {
+                s.leave(roomId)
+            })
+        }
     }
 
     const kickUserFromRoom = async () => {
         if (findUserCurrentRoom()) {
-            setTimeout(() => {
-
+            setTimeout(async () => {
+                // currentPlayers.push(userId)
+                // await redisClient.HMSET(roomsPrefix + roomId, 'info', JSON.stringify(roomInfo), 'players', JSON.stringify(currentPlayers))
+                // await redisClient.ZINCRBY(roomsListPrefix, 1, roomId)
+                // updateUserRoom(roomId)
+                // socket.join(roomId)
+                // io.to(roomId).emit('player joined', roomId)
             }, gameMeta.kickTime)
         }
     }
-
-    const findUserCurrentRoom = async () => {
-
-    }
-
 
     return {
         findAvailableRooms: findAvailableRooms,

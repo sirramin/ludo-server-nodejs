@@ -5,9 +5,10 @@ const router = require('express').Router()
 
 
 module.exports = () => {
+
     router.post('/signup', gameIdentifier, async (req, res, next) => {
-        const service = require('./service')(req.dbUrl)
         const {username, password, phoneNumber, market} = req.body
+        const service = require('./service')(req.dbUrl, market)
         const isUserExists = await service.checkUserExists(username)
         if (isUserExists)
             response(res, 'User already registered')
@@ -22,9 +23,9 @@ module.exports = () => {
     })
 
     router.post('/signInAsGuest', gameIdentifier, async (req, res, next) => {
-        const service = require('./service')(req.dbUrl)
         const {market} = req.body
-        const guest = await service.registerGuestUser(market)
+        const service = require('./service')(req.dbUrl, market)
+        const guest = await service.registerGuestUser()
         response(res, '', 2, guest)
     })
 
@@ -54,7 +55,7 @@ module.exports = () => {
         try {
             const updatedUser = await query.updateUser({_id: userId}, {name: newName})
             await leaderboardService.changeName(newName, userId)
-            response(res, 'Name updated to: '+ updatedUser.name, 2)
+            response(res, 'Name updated to: ' + updatedUser.name, 2)
         }
         catch (e) {
             response(res, 'error updating name', 3)
