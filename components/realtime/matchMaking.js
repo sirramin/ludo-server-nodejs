@@ -31,12 +31,12 @@ module.exports = (io, socket, gameMeta) => {
 
     const findUserCurrentRoom = async () => {
         const userData = await redisClient.hget(marketKey, userId)
-        if (userData){
+        if (userData) {
             const userDataParsed = JSON.parse(userData)
             return userDataParsed.roomId ? userDataParsed.roomId : null
         }
         else
-            userData
+            return userData
     }
 
     const asyncLoop = async () => {
@@ -98,7 +98,7 @@ module.exports = (io, socket, gameMeta) => {
         const hmArgs = [roomsPrefix + roomId, 'info', JSON.stringify(newRoomInfo), 'players', JSON.stringify(newRoomPlayers)]
         await redisClient.HMSET(hmArgs)
         await redisClient.ZADD(roomsListPrefix, 1, roomId)
-        updateUserRoom(roomId)
+        await updateUserRoom(roomId)
         socket.join(roomId);
         io.to(roomId).emit('player joined', roomId)
         setTimeout(() => {
@@ -106,15 +106,15 @@ module.exports = (io, socket, gameMeta) => {
         }, gameMeta.waitingTime)
     }
 
-    const updateUserRoom = async (roomId) => {
-        const userData = await redisClient.HGET(marketKey, userId)
+    const updateUserRoom = async (roomId, anyUserId) => {
+        const user_id = anyUserId ? anyUserId : userId
+        const userData = await redisClient.HGET(marketKey, user_id)
         const userDataParsed = JSON.parse(userData)
-        if (userDataParsed.roomId)
+        if (!userDataParsed.roomId)
             userDataParsed.roomId = roomId
         else
             delete userDataParsed.roomId
         await redisClient.hset(marketKey, userDataParsed.userId, JSON.stringify(userDataParsed))
-
     }
 
     const roomWaitingTimeOver = async (roomId) => {
@@ -124,30 +124,48 @@ module.exports = (io, socket, gameMeta) => {
         if (currentPlayers >= gameMeta.roomMin && roomState !== 'started')
             gameStart(roomId, 'time over')
         else if (roomState !== 'started')
-            DestroyRoom(roomId)
+            destroyRoom(roomId)
     }
 
-    const gameStart = (roomId, reason) => {
+    const gameStart = async (roomId, reason) => {
         logger.info(roomId + ' started because ' + reason)
         io.to(roomId).emit('game started', roomId)
+        const roomHash = await redisClient.HMGET(roomsPrefix + roomId, 'info')
+        const roomHashParsed = JSON.parse(roomHash)
+        roomHashParsed.state = 'started'
+        await redisClient.HSET(roomsPrefix + roomId, 'info', JSON.stringify(roomHashParsed))
     }
 
-    const DestroyRoom = async (roomId) => {
+    const destroyRoom = async (roomId) => {
+        const roomplayers = await redisClient.hget(roomsPrefix + roomId, 'players')
+        const roomplayersArray = JSON.parse(roomplayers)
+        await asyncLoopRemovePlayersRoomInRedis(roomplayersArray, roomId)
+
         await redisClient.DEL(roomsPrefix + roomId)
         await redisClient.ZREM(roomsListPrefix, roomId)
         io.to(roomId).emit('room destroyed', roomId)
-        const clientsInSocketRoom = io.of('/').in(roomId).clients
-        if (clientsInSocketRoom.length) {
-            clientsInSocketRoom.forEach(function (s) {
-                s.leave(roomId)
-            })
+
+
+        io.of('/').in(roomId).clients((error, clients) => {
+            if (error) logger.error(error)
+            if (clients.length) {
+                clients.forEach(client => io.of('/').adapter.remoteLeave(client, 'chat'));
+            }
+        })
+        logger.info(roomId + ' destroyed ')
+    }
+
+    const asyncLoopRemovePlayersRoomInRedis = async (roomplayersArray, roomId) => {
+        for (let i = 0; i < roomplayersArray.length; i++) {
+            await updateUserRoom(roomId, roomplayersArray[i])
         }
     }
 
     const kickUserFromRoom = async () => {
-        if (findUserCurrentRoom()) {
+        const userCurrentRoom = findUserCurrentRoom()
+        if (userCurrentRoom) {
             setTimeout(async () => {
-                // currentPlayers.push(userId)
+                await updateUserRoom(userCurrentRoom)
                 // await redisClient.HMSET(roomsPrefix + roomId, 'info', JSON.stringify(roomInfo), 'players', JSON.stringify(currentPlayers))
                 // await redisClient.ZINCRBY(roomsListPrefix, 1, roomId)
                 // updateUserRoom(roomId)
