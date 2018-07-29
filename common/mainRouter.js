@@ -9,5 +9,6 @@ router.use('/otp', require('../components/otp/route')())
 router.use('/user', require('../components/user/route')())
 router.use('/charkhoneh', require('../components/charkhoneh/route')())
 router.use('/leaderboard', require('../components/leaderboard/route')())
+router.use('/logic', require('../components/logics/menchman/route')())
 
 module.exports = router;

@@ -1,5 +1,6 @@
 const redisClient = require('../../common/redis-client'),
-    uniqid = require('uniqid')
+    uniqid = require('uniqid'),
+    rpn = require('request-promise-native')
 
 module.exports = (io, socket, gameMeta) => {
     const userId = socket.userInfo.userId,
@@ -119,24 +120,36 @@ module.exports = (io, socket, gameMeta) => {
 
     const roomWaitingTimeOver = async (roomId) => {
         const roomCurrentInfo = await redisClient.HMGET(roomsPrefix + roomId, 'info', 'players')
-        const currentPlayers = JSON.parse(roomCurrentInfo[1]).length
-        const roomState = JSON.parse(roomCurrentInfo[0]).state
-        if (currentPlayers >= gameMeta.roomMin && roomState !== 'started')
-            gameStart(roomId, 'time over')
-        else if (roomState !== 'started')
-            destroyRoom(roomId)
+        if (roomCurrentInfo) {
+            const currentPlayers = JSON.parse(roomCurrentInfo[1]).length
+            const roomState = JSON.parse(roomCurrentInfo[0]).state
+            if (currentPlayers >= gameMeta.roomMin && roomState !== 'started')
+                gameStart(roomId, 'time over')
+            else if (roomState !== 'started')
+                destroyRoom(roomId)
+        }
     }
 
     const gameStart = async (roomId, reason) => {
         io.of('/').adapter.allRooms((err, rooms) => {
-            logger.info(rooms); // an array containing all rooms (accross every node)
+            logger.info('all socket io rooms: ' + rooms); // an array containing all rooms (accross every node)
         });
         logger.info(roomId + ' started because ' + reason)
         io.to(roomId).emit('game started', roomId)
-        const roomHash = await redisClient.HMGET(roomsPrefix + roomId, 'info')
-        const roomHashParsed = JSON.parse(roomHash)
+        const roomHash = await redisClient.HMGET(roomsPrefix + roomId, 'info', 'players')
+        const roomHashParsed = JSON.parse(roomHash[0])
+        const roomPlayers = JSON.parse(roomHash[1])
         roomHashParsed.state = 'started'
         await redisClient.HSET(roomsPrefix + roomId, 'info', JSON.stringify(roomHashParsed))
+        const methods = require('methods')(io, socket, gameMeta, roomId)
+        await rpn({
+            uri: 'http://localhost:3000/'+ gameMeta._id + '/start',
+            headers: {
+                'roomId': roomId,
+                'players': roomPlayers,
+                'methods': methods
+            }
+        })
     }
 
     const destroyRoom = async (roomId) => {
@@ -148,11 +161,10 @@ module.exports = (io, socket, gameMeta) => {
         await redisClient.ZREM(roomsListPrefix, roomId)
         io.to(roomId).emit('room destroyed', roomId)
 
-
         io.of('/').in(roomId).clients((error, clients) => {
             if (error) logger.error(error)
             if (clients.length) {
-                clients.forEach(client => io.of('/').adapter.remoteLeave(client, 'chat'));
+                clients.forEach(client => io.of('/').adapter.remoteLeave(client, roomId));
             }
         })
         logger.info(roomId + ' destroyed ')
@@ -165,15 +177,26 @@ module.exports = (io, socket, gameMeta) => {
     }
 
     const kickUserFromRoom = async () => {
-        const userCurrentRoom = findUserCurrentRoom()
+        const userCurrentRoom = await findUserCurrentRoom()
         if (userCurrentRoom) {
             setTimeout(async () => {
-                await updateUserRoom(userCurrentRoom)
-                // await redisClient.HMSET(roomsPrefix + roomId, 'info', JSON.stringify(roomInfo), 'players', JSON.stringify(currentPlayers))
-                // await redisClient.ZINCRBY(roomsListPrefix, 1, roomId)
-                // updateUserRoom(roomId)
-                // socket.join(roomId)
-                // io.to(roomId).emit('player joined', roomId)
+                const currentpaylers = await redisClient.hget(roomsPrefix + userCurrentRoom, 'players')
+                const currentpaylersParsed = JSON.parse(currentpaylers)
+                //destoty if one player
+                if (currentpaylersParsed.length === 1) {
+                    destroyRoom(userCurrentRoom)
+                }
+                else if (currentpaylersParsed.length > 1) {
+                    await updateUserRoom(userCurrentRoom)
+                    currentpaylersParsed.splice(currentpaylersParsed.indexOf(userId), 1)
+                    await redisClient.HSET(roomsPrefix + userCurrentRoom, 'players', JSON.stringify(currentpaylersParsed))
+                    await redisClient.ZINCRBY(roomsListPrefix, -1, userCurrentRoom)
+                }
+                socket.leave(userCurrentRoom)
+                io.to(userCurrentRoom).emit('message', {
+                    code: 4,
+                    msg: 'player left room'
+                })
             }, gameMeta.kickTime)
         }
     }
