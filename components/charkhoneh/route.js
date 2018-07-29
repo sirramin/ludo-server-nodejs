@@ -88,7 +88,7 @@ module.exports = () => {
             .then((isSubscribed) => {
                 service.response(res, "", 2, isSubscribed)
             }).catch((err) => {
-            service.response(res, 'Error checking status', 3)
+            service.response(res, err.message, err.statusCode)
         })
     })
 

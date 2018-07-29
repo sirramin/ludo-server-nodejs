@@ -128,6 +128,9 @@ module.exports = (io, socket, gameMeta) => {
     }
 
     const gameStart = async (roomId, reason) => {
+        io.of('/').adapter.allRooms((err, rooms) => {
+            logger.info(rooms); // an array containing all rooms (accross every node)
+        });
         logger.info(roomId + ' started because ' + reason)
         io.to(roomId).emit('game started', roomId)
         const roomHash = await redisClient.HMGET(roomsPrefix + roomId, 'info')
