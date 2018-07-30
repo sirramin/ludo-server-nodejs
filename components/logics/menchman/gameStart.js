@@ -1,25 +1,67 @@
-module.exports = () => {
+module.exports = (roomId, players, methods) => {
+    const numberOfplayers = players.length
+    const maxTime = 10
+    let positions = []
+    let marblesPosition = {}
+    let orbs = {player1: 3, player2: 3, player3: 3, player4: 3}
+    let currentTurn
+    let remainingTime = maxTime
 
-    const sendPositions = () => {
-        let positions = []
-        let marblesPosition
+    const sendPositions = async () => {
         players.forEach((item, index) => {
             const playerNumber = (index + 1)
-            positions.push({player: playerNumber, userId: usersId[index]})
+            positions.push({player: playerNumber, userId: players[index]})
             marblesPosition['player' + playerNumber] = [{marble1: 0}, {marble2: 0}, {marble3: 0}, {marble4: 0}]
         })
-        props.positions = positions
-        props.marblesPosition = marblesPosition
-        props.orbs = {player1: 3, player2: 3, player3: 3, player4: 3}
-        game.sendServerMessage('positions', {"positions": JSON.stringify(positions)}, {
-            success: () => {
-                firstTurn(positions, positions.length)
-            },
-            error: (error) => {
-                context.log(error)
+        await methods.setMultipleProps(...[positions, marblesPosition, orbs])
+        methods.sendGameEvents(101, 'positions', positions)
+        firstTurn()
+    }
+
+    const firstTurn = async () => {
+        const rand = Math.floor(Math.random() * numberOfplayers)
+        const firstTurn = {player: positions[rand].player}
+        currentTurn = firstTurn
+        await methods.setProp('currentTurn', currentTurn)
+        methods.sendGameEvents(102, 'firstTurn', firstTurn)
+        timerCounter()
+        methods.sendGameEvents(103, 'timer started')
+    }
+
+    const timerCounter = () => {
+        // const intervalId =
+        setInterval(() => {
+            remainingTime -= 10
+            if (remainingTime === 0) {
+                // clearInterval(intervalId)
+                if (orbs['player' + currentTurn.player] === 1)
+                    kickPlayer()
+                else {
+                    changeTurn(currentTurn.player, true, true)
+                }
             }
+        }, 10000)
+    }
+
+
+    const changeTurn = async (previousPlayer, decreaseOrb, timeEnds) => {
+        remainingTime = maxTime
+        const nextPlayer = previousPlayer + 1 > numberOfplayers ? 1 : previousPlayer + 1
+        currentTurn.player = nextPlayer
+        let propsArray = [currentTurn]
+        if(decreaseOrb) {
+            orbs['player' + previousPlayer] -= 1
+            propsArray.push(orbs)
+        }
+        await methods.setMultipleProps(...propsArray)
+        logger.info('Turn changed to palyer' + nextPlayer)
+        methods.sendGameEvents(104, 'changeTurn', {
+            "player": nextPlayer,
+            "decreaseOrb": decreaseOrb,
+            "timeEnds": timeEnds
         })
     }
+
 
     return {
         sendPositions: sendPositions

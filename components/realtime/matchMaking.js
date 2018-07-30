@@ -132,8 +132,8 @@ module.exports = (io, socket, gameMeta) => {
 
     const gameStart = async (roomId, reason) => {
         io.of('/').adapter.allRooms((err, rooms) => {
-            logger.info('all socket io rooms: ' + rooms); // an array containing all rooms (accross every node)
-        });
+            logger.info('all socket io rooms: ' + rooms) // an array containing all rooms (accross every node)
+        })
         logger.info(roomId + ' started because ' + reason)
         io.to(roomId).emit('game started', roomId)
         const roomHash = await redisClient.HMGET(roomsPrefix + roomId, 'info', 'players')
@@ -141,15 +141,17 @@ module.exports = (io, socket, gameMeta) => {
         const roomPlayers = JSON.parse(roomHash[1])
         roomHashParsed.state = 'started'
         await redisClient.HSET(roomsPrefix + roomId, 'info', JSON.stringify(roomHashParsed))
-        const methods = require('methods')(io, socket, gameMeta, roomId)
-        await rpn({
-            uri: 'http://localhost:3000/'+ gameMeta._id + '/start',
-            headers: {
-                'roomId': roomId,
-                'players': roomPlayers,
-                'methods': methods
-            }
-        })
+        const options = {
+            method: 'POST',
+            uri: 'http://localhost:3000/logics/' + gameMeta._id + '/start',
+            body: {
+                "roomId": roomId,
+                "players": JSON.stringify(roomPlayers),
+                "gameMeta": JSON.stringify(gameMeta)
+            },
+            json: true
+        }
+        return await rpn(options)
     }
 
     const destroyRoom = async (roomId) => {
@@ -182,7 +184,6 @@ module.exports = (io, socket, gameMeta) => {
             setTimeout(async () => {
                 const currentpaylers = await redisClient.hget(roomsPrefix + userCurrentRoom, 'players')
                 const currentpaylersParsed = JSON.parse(currentpaylers)
-                //destoty if one player
                 if (currentpaylersParsed.length === 1) {
                     destroyRoom(userCurrentRoom)
                 }
