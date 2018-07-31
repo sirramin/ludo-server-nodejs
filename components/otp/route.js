@@ -141,10 +141,12 @@ module.exports = () => {
     router.post('/subscriptionControl', async (req, res, next) => {
         const {number, flag, operator, serviceName} = req.body
         logger.info('vas called ' + serviceName + ' number: ' + number + ' flag: ' + flag + ' operator: ' + operator);
-        if (flag === undefined || !number || !operator || !serviceName) {
+        if (!flag || !number || !operator || !serviceName) {
+            logger.error('4 params are required.')
             return res.json({'message': '4 params are required.'})
         }
-        if(typeof number !== 'string' || typeof flag !== 'number' || typeof operator !== 'string' || typeof serviceName !== 'string'){
+        if (typeof number !== 'string' || typeof flag !== 'string' || typeof operator !== 'string' || typeof serviceName !== 'string') {
+            logger.error('params type error')
             return res.json({'message': 'params type error'})
         }
         let gameName
@@ -152,24 +154,29 @@ module.exports = () => {
             gameName = 'master-of-minds'
         const phoneNumber = "0" + number.substr(2)
         try {
-            if (flag === 1) {
+            if (flag === "1") {
                 const service = require('./service')(gameName)
                 const isUserExists = await service.checkUserExists(phoneNumber)
                 if (isUserExists)
                     return response(res, 'User already registered', 1)
                 const user = await service.insertUserFromVas(phoneNumber, operator, gameName)
+                logger.info('user added from vas')
                 response(res, 'user added from vas', 2)
             }
-            else if (flag === 0 && operator === 'mtn') {
+            else if (flag === "0" && operator === 'mtn') {
                 const charkhonehService = require('../charkhoneh/service')(gameName)
                 await charkhonehService.cancelFromVas(phoneNumber)
+                logger.info('charkhoneh cancelled from vas')
                 response(res, 'charkhoneh cancelled from vas', 3)
             }
-            else if (flag === 0 && operator === 'mci'){
+            else if (flag === "0" && operator === 'mci') {
+                logger.info('mci cancelled')
                 response(res, 'mci cancelled', 4)
             }
-            else
+            else {
+                logger.error('subscription control error')
                 response(res, 'subscription control error', 5)
+            }
 
         }
         catch (e) {
