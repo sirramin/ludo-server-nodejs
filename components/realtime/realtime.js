@@ -28,5 +28,9 @@ module.exports = (io) => {
             socket.on('disconnect', (reason) => {
                 matchMaking.kickUserFromRoom()
             })
+            socket.on('event', async (act) => {
+                const logicEvents = require('../logics/'+ gameMeta.name + '/gameEvents')(io, socket, gameMeta, socket.userInfo)
+                logicEvents.getAct(act)
+            })
         })
 }

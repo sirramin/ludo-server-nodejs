@@ -140,8 +140,11 @@ module.exports = () => {
 
     router.post('/subscriptionControl', async (req, res, next) => {
         const {number, flag, operator, serviceName} = req.body
-        if (flag === null || !number || !operator || !serviceName) {
+        if (flag === undefined || !number || !operator || !serviceName) {
             return res.json({'message': '4 params are required.'})
+        }
+        if(typeof number !== 'number' || typeof flag !== 'string' || typeof operator !== 'string' || typeof serviceName !== 'string'){
+            return res.json({'message': 'params type error'})
         }
         logger.info('vas called ' + serviceName + ' number: ' + number + ' flag: ' + flag + ' operator: ' + operator);
         let gameName
@@ -153,9 +156,9 @@ module.exports = () => {
                 const service = require('./service')(gameName)
                 const isUserExists = await service.checkUserExists(phoneNumber)
                 if (isUserExists)
-                    response(res, 'User already registered', 1)
+                    return response(res, 'User already registered', 1)
                 const user = await service.insertUserFromVas(phoneNumber, operator, gameName)
-                response(res, 'user added from vas', 2, user)
+                response(res, 'user added from vas', 2)
             }
             else if (flag === 0 && operator === 'mtn') {
                 const charkhonehService = require('../charkhoneh/service')(gameName)
@@ -165,6 +168,9 @@ module.exports = () => {
             else if (flag === 0 && operator === 'mci'){
                 response(res, 'mci cancelled', 4)
             }
+            else
+                response(res, 'subscription control error', 5)
+
         }
         catch (e) {
             logger.error(e)

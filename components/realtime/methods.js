@@ -3,11 +3,11 @@ const redisClient = require('../../common/redis-client')
 module.exports = (io, gameMeta, roomId) => {
     const roomPrefix = gameMeta.name + ':rooms:' + roomId
 
-    const sendGameEvents = (code, msg, data) => {
+    const sendGameEvents = (code, event, data) => {
         io.to(roomId).emit('gameEvents', {
             code: code,
-            msg: msg,
-            data: data
+            event: event,
+            data: data ? JSON.stringify(data) : null
         })
     }
 
@@ -20,7 +20,8 @@ module.exports = (io, gameMeta, roomId) => {
     }
 
     const getProp = async (field) => {
-        await redisClient.hget(roomPrefix, field)
+        const value = await redisClient.hget(roomPrefix, field)
+        return JSON.parse(value)
     }
 
     return {

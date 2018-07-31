@@ -82,7 +82,7 @@ module.exports = () => {
         const {coin} = req.body
         try {
             const updatedUser = await query.updateUser({_id: userId}, {$inc: {coin: coin}})
-            response(res, '', 2, {"newCoin": updatedUser.coin})
+            return response(res, '', 2, {"newCoin": updatedUser.coin})
         }
         catch (e) {
             response(res, 'error updating coin', 3)

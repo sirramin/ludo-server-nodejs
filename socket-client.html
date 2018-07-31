@@ -8,6 +8,7 @@
 <ul id="messages"></ul>
 <button id="connect">connect</button>
 <button id="joinRoom">joinRoom</button>
+<button id="rollDice">rollDice</button>
 <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
 <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
 <script>
@@ -46,6 +47,10 @@
 
                 socket.on('room destroyed', function (roomId) {
                     $('#messages').append($('<li>').text('room destroyed: ' + roomId))
+                })
+
+                socket.on('gameEvents', function (data) {
+                    $('#messages').append($('<li>').text('code: ' + data.code + ' event: ' + data.event + ' data: ' + data.data))
                 })
             })
 

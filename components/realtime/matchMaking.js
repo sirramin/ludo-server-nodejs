@@ -1,6 +1,5 @@
 const redisClient = require('../../common/redis-client'),
-    uniqid = require('uniqid'),
-    rpn = require('request-promise-native')
+    uniqid = require('uniqid')
 
 module.exports = (io, socket, gameMeta) => {
     const userId = socket.userInfo.userId,
@@ -141,17 +140,9 @@ module.exports = (io, socket, gameMeta) => {
         const roomPlayers = JSON.parse(roomHash[1])
         roomHashParsed.state = 'started'
         await redisClient.HSET(roomsPrefix + roomId, 'info', JSON.stringify(roomHashParsed))
-        const options = {
-            method: 'POST',
-            uri: 'http://localhost:3000/logics/' + gameMeta._id + '/start',
-            body: {
-                "roomId": roomId,
-                "players": JSON.stringify(roomPlayers),
-                "gameMeta": JSON.stringify(gameMeta)
-            },
-            json: true
-        }
-        return await rpn(options)
+        const webHookCaller = require('./webHookCaller')(gameMeta, roomId, roomPlayers)
+        return await webHookCaller.start()
+
     }
 
     const destroyRoom = async (roomId) => {
@@ -204,6 +195,7 @@ module.exports = (io, socket, gameMeta) => {
 
     return {
         findAvailableRooms: findAvailableRooms,
-        kickUserFromRoom: kickUserFromRoom
+        kickUserFromRoom: kickUserFromRoom,
+        findUserCurrentRoom: findUserCurrentRoom
     }
 }
