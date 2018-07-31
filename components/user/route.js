@@ -75,16 +75,19 @@ module.exports = () => {
      */
     router.post('/increaseCoin', auth, async (req, res, next) => {
         if (!req.body.coin) {
-            response(res, "coin newCoin", 1)
+            logger.error('coin required')
+            return response(res, "coin required", 1)
         }
         const {userId, dbUrl} = req.userInfo
         const query = require('./query')(dbUrl)
         const {coin} = req.body
         try {
             const updatedUser = await query.updateUser({_id: userId}, {$inc: {coin: coin}})
+            logger.info('coin updated to' + updatedUser.coin)
             return response(res, '', 2, {"newCoin": updatedUser.coin})
         }
         catch (e) {
+            logger.error(e)
             response(res, 'error updating coin', 3)
         }
     })
