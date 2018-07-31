@@ -5,7 +5,7 @@ module.exports = (roomId, players, methods) => {
     let marblesPosition = {}
     let orbs = {player1: 3, player2: 3, player3: 3, player4: 3}
     let currentTurn
-    let remainingTime = maxTime
+    remainingTime[roomId] = maxTime
 
     const sendPositions = async () => {
         players.forEach((item, index) => {
@@ -29,18 +29,18 @@ module.exports = (roomId, players, methods) => {
     }
 
     const timerCounter = () => {
-        // const intervalId =
         setInterval(() => {
-            remainingTime -= 10
-            if (remainingTime === 0) {
-                // clearInterval(intervalId)
+            remainingTime[roomId] -= 10
+            if (remainingTime[roomId] === 0) {
+                logger.info('time ends')
+                logger.info('remainingTime' + JSON.stringify(remainingTime))
                 if (orbs['player' + currentTurn.player] === 1)
                     kickPlayer()
                 else {
                     changeTurn(currentTurn.player, true, true)
                 }
             }
-        }, 10000)
+        }, 1000)
     }
 
     const kickPlayer = () => {
@@ -48,10 +48,10 @@ module.exports = (roomId, players, methods) => {
     }
 
     const changeTurn = async (previousPlayer, decreaseOrb, timeEnds) => {
-        remainingTime = maxTime
+        remainingTime[roomId] = maxTime
         const nextPlayer = previousPlayer + 1 > numberOfplayers ? 1 : previousPlayer + 1
         currentTurn.player = nextPlayer
-        let propsArray = ['currentTurn' , JSON.stringify(currentTurn)]
+        let propsArray = ['currentTurn', JSON.stringify(currentTurn)]
         if (decreaseOrb) {
             orbs['player' + previousPlayer] -= 1
             propsArray.push('orbs', JSON.stringify(orbs))
@@ -64,7 +64,6 @@ module.exports = (roomId, players, methods) => {
             "timeEnds": timeEnds
         })
     }
-
 
     return {
         sendPositions: sendPositions

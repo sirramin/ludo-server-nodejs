@@ -1,4 +1,4 @@
-const {mongooseClient, connections} = require('./mongoose-client')('arta-game-platform')
+const {mongooseClient} = require('./mongoose-client')('arta-game-platform')
 const response = require('./response')
 const gamesSchema = new mongooseClient.Schema({
     name: {type: String, required: true}

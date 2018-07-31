@@ -1,6 +1,6 @@
 const _ = require('lodash')
 module.exports = (dbUrl) => {
-    const {mongooseClient, connections} = require('../../common/mongoose-client')(dbUrl);
+    const {mongooseClient} = require('../../common/mongoose-client')(dbUrl);
     const leagueSchema = mongooseClient.Schema({
         leagueId: Number,
         entranceCoins: Number,

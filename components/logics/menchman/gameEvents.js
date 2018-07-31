@@ -1,5 +1,6 @@
 module.exports = (io, socket, gameMeta) => {
-    const numberOfplayers = players.length,
+        maxTime = 10,
+        userId = socket.userInfo.userId,
         matchMaking = require('../../realtime/matchMaking')(io, socket, gameMeta),
         roomId = matchMaking.findUserCurrentRoom(),
         methods = require('../../realtime/methods')(io, gameMeta, roomId)
@@ -12,23 +13,24 @@ module.exports = (io, socket, gameMeta) => {
     }
 
     let diceAttempts = 0
-    const rollDice = (context, game, props, userId) => {
-        const currentPlayer = methods.getProp('currentPlayer')
+
+    const rollDice = async () => {
+        remainingTime[roomId] = maxTime
+        const currentPlayer = await methods.getProp('currentPlayer')
         diceAttempts = +1
         const tossNumber = Math.floor(Math.random() * 6) + 1
-        context.log('tossNumber:' + tossNumber)
-        checkRules(userId, props, tossNumber, numberOfplayers, currentPlayer, result => {
-            return {tossNumber: tossNumber}
-        })
+        logger.info('tossNumber: ' + tossNumber)
+        methods.sendGameEvents(20, 'tossNumber', 6)
+        await checkRules(tossNumber, currentPlayer)
     }
 
-    const checkRules = (userId, props, tossNumber, numberOfplayers, currentPlayer) => {
-        if (playerHasMarbleOnRoad(props, currentPlayer)) {
+    const checkRules = async (tossNumber, currentPlayer) => {
+        if (playerHasMarbleOnRoad(currentPlayer)) {
             whichMarbleCanMove(props, tossNumber, currentPlayer)
         }
         else /* All In Nest */ {
             if (tossNumber === 6) {
-                remainingTime = maxTime
+                remainingTime[roomId] = maxTime
                 return {marblesCanMove: ['marble1', 'marble2', 'marble3', 'marble4']}
             }
             else  /* tossNumber !== 6 */ {
@@ -66,7 +68,7 @@ module.exports = (io, socket, gameMeta) => {
             if (tileStarts.indexOf(newPosition)) {
                 for (let playerNumber in props.marblesPosition) {
                     //check if any marble is in its starting point
-                    if (playerNumber !== currentPlayer &&) {
+                    if (playerNumber !== currentPlayer) {
 
                     }
                 }
@@ -83,12 +85,14 @@ module.exports = (io, socket, gameMeta) => {
     }
 
     const move = () => {
+        remainingTime[roomId] = maxTime
 
     }
 
     const changeTurn = () => {
-        remainingTime = maxTime
+        remainingTime[roomId] = maxTime
         diceAttempts = 0
+        const numberOfplayers = players.length
         const nextPlayer = previousPlayer + 1 > numberOfplayers ? 1 : previousPlayer + 1
         game.sendServerMessage('changeTurn', {
             "player": nextPlayer,
@@ -96,10 +100,10 @@ module.exports = (io, socket, gameMeta) => {
             "timeEnds": false
         }, {
             success: () => {
-                context.log('Turn changed to palyer' + nextPlayer)
+                logger.info('Turn changed to palyer' + nextPlayer)
             },
             error: function (error) {
-                context.log(error);
+                logger.info(error);
             }
         })
     }

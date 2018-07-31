@@ -7,7 +7,6 @@ module.exports = (dbUrl) => {
         logger.info('mongoose connected to:' + dbUrl)
     })
     return {
-        connections: connections,
         mongooseClient: mongooseClient
     }
 }

@@ -7,7 +7,7 @@ module.exports = (io, gameMeta, roomId) => {
         io.to(roomId).emit('gameEvents', {
             code: code,
             event: event,
-            data: data ? JSON.stringify(data) : null
+            data: JSON.stringify(data)
         })
     }
 
