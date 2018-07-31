@@ -140,13 +140,13 @@ module.exports = () => {
 
     router.post('/subscriptionControl', async (req, res, next) => {
         const {number, flag, operator, serviceName} = req.body
+        logger.info('vas called ' + serviceName + ' number: ' + number + ' flag: ' + flag + ' operator: ' + operator);
         if (flag === undefined || !number || !operator || !serviceName) {
             return res.json({'message': '4 params are required.'})
         }
         if(typeof number !== 'string' || typeof flag !== 'number' || typeof operator !== 'string' || typeof serviceName !== 'string'){
             return res.json({'message': 'params type error'})
         }
-        logger.info('vas called ' + serviceName + ' number: ' + number + ' flag: ' + flag + ' operator: ' + operator);
         let gameName
         if (serviceName === 'master')
             gameName = 'master-of-minds'
