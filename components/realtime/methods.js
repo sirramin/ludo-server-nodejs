@@ -24,10 +24,15 @@ module.exports = (io, gameMeta, roomId) => {
         return JSON.parse(value)
     }
 
+    const getMultipleProps = async (...args) => {
+        await redisClient.hmget(roomPrefix, ...args)
+    }
+
     return {
         sendGameEvents: sendGameEvents,
         setProp: setProp,
         setMultipleProps: setMultipleProps,
-        getProp: getProp
+        getProp: getProp,
+        getMultipleProps: getMultipleProps
     }
 }

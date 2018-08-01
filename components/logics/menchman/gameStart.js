@@ -11,7 +11,7 @@ module.exports = (roomId, players, methods) => {
         players.forEach((item, index) => {
             const playerNumber = (index + 1)
             positions.push({player: playerNumber, userId: players[index]})
-            marblesPosition['player' + playerNumber] = {marble1: 0, marble2: 0, marble3: 0, marble4: 0}
+            marblesPosition[playerNumber] = [0, 0, 0, 0]
         })
         await methods.setMultipleProps(...['positions', JSON.stringify(positions), 'marblesPosition', JSON.stringify(marblesPosition), 'orbs', JSON.stringify(orbs)])
         methods.sendGameEvents(101, 'positions', positions)
