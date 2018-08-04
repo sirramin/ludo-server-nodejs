@@ -51,7 +51,7 @@ module.exports = (io, socket, gameMeta) => {
     }
 
     const asyncForeach = async (availableRooms) => {
-        for (let i = 0; i <= availableRooms.length; i++) {
+        for (let i = 0; i < availableRooms.length; i++) {
             const roomCurrentInfo = await redisClient.HGET(roomsPrefix + availableRooms[i], 'info')
             const roomCurrentInfoParsed = JSON.parse(roomCurrentInfo)
             if (roomCurrentInfoParsed.state === 'waiting') {
@@ -140,9 +140,8 @@ module.exports = (io, socket, gameMeta) => {
         const roomPlayers = JSON.parse(roomHash[1])
         roomHashParsed.state = 'started'
         await redisClient.HSET(roomsPrefix + roomId, 'info', JSON.stringify(roomHashParsed))
-        const webHookCaller = require('./webHookCaller')(gameMeta, roomId, roomPlayers)
+        const webHookCaller = require('./webHookCaller')(gameMeta, roomId, roomPlayers, marketKey)
         return await webHookCaller.start()
-
     }
 
     const destroyRoom = async (roomId) => {

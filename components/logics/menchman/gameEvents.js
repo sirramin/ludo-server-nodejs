@@ -4,7 +4,7 @@ module.exports = (io, socket, gameMeta) => {
         userId = socket.userInfo.userId,
         matchMaking = require('../../realtime/matchMaking')(io, socket, gameMeta),
         roomId = matchMaking.findUserCurrentRoom(),
-        methods = require('../../realtime/methods')(io, gameMeta, roomId),
+        methods = require('../../realtime/methods')(io, socket, gameMeta, roomId),
         roomInfo = methods.setMultipleProps(...['currentTurn', 'orbs', 'marblesPosition', 'players', 'positions']),
         marblesPosition = roomInfo['marblesPosition']
 
@@ -61,7 +61,8 @@ module.exports = (io, socket, gameMeta) => {
     const whichMarblesCanMove = (tossNumber, currentPlayer) => {
         let marblesCantMove = []
         const currentPlayerMarbles = marblesPosition[currentPlayer]
-        currentPlayerMarbles.forEach((currentMarbleNumber, marblePosition) => {
+        currentPlayerMarbles.forEach((index, marblePosition) => {
+            const currentMarbleNumber = index + 1
             const newPosition = positionCalculator(marblePosition, currentPlayer, tossNumber)
 
             if (!newPosition)
@@ -89,8 +90,7 @@ module.exports = (io, socket, gameMeta) => {
             })
         })
 
-        // caclulate which marbles can move after checking rules
-
+        return _.difference([1, 2, 3, 4], marblesCantMove)
     }
 
     const positionCalculator = (marblePosition, currentPlayer, tossNumber) => {

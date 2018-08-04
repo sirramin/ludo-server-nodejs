@@ -1,3 +1,4 @@
+const _ = require('lodash')
 module.exports = (roomId, players, methods) => {
     const numberOfplayers = players.length
     const maxTime = 10
@@ -30,12 +31,12 @@ module.exports = (roomId, players, methods) => {
 
     const timerCounter = () => {
         setInterval(() => {
-            remainingTime[roomId] -= 10
+            remainingTime[roomId] -= 1
             if (remainingTime[roomId] === 0) {
                 logger.info('time ends')
                 logger.info('remainingTime' + JSON.stringify(remainingTime))
                 if (orbs['player' + currentTurn.player] === 1)
-                    kickPlayer()
+                    kickPlayer(positions, currentTurn)
                 else {
                     changeTurn(currentTurn.player, true, true)
                 }
@@ -43,8 +44,9 @@ module.exports = (roomId, players, methods) => {
         }, 1000)
     }
 
-    const kickPlayer = () => {
-
+    const kickPlayer = (positions, currentTurn) => {
+        const userObj = _.find(positions, function(o) { return o.player === currentTurn.player; })
+        methods.kickUser(userObj.userId)
     }
 
     const changeTurn = async (previousPlayer, decreaseOrb, timeEnds) => {
