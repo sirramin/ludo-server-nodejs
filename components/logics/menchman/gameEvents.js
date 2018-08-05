@@ -1,41 +1,52 @@
 const _ = require('lodash')
-module.exports = (io, socket, gameMeta) => {
+module.exports = (io, socket, gameMeta, marketKey) => {
     const maxTime = 10,
-        userId = socket.userInfo.userId,
-        matchMaking = require('../../realtime/matchMaking')(io, socket, gameMeta),
-        roomId = matchMaking.findUserCurrentRoom(),
-        methods = require('../../realtime/methods')(io, socket, gameMeta, roomId),
-        roomInfo = methods.setMultipleProps(...['currentTurn', 'orbs', 'marblesPosition', 'players', 'positions']),
-        marblesPosition = roomInfo['marblesPosition']
+        userId = socket.userInfo.userId
+    let matchMaking, roomId, methods, roomInfo, marblesPosition
 
-    const getAct = (act) => {
+    const getAct = (msg) => {
+        const {act, data} = msg
         if (act === 'rollDice')
             rollDice()
         if (act === 'move')
-            move()
+            move(data.marbleNumber)
     }
 
     let diceAttempts = 0
 
     const rollDice = async () => {
+        await getInitialProperties()
         remainingTime[roomId] = maxTime
         const currentPlayer = await methods.getProp('currentPlayer')
-        diceAttempts = +1
+        diceAttempts += 1
         const tossNumber = Math.floor(Math.random() * 6) + 1
         logger.info('tossNumber: ' + tossNumber)
-        methods.sendGameEvents(20, 'tossNumber', 6)
+        methods.sendGameEvents(20, 'tossNumber', tossNumber)
         await checkRules(tossNumber, currentPlayer)
+    }
+
+    const getInitialProperties = async () => {
+        matchMaking = require('../../realtime/matchMaking')(io, socket, gameMeta, marketKey)
+        roomId = await matchMaking.findUserCurrentRoom()
+        methods = require('../../realtime/methods')(io, gameMeta, roomId)
+        roomInfo = await methods.getAllProps()
+        marblesPosition = JSON.parse(roomInfo['marblesPosition'])
     }
 
 
     const checkRules = async (tossNumber, currentPlayer) => {
         if (playerHasMarbleOnRoad(currentPlayer)) {
             const marbs = whichMarblesCanMove(tossNumber, currentPlayer)
-            _.intersection(marblesCantMove, marbs)
+            if (marbs.length) {
+                methods.sendGameEvents(21, 'marblesCanMove', marbs)
+                await saveTossNumber(tossNumber)
+            }
+            else changeTurn()
         }
         else /* All In Nest */ {
             if (tossNumber === 6) {
                 remainingTime[roomId] = maxTime
+                await saveTossNumber(tossNumber)
                 methods.sendGameEvents(21, 'marblesCanMove', [1, 2, 3, 4])
             }
             else  /* tossNumber !== 6 */ {
@@ -45,6 +56,9 @@ module.exports = (io, socket, gameMeta) => {
         }
     }
 
+    const saveTossNumber = async (tossNumber) => {
+        methods.setProp('tossNumber', tossNumber)
+    }
 
     const playerHasMarbleOnRoad = (currentPlayer) => {
         const currentPlayerMarbles = marblesPosition[currentPlayer]
@@ -117,19 +131,20 @@ module.exports = (io, socket, gameMeta) => {
         return newPosition
     }
 
-    const hasMarbleOnStartTile = (currentPlayer) => {
-        marblesPosition[currentPlayer].forEach(marbleNumber, marblePosition => {
+    // const hasMarbleOnStartTile = (currentPlayer) => {
+    //     marblesPosition[currentPlayer].forEach(marbleNumber, marblePosition => {
+    //
+    //     })
+    //     return false
+    // }
 
-        })
-        return false
+
+    const move = (marbleNumber) => {
+        remainingTime[roomId] = maxTime
+
     }
 
     const hitPlayer = () => {
-
-    }
-
-    const move = () => {
-        remainingTime[roomId] = maxTime
 
     }
 

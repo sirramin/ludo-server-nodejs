@@ -54,7 +54,10 @@
                 })
 
                 socket.on('gameEvents', function (data) {
-                    $('#messages').append($('<li>').text('code: ' + data.code + ' event: ' + data.event + ' data: ' + data.data))
+                    if (data.event === 'yourTurn')
+                        $('#messages').append($('<li>').text('code: ' + data.code + ' event: ' + data.event + ' data: ' + data.data).css('color', 'red'))
+                    else
+                        $('#messages').append($('<li>').text('code: ' + data.code + ' event: ' + data.event + ' data: ' + data.data))
                 })
             })
 

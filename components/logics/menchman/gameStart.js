@@ -24,6 +24,7 @@ module.exports = (roomId, players, methods) => {
         const firstTurn = {player: positions[rand].player}
         currentTurn = firstTurn
         await methods.setProp('currentTurn', JSON.stringify(currentTurn))
+        await methods.sendEventToSpecificSocket(findUserId(), 201, 'yourTurn')
         methods.sendGameEvents(102, 'firstTurn', firstTurn)
         timerCounter()
         methods.sendGameEvents(103, 'timer started')
@@ -36,7 +37,7 @@ module.exports = (roomId, players, methods) => {
                 logger.info('time ends')
                 logger.info('remainingTime' + JSON.stringify(remainingTime))
                 if (orbs['player' + currentTurn.player] === 1)
-                    kickPlayer(positions, currentTurn)
+                    methods.kickUser(findUserId())
                 else {
                     changeTurn(currentTurn.player, true, true)
                 }
@@ -44,9 +45,9 @@ module.exports = (roomId, players, methods) => {
         }, 1000)
     }
 
-    const kickPlayer = (positions, currentTurn) => {
+    const findUserId = () => {
         const userObj = _.find(positions, function(o) { return o.player === currentTurn.player; })
-        methods.kickUser(userObj.userId)
+        return userObj.userId
     }
 
     const changeTurn = async (previousPlayer, decreaseOrb, timeEnds) => {
@@ -65,6 +66,7 @@ module.exports = (roomId, players, methods) => {
             "decreaseOrb": decreaseOrb,
             "timeEnds": timeEnds
         })
+        await methods.sendEventToSpecificSocket(findUserId(), 201, 'yourTurn')
     }
 
     return {

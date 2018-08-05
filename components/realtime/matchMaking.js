@@ -39,25 +39,28 @@ module.exports = (io, socket, gameMeta) => {
             return userData
     }
 
-    const asyncLoop = async () => {
-        for (let i = gameMeta.roomMax - 1; i >= 1; i--) {
+    const asyncLoop = async (i) => {
+        i = i || gameMeta.roomMax - 1
+        for (i; i >= 1; i--) {
             const args = [roomsListPrefix, i, i]
             const availableRooms = await redisClient.ZRANGEBYSCORE(args)
             if (availableRooms.length) {
-                return await asyncForeach(availableRooms)
+                return await asyncForeach(availableRooms, i)
             }
         }
         return false
     }
 
-    const asyncForeach = async (availableRooms) => {
-        for (let i = 0; i < availableRooms.length; i++) {
-            const roomCurrentInfo = await redisClient.HGET(roomsPrefix + availableRooms[i], 'info')
+    const asyncForeach = async (availableRooms, i) => {
+        for (let j = 1; j <= availableRooms.length; j++) {
+            const roomCurrentInfo = await redisClient.HGET(roomsPrefix + availableRooms[j - 1], 'info')
             const roomCurrentInfoParsed = JSON.parse(roomCurrentInfo)
             if (roomCurrentInfoParsed.state === 'waiting') {
                 return roomCurrentInfoParsed.roomId
             }
         }
+        if (i > 1)
+            return await asyncLoop(i - 1)
         return false
     }
 

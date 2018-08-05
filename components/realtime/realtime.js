@@ -1,5 +1,7 @@
 const jwt = require('../../common/jwt'),
-    gameIdentifier = require('../../common/gameIdentifier')
+    gameIdentifier = require('../../common/gameIdentifier'),
+    redisClient = require('../../common/redis-client')
+
 module.exports = (io) => {
     io
         .use(async (socket, next) => {
@@ -9,6 +11,7 @@ module.exports = (io) => {
                     socket.userInfo = userInfo
                     socket.emit('message', userInfo)
                     socket.emit('message', 'socket id: ' + socket.id)
+                    await addSocketIdToRedis(userInfo, socket.id)
                     next()
                 }
                 catch (err) {
@@ -28,9 +31,20 @@ module.exports = (io) => {
             socket.on('disconnect', (reason) => {
                 matchMaking.kickUserFromRoom()
             })
-            socket.on('event', async (act) => {
-                const logicEvents = require('../logics/'+ gameMeta.name + '/gameEvents')(io, socket, gameMeta, socket.userInfo)
-                logicEvents.getAct(act)
+            socket.on('event', async (msg) => {
+                const marketName = (socket.userInfo.market === 'mtn' || socket.userInfo.market === 'mci') ? socket.userInfo.market : 'market',
+                    marketKey = gameMeta.name + ':users:' + marketName,
+                    logicEvents = require('../logics/' + gameMeta.name + '/gameEvents')(io, socket, gameMeta, marketKey)
+                logicEvents.getAct(msg)
             })
         })
+
+    const addSocketIdToRedis = async (userInfo, socketId) => {
+        const marketName = (userInfo.market === 'mtn' || userInfo.market === 'mci') ? userInfo.market : 'market',
+            marketKey = userInfo.dbUrl + ':users:' + marketName,
+            userData = await redisClient.hget(marketKey, userInfo.userId),
+            userDataParsed = JSON.parse(userData)
+        userDataParsed.socketId = socketId
+        await redisClient.hset(marketKey, userInfo.userId, JSON.stringify(userDataParsed))
+    }
 }

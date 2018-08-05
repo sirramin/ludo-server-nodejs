@@ -1,10 +1,7 @@
 const redisClient = require('../../common/redis-client')
 
-module.exports = (io, gameMeta, roomId) => {
-    const roomPrefix = gameMeta.name + ':rooms:' + roomId,
-        marketName = (socket.userInfo.market === 'mtn' || socket.userInfo.market === 'mci') ? socket.userInfo.market : 'market',
-        marketKey = gameMeta.name + ':users:' + marketName
-
+module.exports = (io, gameMeta, roomId, marketKey) => {
+    const roomPrefix = gameMeta.name + ':rooms:' + roomId
 
     const sendGameEvents = (code, event, data) => {
         io.to(roomId).emit('gameEvents', {
@@ -12,6 +9,16 @@ module.exports = (io, gameMeta, roomId) => {
             event: event,
             data: JSON.stringify(data)
         })
+    }
+
+    const sendEventToSpecificSocket = async (userId, code, event, data) => {
+        const userData = await redisClient.hget(marketKey, userId),
+            socketId = JSON.parse(userData).socketId
+        io.to(socketId).emit('gameEvents', {
+            code: code,
+            event: event,
+            data: JSON.stringify(data)
+        });
     }
 
     const setProp = async (field, value) => {
@@ -27,8 +34,8 @@ module.exports = (io, gameMeta, roomId) => {
         return JSON.parse(value)
     }
 
-    const getMultipleProps = async (...args) => {
-        await redisClient.hmget(roomPrefix, ...args)
+    const getAllProps = async () => {
+        return await redisClient.HGETALL(roomPrefix)
     }
 
     const kickUser = async (userId) => {
@@ -73,6 +80,7 @@ module.exports = (io, gameMeta, roomId) => {
     }
 
     const updateUserRoom = async (roomId, user_id) => {
+        logger.info(marketKey + user_id)
         const userData = await redisClient.HGET(marketKey, user_id)
         const userDataParsed = JSON.parse(userData)
         if (!userDataParsed.roomId)
@@ -84,10 +92,11 @@ module.exports = (io, gameMeta, roomId) => {
 
     return {
         sendGameEvents: sendGameEvents,
+        sendEventToSpecificSocket: sendEventToSpecificSocket,
         setProp: setProp,
         setMultipleProps: setMultipleProps,
         getProp: getProp,
-        getMultipleProps: getMultipleProps,
+        getAllProps: getAllProps,
         kickUser: kickUser
     }
 }
