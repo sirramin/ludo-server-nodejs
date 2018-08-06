@@ -35,7 +35,7 @@ module.exports = (roomId, players, methods) => {
             remainingTime[roomId] -= 1
             if (remainingTime[roomId] === 0) {
                 logger.info('time ends')
-                logger.info('remainingTime' + JSON.stringify(remainingTime))
+                logger.info('remainingTime ' + JSON.stringify(remainingTime))
                 if (orbs['player' + currentTurn.player] === 1)
                     methods.kickUser(findUserId())
                 else {

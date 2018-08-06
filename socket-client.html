@@ -9,6 +9,13 @@
 <button id="connect">connect</button>
 <button id="joinRoom">joinRoom</button>
 <button id="rollDice">rollDice</button>
+<select id="move">
+    <option value="">--</option>
+    <option value="1">1</option>
+    <option value="2">2</option>
+    <option value="3">3</option>
+    <option value="4">4</option>
+</select>
 <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
 <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
 <script>
@@ -34,8 +41,20 @@
                 })
 
                 $('#rollDice').click(() => {
-                    socket.emit('event', 'rollDice')
+                    socket.emit('event', {
+                        act: 'rollDice',
+                        data: {}
+                    })
                 })
+
+                $('select').on('change', function () {
+                    socket.emit('event', {
+                        act: 'move',
+                        data: {
+                            marbleNumber: this.value
+                        }
+                    })
+                });
 
                 socket.on('message', function (msg) {
                     $('#messages').append($('<li>').text(JSON.stringify(msg)))
@@ -55,7 +74,7 @@
 
                 socket.on('gameEvents', function (data) {
                     if (data.event === 'yourTurn')
-                        $('#messages').append($('<li>').text('code: ' + data.code + ' event: ' + data.event + ' data: ' + data.data).css('color', 'red'))
+                        $('#messages').append($('<li>').text('code: ' + data.code + ' event: ' + data.event).css('color', 'red'))
                     else
                         $('#messages').append($('<li>').text('code: ' + data.code + ' event: ' + data.event + ' data: ' + data.data))
                 })

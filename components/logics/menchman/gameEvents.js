@@ -2,7 +2,7 @@ const _ = require('lodash')
 module.exports = (io, socket, gameMeta, marketKey) => {
     const maxTime = 10,
         userId = socket.userInfo.userId
-    let matchMaking, roomId, methods, roomInfo, marblesPosition
+    let matchMaking, roomId, methods, roomInfo, positions, marblesPosition, currentPlayer
 
     const getAct = (msg) => {
         const {act, data} = msg
@@ -12,13 +12,11 @@ module.exports = (io, socket, gameMeta, marketKey) => {
             move(data.marbleNumber)
     }
 
-    let diceAttempts = 0
-
     const rollDice = async () => {
         await getInitialProperties()
         remainingTime[roomId] = maxTime
-        const currentPlayer = await methods.getProp('currentPlayer')
-        diceAttempts += 1
+        diceAttempts[roomId] ? diceAttempts[roomId] += 1 : diceAttempts[roomId] = 1
+        // const currentPlayer = await methods.getProp('currentPlayer')
         const tossNumber = Math.floor(Math.random() * 6) + 1
         logger.info('tossNumber: ' + tossNumber)
         methods.sendGameEvents(20, 'tossNumber', tossNumber)
@@ -31,6 +29,8 @@ module.exports = (io, socket, gameMeta, marketKey) => {
         methods = require('../../realtime/methods')(io, gameMeta, roomId)
         roomInfo = await methods.getAllProps()
         marblesPosition = JSON.parse(roomInfo['marblesPosition'])
+        positions = JSON.parse(roomInfo['positions'])
+        currentPlayer = JSON.parse(roomInfo['currentTurn']).player
     }
 
 
@@ -50,7 +50,10 @@ module.exports = (io, socket, gameMeta, marketKey) => {
                 methods.sendGameEvents(21, 'marblesCanMove', [1, 2, 3, 4])
             }
             else  /* tossNumber !== 6 */ {
-                if (diceAttempts === 3) changeTurn()
+                if (diceAttempts[roomId] === 3) {
+                    logger.info('diceAttempts: ' + diceAttempts[roomId])
+                    changeTurn()
+                }
                 else methods.sendGameEvents(22, 'canRollDiceAgain', true)
             }
         }
@@ -139,31 +142,63 @@ module.exports = (io, socket, gameMeta, marketKey) => {
     // }
 
 
-    const move = (marbleNumber) => {
+    const move = async (marbleNumber) => {
+        await getInitialProperties()
         remainingTime[roomId] = maxTime
-
+        // const roomData = await methods.getAllProps()
+        const tossNumber = parseInt(roomInfo.tossNumber)
+        // const currentPlayer = JSON.stringify(roomInfo.currentTurn).player
+        // const marblesPosition = JSON.stringify(roomData)
+        const marblePosition = marblesPosition[currentPlayer][marbleNumber - 1]
+        const newPosition = positionCalculator(marblePosition, currentPlayer, tossNumber)
+        let newMarblesPosition = JSON.parse(JSON.stringify(marblesPosition))
+        newMarblesPosition[currentPlayer][marbleNumber] = newPosition
+        await methods.setProp('marblesPosition', JSON.stringify(newMarblesPosition))
+        const marblesMeeting = checkMarblesMeeting(marblesPosition, newMarblesPosition, newPosition)
+        if (marblesMeeting.meet)
+            await hitPlayer(newPosition, newMarblesPosition, marblesMeeting)
+        else {
+            methods.sendGameEvents(23, 'marblesPosition', JSON.stringify(newMarblesPosition))
+            changeTurn()
+        }
     }
 
-    const hitPlayer = () => {
+    const checkMarblesMeeting = (marblesPosition, newMarblesPosition, newPosition) => {
+        for (let key in marblesPosition) {
+            marblesPosition[key].forEach((val, index) => {
+                if (val === newPosition)
+                    return {
+                        meet: true,
+                        player: key,
+                        marble: index + 1
+                    }
+            })
+        }
+        return {
+            meet: false
+        }
+    }
 
+    const hitPlayer = async (newPosition, newMarblesPosition, marblesMeeting) => {
+        newMarblesPosition[marblesMeeting.player][marblesMeeting.marble] = 0
+        methods.sendGameEvents(23, 'marblesPosition', JSON.stringify(newMarblesPosition))
+        changeTurn()
     }
 
     const changeTurn = () => {
         remainingTime[roomId] = maxTime
+        diceAttempts[roomId] = 0
         diceAttempts = 0
-        const numberOfplayers = players.length
-        const nextPlayer = previousPlayer + 1 > numberOfplayers ? 1 : previousPlayer + 1
-        game.sendServerMessage('changeTurn', {
+        const numberOfplayers = positions.length
+        const nextPlayer = currentPlayer + 1 > numberOfplayers ? 1 : currentPlayer + 1
+        methods.sendGameEvents(104, 'changeTurn', {
             "player": nextPlayer,
             "decreaseOrb": false,
             "timeEnds": false
-        }, {
-            success: () => {
-                logger.info('Turn changed to palyer' + nextPlayer)
-            },
-            error: function (error) {
-                logger.info(error);
-            }
+        })
+        socket.emit('gameEvents', {
+            code: 201,
+            event: 'yourTurn'
         })
     }
 

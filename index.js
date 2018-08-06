@@ -8,6 +8,7 @@ io.adapter(redisAdapter({host: 'localhost', port: 6379}))
 const cors = require('cors')
 global.connections = {}
 global.remainingTime = {}
+global.diceAttempts = {}
 global.schedulerExecuted = false
 const winston = require('winston')
 global.logger = winston.createLogger({
