@@ -72,14 +72,19 @@
                     $('#messages').append($('<li>').text('room destroyed: ' + roomId))
                 })
 
-                socket.on('gameEvents', function (data) {
+                socket.on('matchEvent', function (data) {
+                    $('#messages').append($('<li>').text(' code: ' + data.code + ' event: ' + data.event + ' data: ' + JSON.stringify(data.data)))
+                })
+
+                socket.on('gameEvent', function (data) {
                     if (data.event === 'yourTurn')
-                        $('#messages').append($('<li>').text('code: ' + data.code + ' event: ' + data.event).css('color', 'red'))
+                        $('#messages').append($('<li>').text(' code: ' + data.code + ' event: ' + data.event).css('color', 'red'))
+                    else if (data.event === 'yourPlayerNumber')
+                        $('#messages').append($('<li>').text(' code: ' + data.code + ' event: ' + data.event + ' data: ' + JSON.stringify(data.data)).css('color', 'blue'))
                     else
-                        $('#messages').append($('<li>').text('code: ' + data.code + ' event: ' + data.event + ' data: ' + data.data))
+                        $('#messages').append($('<li>').text(' code: ' + data.code + ' event: ' + data.event + ' data: ' + JSON.stringify(data.data)))
                 })
             })
-
         })
     })
 </script>

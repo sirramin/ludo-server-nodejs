@@ -1,12 +1,18 @@
 const _ = require('lodash')
 module.exports = (roomId, players, methods) => {
     const numberOfplayers = players.length
-    const maxTime = 10
+    global.maxTime = 11
     let positions = []
     let marblesPosition = {}
-    let orbs = {player1: 3, player2: 3, player3: 3, player4: 3}
+    let orbs = {}
+    for (let i = 1; i <= numberOfplayers; i++) {
+        orbs['player' + i] = 3
+    }
+
     let currentTurn
     remainingTime[roomId] = maxTime
+    diceAttempts[roomId] = 0
+
 
     const sendPositions = async () => {
         players.forEach((item, index) => {
@@ -24,10 +30,12 @@ module.exports = (roomId, players, methods) => {
         const firstTurn = {player: positions[rand].player}
         currentTurn = firstTurn
         await methods.setProp('currentTurn', JSON.stringify(currentTurn))
-        await methods.sendEventToSpecificSocket(findUserId(), 201, 'yourTurn')
+        const playeruserId = findUserId()
+        await methods.sendEventToSpecificSocket(playeruserId, 201, 'yourTurn')
+        await methods.sendEventToSpecificSocket(playeruserId, 202, 'yourPlayerNumber', rand + 1)
         methods.sendGameEvents(102, 'firstTurn', firstTurn)
         timerCounter()
-        methods.sendGameEvents(103, 'timer started')
+        methods.sendGameEvents(103, 'timerStarted')
     }
 
     const timerCounter = () => {
@@ -46,12 +54,15 @@ module.exports = (roomId, players, methods) => {
     }
 
     const findUserId = () => {
-        const userObj = _.find(positions, function(o) { return o.player === currentTurn.player; })
+        const userObj = _.find(positions, function (o) {
+            return o.player === currentTurn.player;
+        })
         return userObj.userId
     }
 
     const changeTurn = async (previousPlayer, decreaseOrb, timeEnds) => {
         remainingTime[roomId] = maxTime
+        diceAttempts[roomId] = 0
         const nextPlayer = previousPlayer + 1 > numberOfplayers ? 1 : previousPlayer + 1
         currentTurn.player = nextPlayer
         let propsArray = ['currentTurn', JSON.stringify(currentTurn)]
@@ -64,9 +75,12 @@ module.exports = (roomId, players, methods) => {
         methods.sendGameEvents(104, 'changeTurn', {
             "player": nextPlayer,
             "decreaseOrb": decreaseOrb,
-            "timeEnds": timeEnds
+            "timeEnds": timeEnds,
+            "orbs": JSON.stringify(orbs)
         })
-        await methods.sendEventToSpecificSocket(findUserId(), 201, 'yourTurn')
+        const playeruserId = findUserId()
+        methods.sendEventToSpecificSocket(playeruserId, 201, 'yourTurn')
+        methods.sendEventToSpecificSocket(playeruserId, 202, 'yourPlayerNumber', nextPlayer)
     }
 
     return {

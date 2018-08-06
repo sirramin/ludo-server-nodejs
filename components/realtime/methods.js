@@ -4,7 +4,7 @@ module.exports = (io, gameMeta, roomId, marketKey) => {
     const roomPrefix = gameMeta.name + ':rooms:' + roomId
 
     const sendGameEvents = (code, event, data) => {
-        io.to(roomId).emit('gameEvents', {
+        io.to(roomId).emit('gameEvent', {
             code: code,
             event: event,
             data: JSON.stringify(data)
@@ -14,7 +14,7 @@ module.exports = (io, gameMeta, roomId, marketKey) => {
     const sendEventToSpecificSocket = async (userId, code, event, data) => {
         const userData = await redisClient.hget(marketKey, userId),
             socketId = JSON.parse(userData).socketId
-        io.to(socketId).emit('gameEvents', {
+        io.to(socketId).emit('gameEvent', {
             code: code,
             event: event,
             data: JSON.stringify(data)
@@ -41,11 +41,11 @@ module.exports = (io, gameMeta, roomId, marketKey) => {
     const kickUser = async (userId) => {
         const currentpaylers = await redisClient.hget(roomPrefix, 'players')
         const currentpaylersParsed = JSON.parse(currentpaylers)
-        if (currentpaylersParsed.length === 1) {
+        if (currentpaylersParsed && currentpaylersParsed.length === 1) {
             destroyRoom()
         }
         else if (currentpaylersParsed.length > 1) {
-            await updateUserRoom(roomId)
+            await updateUserRoom(roomId, userId)
             currentpaylersParsed.splice(currentpaylersParsed.indexOf(userId), 1)
             await redisClient.HSET(roomPrefix, 'players', JSON.stringify(currentpaylersParsed))
             await redisClient.ZINCRBY(roomPrefix, -1, roomId)
@@ -79,9 +79,8 @@ module.exports = (io, gameMeta, roomId, marketKey) => {
         }
     }
 
-    const updateUserRoom = async (roomId, user_id) => {
-        logger.info(marketKey + user_id)
-        const userData = await redisClient.HGET(marketKey, user_id)
+    const updateUserRoom = async (roomId, userId) => {
+        const userData = await redisClient.HGET(marketKey, userId)
         const userDataParsed = JSON.parse(userData)
         if (!userDataParsed.roomId)
             userDataParsed.roomId = roomId

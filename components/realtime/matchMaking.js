@@ -12,9 +12,9 @@ module.exports = (io, socket, gameMeta) => {
         try {
             const isPlayerJoinedBefore = await findUserCurrentRoom()
             if (isPlayerJoinedBefore) {
-                socket.emit('message', {
+                socket.emit('matchEvent', {
                     code: 1,
-                    msg: 'player already joined room'
+                    event: 'playerAlreadyJoined'
                 })
                 return
             }
@@ -55,7 +55,7 @@ module.exports = (io, socket, gameMeta) => {
         for (let j = 1; j <= availableRooms.length; j++) {
             const roomCurrentInfo = await redisClient.HGET(roomsPrefix + availableRooms[j - 1], 'info')
             const roomCurrentInfoParsed = JSON.parse(roomCurrentInfo)
-            if (roomCurrentInfoParsed.state === 'waiting') {
+            if (roomCurrentInfoParsed && roomCurrentInfoParsed.state === 'waiting') {
                 return roomCurrentInfoParsed.roomId
             }
         }
@@ -65,26 +65,30 @@ module.exports = (io, socket, gameMeta) => {
     }
 
     const joinPlayerToRoom = async (roomId) => {
-        const roomCurrentInfo = await redisClient.HMGET(roomsPrefix + roomId, 'info', 'players')
-        const currentPlayers = JSON.parse(roomCurrentInfo[1])
+        const roomCurrentData = await redisClient.HMGET(roomsPrefix + roomId, 'info', 'players')
+        let currentPlayers = JSON.parse(roomCurrentData[1])
+        let roomInfo = JSON.parse(roomCurrentData[0])
         const currentPlayersLength = currentPlayers.length
         let newState
         if (currentPlayersLength === 4)
-            socket.emit('message', 'Room is full')
-
+            socket.emit('matchEvent', {
+                code: 2,
+                event: 'roomIsFull'
+            })
         currentPlayersLength === 3 ? newState = "started" : newState = "waiting"
-
-        const roomInfo = {
-            "roomId": roomId,
-            "state": newState,
-            "creationDateTime": JSON.parse(roomCurrentInfo[0]).creationDateTime
-        }
+        roomInfo.state = newState
         currentPlayers.push(userId)
         await redisClient.HMSET(roomsPrefix + roomId, 'info', JSON.stringify(roomInfo), 'players', JSON.stringify(currentPlayers))
         await redisClient.ZINCRBY(roomsListPrefix, 1, roomId)
-        updateUserRoom(roomId)
+        await updateUserRoom(roomId)
         socket.join(roomId)
-        io.to(roomId).emit('player joined', roomId)
+        io.to(roomId).emit('matchEvent', {
+            code: 3,
+            event: 'playerJoined',
+            data: {
+                roomId: roomId
+            }
+        })
         if (newState === "started")
             gameStart(roomId, 'room fulled')
     }
@@ -96,6 +100,7 @@ module.exports = (io, socket, gameMeta) => {
             "roomId": roomId,
             "state": "waiting",
             "creationDateTime": currentTimeStamp,
+            "marketKey": marketKey
         }
         const newRoomPlayers = [socket.userInfo.userId]
         const hmArgs = [roomsPrefix + roomId, 'info', JSON.stringify(newRoomInfo), 'players', JSON.stringify(newRoomPlayers)]
@@ -103,7 +108,13 @@ module.exports = (io, socket, gameMeta) => {
         await redisClient.ZADD(roomsListPrefix, 1, roomId)
         await updateUserRoom(roomId)
         socket.join(roomId);
-        io.to(roomId).emit('player joined', roomId)
+        io.to(roomId).emit('matchEvent', {
+            code: 3,
+            event: 'playerJoined',
+            data: {
+                roomId: roomId
+            }
+        })
         setTimeout(() => {
             roomWaitingTimeOver(roomId)
         }, gameMeta.waitingTime)
@@ -137,7 +148,13 @@ module.exports = (io, socket, gameMeta) => {
             logger.info('all socket io rooms: ' + rooms) // an array containing all rooms (accross every node)
         })
         logger.info(roomId + ' started because ' + reason)
-        io.to(roomId).emit('game started', roomId)
+        io.to(roomId).emit('matchEvent', {
+            code: 4,
+            event: 'gameStarted',
+            data: {
+                roomId: roomId
+            }
+        })
         const roomHash = await redisClient.HMGET(roomsPrefix + roomId, 'info', 'players')
         const roomHashParsed = JSON.parse(roomHash[0])
         const roomPlayers = JSON.parse(roomHash[1])
@@ -154,8 +171,13 @@ module.exports = (io, socket, gameMeta) => {
 
         await redisClient.DEL(roomsPrefix + roomId)
         await redisClient.ZREM(roomsListPrefix, roomId)
-        io.to(roomId).emit('room destroyed', roomId)
-
+        io.to(roomId).emit('matchEvent', {
+            code: 5,
+            event: 'roomDestroyed',
+            data: {
+                roomId: roomId
+            }
+        })
         io.of('/').in(roomId).clients((error, clients) => {
             if (error) logger.error(error)
             if (clients.length) {
@@ -177,19 +199,19 @@ module.exports = (io, socket, gameMeta) => {
             setTimeout(async () => {
                 const currentpaylers = await redisClient.hget(roomsPrefix + userCurrentRoom, 'players')
                 const currentpaylersParsed = JSON.parse(currentpaylers)
-                if (currentpaylersParsed.length === 1) {
+                if (currentpaylersParsed && currentpaylersParsed.length === 1) {
                     destroyRoom(userCurrentRoom)
                 }
-                else if (currentpaylersParsed.length > 1) {
+                else if (currentpaylersParsed && currentpaylersParsed.length > 1) {
                     await updateUserRoom(userCurrentRoom)
                     currentpaylersParsed.splice(currentpaylersParsed.indexOf(userId), 1)
                     await redisClient.HSET(roomsPrefix + userCurrentRoom, 'players', JSON.stringify(currentpaylersParsed))
                     await redisClient.ZINCRBY(roomsListPrefix, -1, userCurrentRoom)
                 }
                 socket.leave(userCurrentRoom)
-                io.to(userCurrentRoom).emit('message', {
-                    code: 4,
-                    msg: 'player left room'
+                io.to(userCurrentRoom).emit('matchEvent', {
+                    code: 6,
+                    event: 'playerLeft'
                 })
             }, gameMeta.kickTime)
         }

@@ -1,8 +1,7 @@
 const _ = require('lodash')
 module.exports = (io, socket, gameMeta, marketKey) => {
-    const maxTime = 10,
         userId = socket.userInfo.userId
-    let matchMaking, roomId, methods, roomInfo, positions, marblesPosition, currentPlayer
+    let matchMaking, roomId, methods, roomInfo, positions, marblesPosition, currentPlayer, orbs
 
     const getAct = (msg) => {
         const {act, data} = msg
@@ -15,7 +14,11 @@ module.exports = (io, socket, gameMeta, marketKey) => {
     const rollDice = async () => {
         await getInitialProperties()
         remainingTime[roomId] = maxTime
-        diceAttempts[roomId] ? diceAttempts[roomId] += 1 : diceAttempts[roomId] = 1
+        if (diceAttempts[roomId])
+            diceAttempts[roomId] += 1
+        else
+            diceAttempts[roomId] = 1
+        logger.info('diceAttempts: ' + diceAttempts[roomId])
         // const currentPlayer = await methods.getProp('currentPlayer')
         const tossNumber = Math.floor(Math.random() * 6) + 1
         logger.info('tossNumber: ' + tossNumber)
@@ -26,11 +29,13 @@ module.exports = (io, socket, gameMeta, marketKey) => {
     const getInitialProperties = async () => {
         matchMaking = require('../../realtime/matchMaking')(io, socket, gameMeta, marketKey)
         roomId = await matchMaking.findUserCurrentRoom()
-        methods = require('../../realtime/methods')(io, gameMeta, roomId)
+        methods = require('../../realtime/methods')(io, gameMeta, roomId, marketKey)
         roomInfo = await methods.getAllProps()
+        if(!marketKey) marketKey = JSON.parse(roomInfo['info']).marketKey
         marblesPosition = JSON.parse(roomInfo['marblesPosition'])
         positions = JSON.parse(roomInfo['positions'])
         currentPlayer = JSON.parse(roomInfo['currentTurn']).player
+        orbs = JSON.parse(roomInfo['orbs'])
     }
 
 
@@ -51,7 +56,6 @@ module.exports = (io, socket, gameMeta, marketKey) => {
             }
             else  /* tossNumber !== 6 */ {
                 if (diceAttempts[roomId] === 3) {
-                    logger.info('diceAttempts: ' + diceAttempts[roomId])
                     changeTurn()
                 }
                 else methods.sendGameEvents(22, 'canRollDiceAgain', true)
@@ -185,21 +189,27 @@ module.exports = (io, socket, gameMeta, marketKey) => {
         changeTurn()
     }
 
+    const findUserId = (nextPlayer) => {
+        const userObj = _.find(positions, function (o) {
+            return o.player === nextPlayer
+        })
+        return userObj.userId
+    }
+
     const changeTurn = () => {
         remainingTime[roomId] = maxTime
         diceAttempts[roomId] = 0
-        diceAttempts = 0
         const numberOfplayers = positions.length
         const nextPlayer = currentPlayer + 1 > numberOfplayers ? 1 : currentPlayer + 1
         methods.sendGameEvents(104, 'changeTurn', {
             "player": nextPlayer,
             "decreaseOrb": false,
-            "timeEnds": false
+            "timeEnds": false,
+            "orbs": JSON.stringify(orbs)
         })
-        socket.emit('gameEvents', {
-            code: 201,
-            event: 'yourTurn'
-        })
+        const playeruserId = findUserId(nextPlayer)
+         methods.sendEventToSpecificSocket(playeruserId, 201, 'yourTurn')
+         methods.sendEventToSpecificSocket(playeruserId, 202, 'yourPlayerNumber', nextPlayer)
     }
 
     return ({
