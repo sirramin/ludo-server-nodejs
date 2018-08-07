@@ -11,10 +11,6 @@
 <button id="rollDice">rollDice</button>
 <select id="move">
     <option value="">--</option>
-    <option value="1">1</option>
-    <option value="2">2</option>
-    <option value="3">3</option>
-    <option value="4">4</option>
 </select>
 <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
 <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
@@ -22,9 +18,10 @@
     // const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYlVybCI6Im1lbmNobWFuIiwidXNlcklkIjoiNWI0MWZkZGY0YTBjYzg2YjQzMDMwODExIiwibmFtZSI6InVzZXI1ODYxNSIsIm1hcmtldCI6Im1jaSIsInVzZXJuYW1lIjoic2lycmFtaW41IiwiaWF0IjoxNTMxMDUxNDg3LCJleHAiOjE1MzE5MTU0ODd9.j9BamCitP6RiOCjJ-5ppvI-Kpqq4EMHRnAlBEFfrzV0"
     let socket
     $(function () {
+        // socket = io('http://192.168.5.90:3000', {transports: ['websocket']})
         $('#connect').click(() => {
             $.ajax({
-                url: "http://localhost:3000/user/signInAsGuest",
+                url: "http://192.168.5.90:3000/user/signInAsGuest",
                 type: 'post',
                 data: {
                     market: 'cafeBazaar'
@@ -34,13 +31,14 @@
                 },
                 dataType: 'json',
             }).done(function (res) {
-                socket = io('http://localhost:3000', {transports: ['websocket'], query: {token: res.data.token}})
+                socket = io('http://192.168.5.90:3000', {transports: ['websocket'], query: {token: res.data.token}})
 
                 $('#joinRoom').click(() => {
                     socket.emit('joinRoom', '')
                 })
 
                 $('#rollDice').click(() => {
+                    $('#move').html('<option value="">--</option>')
                     socket.emit('event', {
                         act: 'rollDice',
                         data: {}
@@ -48,6 +46,7 @@
                 })
 
                 $('select').on('change', function () {
+                    if(this.value)
                     socket.emit('event', {
                         act: 'move',
                         data: {
@@ -73,16 +72,31 @@
                 })
 
                 socket.on('matchEvent', function (data) {
-                    $('#messages').append($('<li>').text(' code: ' + data.code + ' event: ' + data.event + ' data: ' + JSON.stringify(data.data)))
+                    $('#messages').append($('<li>').text(data.event  + JSON.stringify(data.data)))
                 })
 
                 socket.on('gameEvent', function (data) {
-                    if (data.event === 'yourTurn')
-                        $('#messages').append($('<li>').text(' code: ' + data.code + ' event: ' + data.event).css('color', 'red'))
+                    if (data.event === 'changeTurn') {
+                        $('#rollDice').hide()
+                        $('#move').hide()
+                        $('#messages').append($('<li>').text(data.event + ' ' + JSON.stringify(data.data)))
+                    }
+                    if (data.event === 'yourTurn') {
+                        $('#rollDice').show()
+                        $('#move').show()
+                        $('#messages').append($('<li>').text(data.event).css('color', 'blue'))
+                    }
+                    else if (data.event === 'marblesCanMove') {
+                        $('#messages').append($('<li>').text(data.event  + ' ' + data.data).css('color', 'green'))
+                        const marblesArray = data.data
+                        marblesArray.forEach((item, index)=>{
+                            $('#move').append('<option value="' + item + '">'+item+'</option>')
+                        })
+                    }
                     else if (data.event === 'yourPlayerNumber')
-                        $('#messages').append($('<li>').text(' code: ' + data.code + ' event: ' + data.event + ' data: ' + JSON.stringify(data.data)).css('color', 'blue'))
+                        $('#messages').append($('<li>').text(data.event + ' ' + data.data).css('color', 'blue'))
                     else
-                        $('#messages').append($('<li>').text(' code: ' + data.code + ' event: ' + data.event + ' data: ' + JSON.stringify(data.data)))
+                        $('#messages').append($('<li>').text(data.event + ' ' + JSON.stringify(data.data)))
                 })
             })
         })

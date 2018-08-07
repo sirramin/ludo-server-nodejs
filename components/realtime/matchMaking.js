@@ -82,12 +82,8 @@ module.exports = (io, socket, gameMeta) => {
         await redisClient.ZINCRBY(roomsListPrefix, 1, roomId)
         await updateUserRoom(roomId)
         socket.join(roomId)
-        io.to(roomId).emit('matchEvent', {
-            code: 3,
-            event: 'playerJoined',
-            data: {
-                roomId: roomId
-            }
+        sendMatchEvents(roomId, 3, 'playerJoined', {
+            roomId: roomId
         })
         if (newState === "started")
             gameStart(roomId, 'room fulled')
@@ -107,13 +103,9 @@ module.exports = (io, socket, gameMeta) => {
         await redisClient.HMSET(hmArgs)
         await redisClient.ZADD(roomsListPrefix, 1, roomId)
         await updateUserRoom(roomId)
-        socket.join(roomId);
-        io.to(roomId).emit('matchEvent', {
-            code: 3,
-            event: 'playerJoined',
-            data: {
-                roomId: roomId
-            }
+        socket.join(roomId)
+        sendMatchEvents(roomId, 3, 'playerJoined', {
+            roomId: roomId
         })
         setTimeout(() => {
             roomWaitingTimeOver(roomId)
@@ -147,13 +139,8 @@ module.exports = (io, socket, gameMeta) => {
         io.of('/').adapter.allRooms((err, rooms) => {
             logger.info('all socket io rooms: ' + rooms) // an array containing all rooms (accross every node)
         })
-        logger.info(roomId + ' started because ' + reason)
-        io.to(roomId).emit('matchEvent', {
-            code: 4,
-            event: 'gameStarted',
-            data: {
-                roomId: roomId
-            }
+        sendMatchEvents(roomId, 4, 'gameStarted', {
+            roomId: roomId
         })
         const roomHash = await redisClient.HMGET(roomsPrefix + roomId, 'info', 'players')
         const roomHashParsed = JSON.parse(roomHash[0])
@@ -171,12 +158,8 @@ module.exports = (io, socket, gameMeta) => {
 
         await redisClient.DEL(roomsPrefix + roomId)
         await redisClient.ZREM(roomsListPrefix, roomId)
-        io.to(roomId).emit('matchEvent', {
-            code: 5,
-            event: 'roomDestroyed',
-            data: {
-                roomId: roomId
-            }
+        sendMatchEvents(roomId, 5, 'roomDestroyed', {
+            roomId: roomId
         })
         io.of('/').in(roomId).clients((error, clients) => {
             if (error) logger.error(error)
@@ -209,12 +192,19 @@ module.exports = (io, socket, gameMeta) => {
                     await redisClient.ZINCRBY(roomsListPrefix, -1, userCurrentRoom)
                 }
                 socket.leave(userCurrentRoom)
-                io.to(userCurrentRoom).emit('matchEvent', {
-                    code: 6,
-                    event: 'playerLeft'
+                sendMatchEvents(userCurrentRoom, 6, 'playerLeft', {
+                    userId: userId
                 })
             }, gameMeta.kickTime)
         }
+    }
+
+    const sendMatchEvents = (roomId, code, event, data) => {
+        io.to(roomId).emit('matchEvent', {
+            code: code,
+            event: event,
+            data: JSON.stringify(data)
+        })
     }
 
     return {

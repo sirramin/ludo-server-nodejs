@@ -1,7 +1,7 @@
 const _ = require('lodash')
 module.exports = (roomId, players, methods) => {
     const numberOfplayers = players.length
-    global.maxTime = 11
+    global.maxTime = 2
     let positions = []
     let marblesPosition = {}
     let orbs = {}
@@ -42,12 +42,10 @@ module.exports = (roomId, players, methods) => {
         setInterval(() => {
             remainingTime[roomId] -= 1
             if (remainingTime[roomId] === 0) {
-                logger.info('time ends')
-                logger.info('remainingTime ' + JSON.stringify(remainingTime))
                 if (orbs['player' + currentTurn.player] === 1)
                     methods.kickUser(findUserId())
                 else {
-                    changeTurn(currentTurn.player, true, true)
+                    changeTurn()
                 }
             }
         }, 1000)
@@ -60,23 +58,22 @@ module.exports = (roomId, players, methods) => {
         return userObj.userId
     }
 
-    const changeTurn = async (previousPlayer, decreaseOrb, timeEnds) => {
+    const changeTurn = async () => {
         remainingTime[roomId] = maxTime
         diceAttempts[roomId] = 0
+        currentTurn = await methods.getProp('currentTurn')
+        const previousPlayer = currentTurn.player
         const nextPlayer = previousPlayer + 1 > numberOfplayers ? 1 : previousPlayer + 1
         currentTurn.player = nextPlayer
         let propsArray = ['currentTurn', JSON.stringify(currentTurn)]
-        if (decreaseOrb) {
-            orbs['player' + previousPlayer] -= 1
-            propsArray.push('orbs', JSON.stringify(orbs))
-        }
+        orbs['player' + previousPlayer] -= 1
+        propsArray.push('orbs', JSON.stringify(orbs))
         await methods.setMultipleProps(...propsArray)
-        logger.info('Turn changed to palyer' + nextPlayer)
         methods.sendGameEvents(104, 'changeTurn', {
             "player": nextPlayer,
-            "decreaseOrb": decreaseOrb,
-            "timeEnds": timeEnds,
-            "orbs": JSON.stringify(orbs)
+            "decreaseOrb": true,
+            "timeEnds": true,
+            "orbs": orbs
         })
         const playeruserId = findUserId()
         methods.sendEventToSpecificSocket(playeruserId, 201, 'yourTurn')

@@ -1,13 +1,14 @@
 const redisClient = require('../../common/redis-client')
 
 module.exports = (io, gameMeta, roomId, marketKey) => {
-    const roomPrefix = gameMeta.name + ':rooms:' + roomId
+    const roomPrefix = gameMeta.name + ':rooms:' + roomId,
+    roomsListPrefix = gameMeta.name + ':rooms:roomsList'
 
     const sendGameEvents = (code, event, data) => {
         io.to(roomId).emit('gameEvent', {
             code: code,
             event: event,
-            data: JSON.stringify(data)
+            data: data
         })
     }
 
@@ -17,7 +18,7 @@ module.exports = (io, gameMeta, roomId, marketKey) => {
         io.to(socketId).emit('gameEvent', {
             code: code,
             event: event,
-            data: JSON.stringify(data)
+            data: data
         });
     }
 
@@ -39,21 +40,27 @@ module.exports = (io, gameMeta, roomId, marketKey) => {
     }
 
     const kickUser = async (userId) => {
-        const currentpaylers = await redisClient.hget(roomPrefix, 'players')
-        const currentpaylersParsed = JSON.parse(currentpaylers)
-        if (currentpaylersParsed && currentpaylersParsed.length === 1) {
-            destroyRoom()
+        const currentpaylers = await getProp('players')
+        if (currentpaylers && currentpaylers.length === 1) {
+            // winner code ---------------
         }
-        else if (currentpaylersParsed.length > 1) {
+        else if (currentpaylers.length > 1) {
             await updateUserRoom(roomId, userId)
-            currentpaylersParsed.splice(currentpaylersParsed.indexOf(userId), 1)
-            await redisClient.HSET(roomPrefix, 'players', JSON.stringify(currentpaylersParsed))
-            await redisClient.ZINCRBY(roomPrefix, -1, roomId)
+            currentpaylers.splice(currentpaylers.indexOf(userId), 1)
+            await redisClient.HSET(roomPrefix, 'players', JSON.stringify(currentpaylers))
+            await redisClient.ZINCRBY(roomsListPrefix, -1, roomId)
+            // remove from position and marbleposition and send data again ------------------------
+
         }
-        // socket.leave(roomId)
-        io.to(roomId).emit('message', {
-            code: 4,
-            msg: 'player left room'
+        const userData = await redisClient.hget(marketKey, userId)
+        const userDataParsed = JSON.parse(userData)
+        const socketId = userDataParsed.socketId
+        delete userDataParsed[roomId]
+        await redisClient.hset(marketKey, userId, JSON.stringify(userDataParsed))
+        let socket = io.sockets.connected[socketId]
+        socket.leave(roomId)
+        sendGameEvents(203, 'playerLeft', {
+            userId: userId
         })
     }
 
@@ -70,7 +77,6 @@ module.exports = (io, gameMeta, roomId, marketKey) => {
                 clients.forEach(client => io.of('/').adapter.remoteLeave(client, roomId));
             }
         })
-        logger.info(roomId + ' destroyed ')
     }
 
     const asyncLoopRemovePlayersRoomInRedis = async (roomplayersArray) => {
