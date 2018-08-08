@@ -23,15 +23,18 @@ module.exports = (io) => {
             }
         })
         .on('connection', async (socket) => {
+            logger.info(socket.id)
             const gameMeta = await gameIdentifier.getGameMeta(socket.userInfo.dbUrl)
             const matchMaking = require('./matchMaking')(io, socket, gameMeta)
             socket.on('joinRoom', (message) => {
+                logger.info('joined')
                 matchMaking.findAvailableRooms()
             })
             socket.on('disconnect', (reason) => {
-                matchMaking.kickUserFromRoom()
+                matchMaking.kickUserFromRoomByDC()
             })
             socket.on('event', async (msg) => {
+                logger.info(msg)
                 const marketName = (socket.userInfo.market === 'mtn' || socket.userInfo.market === 'mci') ? socket.userInfo.market : 'market',
                     marketKey = gameMeta.name + ':users:' + marketName,
                     logicEvents = require('../logics/' + gameMeta.name + '/gameEvents')(io, socket, gameMeta, marketKey)

@@ -1,7 +1,7 @@
 const _ = require('lodash')
 module.exports = (io, socket, gameMeta, marketKey) => {
     userId = socket.userInfo.userId
-    let matchMaking, roomId, methods, roomInfo, positions, marblesPosition, currentPlayer, orbs
+    let matchMaking, roomId, methods, roomInfo, positions, marblesPosition, currentPlayer, orbs, currentPlayerMarbles
 
     const getAct = (msg) => {
         const {act, data} = msg
@@ -18,28 +18,29 @@ module.exports = (io, socket, gameMeta, marketKey) => {
             diceAttempts[roomId] += 1
         else
             diceAttempts[roomId] = 1
-        // const currentPlayer = await methods.getProp('currentPlayer')
         const tossNumber = Math.floor(Math.random() * 6) + 1
         methods.sendGameEvents(20, 'tossNumber', tossNumber)
-        await checkRules(tossNumber, currentPlayer)
+        await checkRules(tossNumber)
     }
 
     const getInitialProperties = async () => {
+        //must be optimised and remove matchmaking
         matchMaking = require('../../realtime/matchMaking')(io, socket, gameMeta, marketKey)
         roomId = await matchMaking.findUserCurrentRoom()
         methods = require('../../realtime/methods')(io, gameMeta, roomId, marketKey)
         roomInfo = await methods.getAllProps()
         if (!marketKey) marketKey = JSON.parse(roomInfo['info']).marketKey
+        currentPlayer = parseInt(roomInfo['currentPlayer'])
         marblesPosition = JSON.parse(roomInfo['marblesPosition'])
+        currentPlayerMarbles = marblesPosition[currentPlayer.toString()]
         positions = JSON.parse(roomInfo['positions'])
-        currentPlayer = JSON.parse(roomInfo['currentTurn']).player
         orbs = JSON.parse(roomInfo['orbs'])
     }
 
 
-    const checkRules = async (tossNumber, currentPlayer) => {
-        if (playerHasMarbleOnRoad(currentPlayer)) {
-            const marbs = whichMarblesCanMove(tossNumber, currentPlayer)
+    const checkRules = async (tossNumber) => {
+        if (playerHasMarbleOnRoad()) {
+            const marbs = whichMarblesCanMove(tossNumber)
             if (marbs.length) {
                 methods.sendGameEvents(21, 'marblesCanMove', marbs)
                 await saveTossNumber(tossNumber)
@@ -69,8 +70,7 @@ module.exports = (io, socket, gameMeta, marketKey) => {
         methods.setProp('tossNumber', tossNumber)
     }
 
-    const playerHasMarbleOnRoad = (currentPlayer) => {
-        const currentPlayerMarbles = marblesPosition[currentPlayer]
+    const playerHasMarbleOnRoad = () => {
         for (let key in currentPlayerMarbles) {
             if (currentPlayerMarbles.hasOwnProperty(key) && currentPlayerMarbles[key] > 0)
                 return true
@@ -81,12 +81,13 @@ module.exports = (io, socket, gameMeta, marketKey) => {
     const tileStarts = [1, 11, 21, 31]
     const tilesStartEndLast = [[1, 40, 41, 44], [11, 10, 45, 48], [21, 20, 49, 52], [31, 30, 53, 56]]
 
-    const whichMarblesCanMove = (tossNumber, currentPlayer) => {
+    const whichMarblesCanMove = (tossNumber) => {
+        const tilesStartEndLastCurrentPlayer = tilesStartEndLast[currentPlayer - 1]
         let marblesCantMove = []
-        const currentPlayerMarbles = marblesPosition[currentPlayer]
+
         currentPlayerMarbles.forEach((marblePosition, index) => {
             const currentMarbleNumber = index + 1
-            const newPosition = positionCalculator(marblePosition, currentPlayer, tossNumber)
+            const newPosition = positionCalculator(marblePosition, tossNumber)
 
             if (!newPosition)
                 marblesCantMove = _.union(marblesCantMove, [currentMarbleNumber])
@@ -97,41 +98,44 @@ module.exports = (io, socket, gameMeta, marketKey) => {
             // checking other marbles in their starting tile conflict
             if (tileStarts.indexOf(newPosition) !== -1) { // if this current player marble target meet one of the tileStarts
                 const targetPlayerNumber = tileStarts.indexOf(newPosition)
-                const targetPlayerNumberMarblePositions = marblePosition[targetPlayerNumber]
-                if (targetPlayerNumberMarblePositions === tileStarts[targetPlayerNumber - 1])
-                    marblesCantMove = _.union(marblesCantMove, [currentMarbleNumber])
+                if(positions.indexOf(targetPlayerNumber) !== -1) {
+                    const targetPlayerNumberMarblesPosition = marblesPosition[(targetPlayerNumber + 1).toString()]
+                    targetPlayerNumberMarblesPosition.forEach(targetMarblePosition => {
+                        if (targetMarblePosition === tileStarts[targetPlayerNumber])
+                            marblesCantMove = _.union(marblesCantMove, [currentMarbleNumber])
+                    })
+                }
             }
 
-            currentPlayerMarbles.forEach((currentMarbleNumber2, marblePosition2) => {
+            currentPlayerMarbles.forEach((marblePosition2, marbleNumber2) => {
                 // player marble cant sit on same color
                 // tossNumber === 6 && marblePosition === 0 &&
-                if (newPosition === marblePosition2)
+                if (marbleNumber2 + 1 !== currentMarbleNumber && newPosition === marblePosition2)
                     marblesCantMove = _.union(marblesCantMove, [currentMarbleNumber])
 
                 //player has not enough space in its last tiles
-                if (marblePosition !== 0 && newPosition >= tilesStartEndLast[currentPlayer - 1][2]) {
-                    if (marblePosition2 >= tilesStartEndLast[currentPlayer - 1][2] && marblePosition2 <= tilesStartEndLast[currentPlayer - 1][3])
+                if (marblePosition !== 0 && newPosition >= tilesStartEndLastCurrentPlayer[2]) {
+                    if (marblePosition2 >= tilesStartEndLastCurrentPlayer[2] && marblePosition2 <= tilesStartEndLastCurrentPlayer[3])
                         if (newPosition === marblePosition2)
                             marblesCantMove = _.union(marblesCantMove, [currentMarbleNumber])
                 }
             })
         })
-
         return _.difference([1, 2, 3, 4], marblesCantMove)
     }
 
-    const positionCalculator = (marblePosition, currentPlayer, tossNumber) => {
+    const positionCalculator = (marblePosition, tossNumber) => {
+        const tilesStartEndLastCurrentPlayer = tilesStartEndLast[currentPlayer - 1]
         let newPosition
-
-        if (marblePosition + tossNumber > tilesStartEndLast[currentPlayer - 1][3])
+        if (marblePosition + tossNumber > tilesStartEndLastCurrentPlayer[3])
             return false
 
         if (marblePosition !== 0) {
             if (currentPlayer !== 1) {
                 if (marblePosition + tossNumber > 40)
                     newPosition = marblePosition + tossNumber - 40
-                else if (marblePosition + tossNumber > tilesStartEndLast[currentPlayer - 1][1] && marblePosition < tilesStartEndLast[currentPlayer - 1][0])
-                    newPosition = marblePosition + tossNumber - tilesStartEndLast[currentPlayer - 1][1] + tilesStartEndLast[currentPlayer - 1][2] - 1
+                else if (marblePosition + tossNumber > tilesStartEndLastCurrentPlayer[1] && marblePosition < tilesStartEndLastCurrentPlayer[0])
+                    newPosition = marblePosition + tossNumber - tilesStartEndLastCurrentPlayer[1] + tilesStartEndLastCurrentPlayer[2] - 1
                 else
                     newPosition = marblePosition + tossNumber
             }
@@ -149,14 +153,11 @@ module.exports = (io, socket, gameMeta, marketKey) => {
     const move = async (marbleNumber) => {
         await getInitialProperties()
         remainingTime[roomId] = maxTime
-        // const roomData = await methods.getAllProps()
         const tossNumber = parseInt(roomInfo.tossNumber)
-        // const currentPlayer = JSON.stringify(roomInfo.currentTurn).player
-        // const marblesPosition = JSON.stringify(roomData)
-        const marblePosition = marblesPosition[currentPlayer][marbleNumber - 1]
-        const newPosition = positionCalculator(marblePosition, currentPlayer, tossNumber)
+        const marblePosition = currentPlayerMarbles[marbleNumber - 1]
+        const newPosition = positionCalculator(marblePosition, tossNumber)
         let newMarblesPosition = JSON.parse(JSON.stringify(marblesPosition))
-        newMarblesPosition[currentPlayer][marbleNumber - 1] = newPosition
+        newMarblesPosition[currentPlayer.toString()][marbleNumber - 1] = newPosition
         await methods.setProp('marblesPosition', JSON.stringify(newMarblesPosition))
         const marblesMeeting = checkMarblesMeeting(marblesPosition, newMarblesPosition, newPosition)
         if (marblesMeeting.meet)
@@ -170,7 +171,7 @@ module.exports = (io, socket, gameMeta, marketKey) => {
 
     const checkMarblesMeeting = (marblesPosition, newMarblesPosition, newPosition) => {
         for (let key in marblesPosition) {
-            marblesPosition[key].forEach((val, index) => {
+            marblesPosition[key.toString()].forEach((val, index) => {
                 if (val === newPosition)
                     return {
                         meet: true,
@@ -204,7 +205,7 @@ module.exports = (io, socket, gameMeta, marketKey) => {
         diceAttempts[roomId] = 0
         const numberOfplayers = positions.length
         const nextPlayer = currentPlayer + 1 > numberOfplayers ? 1 : currentPlayer + 1
-        await methods.setProp('currentTurn', JSON.stringify({'player': nextPlayer}))
+        await methods.setProp('currentPlayer', nextPlayer)
         methods.sendGameEvents(104, 'changeTurn', {
             "player": nextPlayer,
             "decreaseOrb": false,

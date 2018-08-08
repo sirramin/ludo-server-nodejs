@@ -1,15 +1,16 @@
 const _ = require('lodash')
 module.exports = (roomId, players, methods) => {
     const numberOfplayers = players.length
-    global.maxTime = 2
+    global.maxTime = 11
     let positions = []
     let marblesPosition = {}
     let orbs = {}
+    let currentPlayer
+
     for (let i = 1; i <= numberOfplayers; i++) {
         orbs['player' + i] = 3
     }
 
-    let currentTurn
     remainingTime[roomId] = maxTime
     diceAttempts[roomId] = 0
 
@@ -27,9 +28,10 @@ module.exports = (roomId, players, methods) => {
 
     const firstTurn = async () => {
         const rand = Math.floor(Math.random() * numberOfplayers)
-        const firstTurn = {player: positions[rand].player}
-        currentTurn = firstTurn
-        await methods.setProp('currentTurn', JSON.stringify(currentTurn))
+        const firstTurn = positions[rand].player
+        currentPlayer = firstTurn
+        await methods.setProp('currentPlayer', currentPlayer)
+        //must be optimised
         const playeruserId = findUserId()
         await methods.sendEventToSpecificSocket(playeruserId, 201, 'yourTurn')
         await methods.sendEventToSpecificSocket(playeruserId, 202, 'yourPlayerNumber', rand + 1)
@@ -39,11 +41,12 @@ module.exports = (roomId, players, methods) => {
     }
 
     const timerCounter = () => {
-        setInterval(() => {
+        setInterval(async () => {
             remainingTime[roomId] -= 1
             if (remainingTime[roomId] === 0) {
-                if (orbs['player' + currentTurn.player] === 1)
-                    methods.kickUser(findUserId())
+                await getInitialProperties()
+                if (orbs['player' + currentPlayer] === 1)
+                    await methods.kickUser(findUserId())
                 else {
                     changeTurn()
                 }
@@ -53,7 +56,7 @@ module.exports = (roomId, players, methods) => {
 
     const findUserId = () => {
         const userObj = _.find(positions, function (o) {
-            return o.player === currentTurn.player;
+            return o.player === currentPlayer
         })
         return userObj.userId
     }
@@ -61,11 +64,11 @@ module.exports = (roomId, players, methods) => {
     const changeTurn = async () => {
         remainingTime[roomId] = maxTime
         diceAttempts[roomId] = 0
-        currentTurn = await methods.getProp('currentTurn')
-        const previousPlayer = currentTurn.player
+        currentPlayer = await methods.getProp('currentPlayer')
+        const previousPlayer = currentPlayer
         const nextPlayer = previousPlayer + 1 > numberOfplayers ? 1 : previousPlayer + 1
-        currentTurn.player = nextPlayer
-        let propsArray = ['currentTurn', JSON.stringify(currentTurn)]
+        currentPlayer = nextPlayer
+        let propsArray = ['currentPlayer', currentPlayer]
         orbs['player' + previousPlayer] -= 1
         propsArray.push('orbs', JSON.stringify(orbs))
         await methods.setMultipleProps(...propsArray)
@@ -78,6 +81,14 @@ module.exports = (roomId, players, methods) => {
         const playeruserId = findUserId()
         methods.sendEventToSpecificSocket(playeruserId, 201, 'yourTurn')
         methods.sendEventToSpecificSocket(playeruserId, 202, 'yourPlayerNumber', nextPlayer)
+    }
+
+    const getInitialProperties = async () => {
+        const roomInfo = await methods.getAllProps()
+        // marblesPosition = JSON.parse(roomInfo['marblesPosition'])
+        positions = JSON.parse(roomInfo['positions'])
+        currentPlayer = parseInt(roomInfo['currentPlayer'])
+        orbs = JSON.parse(roomInfo['orbs'])
     }
 
     return {

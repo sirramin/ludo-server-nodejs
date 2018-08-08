@@ -81,7 +81,7 @@
                         $('#move').hide()
                         $('#messages').append($('<li>').text(data.event + ' ' + JSON.stringify(data.data)))
                     }
-                    if (data.event === 'yourTurn') {
+                    else if (data.event === 'yourTurn') {
                         $('#rollDice').show()
                         $('#move').show()
                         $('#messages').append($('<li>').text(data.event).css('color', 'blue'))

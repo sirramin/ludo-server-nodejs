@@ -176,18 +176,21 @@ module.exports = (io, socket, gameMeta) => {
         }
     }
 
-    const kickUserFromRoom = async () => {
+    const kickUserFromRoomByDC = async () => {
         const userCurrentRoom = await findUserCurrentRoom()
         if (userCurrentRoom) {
             setTimeout(async () => {
-                const currentpaylers = await redisClient.hget(roomsPrefix + userCurrentRoom, 'players')
-                const currentpaylersParsed = JSON.parse(currentpaylers)
-                if (currentpaylersParsed && currentpaylersParsed.length === 1) {
+                const roomData = await redisClient.hmget(roomsPrefix + userCurrentRoom, 'players', 'info', 'positions')
+                const currentpaylersParsed = JSON.parse(roomData[0])
+                const roomState = JSON.parse(roomData[1]).state
+                const positions = JSON.parse(roomData[2])
+                if (currentpaylersParsed && currentpaylersParsed.length === 1 && roomState === 'waiting') {
                     destroyRoom(userCurrentRoom)
                 }
                 else if (currentpaylersParsed && currentpaylersParsed.length > 1) {
                     await updateUserRoom(userCurrentRoom)
                     currentpaylersParsed.splice(currentpaylersParsed.indexOf(userId), 1)
+                    positions.splice(currentpaylersParsed.indexOf(userId), 1)
                     await redisClient.HSET(roomsPrefix + userCurrentRoom, 'players', JSON.stringify(currentpaylersParsed))
                     await redisClient.ZINCRBY(roomsListPrefix, -1, userCurrentRoom)
                 }
@@ -209,7 +212,7 @@ module.exports = (io, socket, gameMeta) => {
 
     return {
         findAvailableRooms: findAvailableRooms,
-        kickUserFromRoom: kickUserFromRoom,
+        kickUserFromRoomByDC: kickUserFromRoomByDC,
         findUserCurrentRoom: findUserCurrentRoom
     }
 }
