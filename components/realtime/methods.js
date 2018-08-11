@@ -35,6 +35,10 @@ module.exports = (io, gameMeta, roomId, marketKey) => {
         return JSON.parse(value)
     }
 
+    const incrProp = async (field, number) => {
+        return await redisClient.HINCRBY(roomPrefix, field, number)
+    }
+
     const getAllProps = async () => {
         return await redisClient.HGETALL(roomPrefix)
     }
@@ -102,6 +106,7 @@ module.exports = (io, gameMeta, roomId, marketKey) => {
         setMultipleProps: setMultipleProps,
         getProp: getProp,
         getAllProps: getAllProps,
-        kickUser: kickUser
+        kickUser: kickUser,
+        incrProp: incrProp
     }
 }

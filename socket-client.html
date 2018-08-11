@@ -4,7 +4,7 @@
     <title>Arta platfrom socket client</title>
 </head>
 <body>
-<h1>Arta platfrom socket client</h1>
+<h1><span>you are player: </span><span id="playerNumber"></span></h1>
 <ul id="messages"></ul>
 <button id="connect">connect</button>
 <button id="joinRoom">joinRoom</button>
@@ -75,28 +75,46 @@
                     $('#messages').append($('<li>').text(data.event  + JSON.stringify(data.data)))
                 })
 
+
+                let yourTrun = false
+                let color = 'black'
                 socket.on('gameEvent', function (data) {
                     if (data.event === 'changeTurn') {
+                        yourTrun = false
+                        color = 'black'
                         $('#rollDice').hide()
                         $('#move').hide()
                         $('#messages').append($('<li>').text(data.event + ' ' + JSON.stringify(data.data)))
                     }
                     else if (data.event === 'yourTurn') {
+                        yourTrun = true
+                        color = 'blue'
                         $('#rollDice').show()
+                        $('#rollDice').click()
                         $('#move').show()
-                        $('#messages').append($('<li>').text(data.event).css('color', 'blue'))
+                        $('#messages').append($('<li>').text(data.event).css('color', color))
                     }
                     else if (data.event === 'marblesCanMove') {
-                        $('#messages').append($('<li>').text(data.event  + ' ' + data.data).css('color', 'green'))
-                        const marblesArray = data.data
-                        marblesArray.forEach((item, index)=>{
-                            $('#move').append('<option value="' + item + '">'+item+'</option>')
-                        })
+                        if(yourTrun) {
+                            $('#messages').append($('<li>').text(data.event + ' ' + data.data).css('color', color))
+                            const marblesArray = data.data
+                            marblesArray.forEach((item, index) => {
+                                $('#move').append('<option value="' + item + '">' + item + '</option>')
+                            })
+                        }
                     }
                     else if (data.event === 'yourPlayerNumber')
-                        $('#messages').append($('<li>').text(data.event + ' ' + data.data).css('color', 'blue'))
+                        $('#playerNumber').text(data.data)
                     else
-                        $('#messages').append($('<li>').text(data.event + ' ' + JSON.stringify(data.data)))
+                        $('#messages').append($('<li>').text(data.event + ' ' + JSON.stringify(data.data)).css('color', color))
+
+                    if (data.event === 'canRollDiceAgain' && yourTrun) {
+                        $('#rollDice').click()
+                    }
+                    if (data.event === 'marblesPosition' && yourTrun) {
+                        $('#rollDice').click()
+                    }
+
                 })
             })
         })

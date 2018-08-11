@@ -206,7 +206,7 @@ module.exports = (io, socket, gameMeta) => {
         io.to(roomId).emit('matchEvent', {
             code: code,
             event: event,
-            data: JSON.stringify(data)
+            data: data
         })
     }
 

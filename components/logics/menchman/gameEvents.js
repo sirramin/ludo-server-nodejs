@@ -1,7 +1,8 @@
 const _ = require('lodash')
 module.exports = (io, socket, gameMeta, marketKey) => {
+    const maxTime = 11
     userId = socket.userInfo.userId
-    let matchMaking, roomId, methods, roomInfo, positions, marblesPosition, currentPlayer, orbs, currentPlayerMarbles
+    let matchMaking, roomId, methods, roomInfo, positions, marblesPosition, currentPlayer, orbs, currentPlayerMarbles, diceAttempts, remainingTime
 
     const getAct = (msg) => {
         const {act, data} = msg
@@ -13,11 +14,11 @@ module.exports = (io, socket, gameMeta, marketKey) => {
 
     const rollDice = async () => {
         await getInitialProperties()
-        remainingTime[roomId] = maxTime
-        if (diceAttempts[roomId])
-            diceAttempts[roomId] += 1
+        await methods.setProp('remainingTime', maxTime)
+        if (diceAttempts)
+            diceAttempts = await methods.incrProp('diceAttempts', 1)
         else
-            diceAttempts[roomId] = 1
+             diceAttempts = await methods.setProp('diceAttempts', 1)
         const tossNumber = Math.floor(Math.random() * 6) + 1
         methods.sendGameEvents(20, 'tossNumber', tossNumber)
         await checkRules(tossNumber)
@@ -31,10 +32,13 @@ module.exports = (io, socket, gameMeta, marketKey) => {
         roomInfo = await methods.getAllProps()
         if (!marketKey) marketKey = JSON.parse(roomInfo['info']).marketKey
         currentPlayer = parseInt(roomInfo['currentPlayer'])
+        diceAttempts = parseInt(roomInfo['diceAttempts'])
+        remainingTime = parseInt(roomInfo['remainingTime'])
         marblesPosition = JSON.parse(roomInfo['marblesPosition'])
         currentPlayerMarbles = marblesPosition[currentPlayer.toString()]
         positions = JSON.parse(roomInfo['positions'])
         orbs = JSON.parse(roomInfo['orbs'])
+
     }
 
 
@@ -52,13 +56,13 @@ module.exports = (io, socket, gameMeta, marketKey) => {
         }
         else /* All In Nest */ {
             if (tossNumber === 6) {
-                remainingTime[roomId] = maxTime
-                diceAttempts[roomId] = 0
+                await methods.setProp('remainingTime', maxTime)
+                await methods.setProp('diceAttempts', 0)
                 await saveTossNumber(tossNumber)
                 methods.sendGameEvents(21, 'marblesCanMove', [1, 2, 3, 4])
             }
             else  /* tossNumber !== 6 */ {
-                if (diceAttempts[roomId] === 3) {
+                if (diceAttempts === 3) {
                     changeTurn()
                 }
                 else methods.sendGameEvents(22, 'canRollDiceAgain', true)
@@ -90,19 +94,19 @@ module.exports = (io, socket, gameMeta, marketKey) => {
             const newPosition = positionCalculator(marblePosition, tossNumber)
 
             if (!newPosition)
-                marblesCantMove = _.union(marblesCantMove, [currentMarbleNumber])
+                marblesCantMove = _.union(marblesCantMove, [currentMarbleNumber]);logger.info('---------1--------')
 
             if (tossNumber !== 6 && marblePosition === 0)
-                marblesCantMove = _.union(marblesCantMove, [currentMarbleNumber])
+                marblesCantMove = _.union(marblesCantMove, [currentMarbleNumber]);logger.info('---------2--------')
 
             // checking other marbles in their starting tile conflict
             if (tileStarts.indexOf(newPosition) !== -1) { // if this current player marble target meet one of the tileStarts
                 const targetPlayerNumber = tileStarts.indexOf(newPosition)
-                if(positions.indexOf(targetPlayerNumber) !== -1) {
+                if (positions.indexOf(targetPlayerNumber) !== -1) {
                     const targetPlayerNumberMarblesPosition = marblesPosition[(targetPlayerNumber + 1).toString()]
                     targetPlayerNumberMarblesPosition.forEach(targetMarblePosition => {
                         if (targetMarblePosition === tileStarts[targetPlayerNumber])
-                            marblesCantMove = _.union(marblesCantMove, [currentMarbleNumber])
+                            marblesCantMove = _.union(marblesCantMove, [currentMarbleNumber]);logger.info('---------3--------')
                     })
                 }
             }
@@ -110,14 +114,14 @@ module.exports = (io, socket, gameMeta, marketKey) => {
             currentPlayerMarbles.forEach((marblePosition2, marbleNumber2) => {
                 // player marble cant sit on same color
                 // tossNumber === 6 && marblePosition === 0 &&
-                if (marbleNumber2 + 1 !== currentMarbleNumber && newPosition === marblePosition2)
-                    marblesCantMove = _.union(marblesCantMove, [currentMarbleNumber])
+                if (marbleNumber2 + 1 !== currentMarbleNumber && newPosition === marblePosition2 && marblePosition2 !== 0 )
+                    marblesCantMove = _.union(marblesCantMove, [currentMarbleNumber]);logger.info('---------4--------')
 
                 //player has not enough space in its last tiles
                 if (marblePosition !== 0 && newPosition >= tilesStartEndLastCurrentPlayer[2]) {
                     if (marblePosition2 >= tilesStartEndLastCurrentPlayer[2] && marblePosition2 <= tilesStartEndLastCurrentPlayer[3])
                         if (newPosition === marblePosition2)
-                            marblesCantMove = _.union(marblesCantMove, [currentMarbleNumber])
+                            marblesCantMove = _.union(marblesCantMove, [currentMarbleNumber]);logger.info('---------5--------')
                 }
             })
         })
@@ -152,7 +156,7 @@ module.exports = (io, socket, gameMeta, marketKey) => {
 
     const move = async (marbleNumber) => {
         await getInitialProperties()
-        remainingTime[roomId] = maxTime
+        await methods.setProp('remainingTime', maxTime)
         const tossNumber = parseInt(roomInfo.tossNumber)
         const marblePosition = currentPlayerMarbles[marbleNumber - 1]
         const newPosition = positionCalculator(marblePosition, tossNumber)
@@ -201,8 +205,8 @@ module.exports = (io, socket, gameMeta, marketKey) => {
     }
 
     const changeTurn = async () => {
-        remainingTime[roomId] = maxTime
-        diceAttempts[roomId] = 0
+        await methods.setProp('remainingTime', maxTime)
+        await methods.setProp('diceAttempts', 0)
         const numberOfplayers = positions.length
         const nextPlayer = currentPlayer + 1 > numberOfplayers ? 1 : currentPlayer + 1
         await methods.setProp('currentPlayer', nextPlayer)

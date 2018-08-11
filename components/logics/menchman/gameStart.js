@@ -1,7 +1,7 @@
 const _ = require('lodash')
 module.exports = (roomId, players, methods) => {
     const numberOfplayers = players.length
-    global.maxTime = 11
+    const maxTime = 11
     let positions = []
     let marblesPosition = {}
     let orbs = {}
@@ -11,11 +11,14 @@ module.exports = (roomId, players, methods) => {
         orbs['player' + i] = 3
     }
 
-    remainingTime[roomId] = maxTime
-    diceAttempts[roomId] = 0
+
+    // remainingTime[roomId] = maxTime
+    // diceAttempts[roomId] = 0
 
 
     const sendPositions = async () => {
+        await methods.setProp('remainingTime', maxTime)
+        await methods.setProp('diceAttempts', 0)
         players.forEach((item, index) => {
             const playerNumber = (index + 1)
             positions.push({player: playerNumber, userId: players[index]})
@@ -41,9 +44,11 @@ module.exports = (roomId, players, methods) => {
     }
 
     const timerCounter = () => {
-        setInterval(async () => {
-            remainingTime[roomId] -= 1
-            if (remainingTime[roomId] === 0) {
+        const timerInterval = setInterval(async () => {
+            const remainingTime = await methods.incrProp('remainingTime', -1)
+            if(remainingTime < -10) clearInterval(timerInterval)
+            // logger.info('roomId: '+ roomId + ' remainingTime: ' + remainingTime)
+            if (remainingTime === 0) {
                 await getInitialProperties()
                 if (orbs['player' + currentPlayer] === 1)
                     await methods.kickUser(findUserId())
@@ -62,8 +67,8 @@ module.exports = (roomId, players, methods) => {
     }
 
     const changeTurn = async () => {
-        remainingTime[roomId] = maxTime
-        diceAttempts[roomId] = 0
+        await methods.setProp('remainingTime', maxTime)
+        await methods.setProp('diceAttempts', 0)
         currentPlayer = await methods.getProp('currentPlayer')
         const previousPlayer = currentPlayer
         const nextPlayer = previousPlayer + 1 > numberOfplayers ? 1 : previousPlayer + 1

@@ -40,6 +40,9 @@ module.exports = (io) => {
                     logicEvents = require('../logics/' + gameMeta.name + '/gameEvents')(io, socket, gameMeta, marketKey)
                 logicEvents.getAct(msg)
             })
+            socket.on('message', (message) => {
+                logger.info(message)
+            })
         })
 
     const addSocketIdToRedis = async (userInfo, socketId) => {
