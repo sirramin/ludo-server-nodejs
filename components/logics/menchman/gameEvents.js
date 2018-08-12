@@ -2,7 +2,8 @@ const _ = require('lodash')
 module.exports = (io, socket, gameMeta, marketKey) => {
     const maxTime = 11
     userId = socket.userInfo.userId
-    let matchMaking, roomId, methods, roomInfo, positions, marblesPosition, currentPlayer, orbs, currentPlayerMarbles, diceAttempts, remainingTime
+    let matchMaking, roomId, methods, roomInfo, positions, marblesPosition, currentPlayer, orbs, currentPlayerMarbles,
+        diceAttempts, remainingTime
 
     const getAct = (msg) => {
         const {act, data} = msg
@@ -18,7 +19,7 @@ module.exports = (io, socket, gameMeta, marketKey) => {
         if (diceAttempts)
             diceAttempts = await methods.incrProp('diceAttempts', 1)
         else
-             diceAttempts = await methods.setProp('diceAttempts', 1)
+            diceAttempts = await methods.setProp('diceAttempts', 1)
         const tossNumber = Math.floor(Math.random() * 6) + 1
         methods.sendGameEvents(20, 'tossNumber', tossNumber)
         await checkRules(tossNumber)
@@ -94,10 +95,12 @@ module.exports = (io, socket, gameMeta, marketKey) => {
             const newPosition = positionCalculator(marblePosition, tossNumber)
 
             if (!newPosition)
-                marblesCantMove = _.union(marblesCantMove, [currentMarbleNumber]);logger.info('---------1--------')
+                marblesCantMove = _.union(marblesCantMove, [currentMarbleNumber]);
+            logger.info('---------1--------')
 
             if (tossNumber !== 6 && marblePosition === 0)
-                marblesCantMove = _.union(marblesCantMove, [currentMarbleNumber]);logger.info('---------2--------')
+                marblesCantMove = _.union(marblesCantMove, [currentMarbleNumber]);
+            logger.info('---------2--------')
 
             // checking other marbles in their starting tile conflict
             if (tileStarts.indexOf(newPosition) !== -1) { // if this current player marble target meet one of the tileStarts
@@ -106,7 +109,8 @@ module.exports = (io, socket, gameMeta, marketKey) => {
                     const targetPlayerNumberMarblesPosition = marblesPosition[(targetPlayerNumber + 1).toString()]
                     targetPlayerNumberMarblesPosition.forEach(targetMarblePosition => {
                         if (targetMarblePosition === tileStarts[targetPlayerNumber])
-                            marblesCantMove = _.union(marblesCantMove, [currentMarbleNumber]);logger.info('---------3--------')
+                            marblesCantMove = _.union(marblesCantMove, [currentMarbleNumber]);
+                        logger.info('---------3--------')
                     })
                 }
             }
@@ -114,14 +118,16 @@ module.exports = (io, socket, gameMeta, marketKey) => {
             currentPlayerMarbles.forEach((marblePosition2, marbleNumber2) => {
                 // player marble cant sit on same color
                 // tossNumber === 6 && marblePosition === 0 &&
-                if (marbleNumber2 + 1 !== currentMarbleNumber && newPosition === marblePosition2 && marblePosition2 !== 0 )
-                    marblesCantMove = _.union(marblesCantMove, [currentMarbleNumber]);logger.info('---------4--------')
+                if (marbleNumber2 + 1 !== currentMarbleNumber && newPosition === marblePosition2 && marblePosition2 !== 0)
+                    marblesCantMove = _.union(marblesCantMove, [currentMarbleNumber]);
+                logger.info('---------4--------')
 
                 //player has not enough space in its last tiles
                 if (marblePosition !== 0 && newPosition >= tilesStartEndLastCurrentPlayer[2]) {
                     if (marblePosition2 >= tilesStartEndLastCurrentPlayer[2] && marblePosition2 <= tilesStartEndLastCurrentPlayer[3])
                         if (newPosition === marblePosition2)
-                            marblesCantMove = _.union(marblesCantMove, [currentMarbleNumber]);logger.info('---------5--------')
+                            marblesCantMove = _.union(marblesCantMove, [currentMarbleNumber]);
+                    logger.info('---------5--------')
                 }
             })
         })
@@ -164,10 +170,19 @@ module.exports = (io, socket, gameMeta, marketKey) => {
         newMarblesPosition[currentPlayer.toString()][marbleNumber - 1] = newPosition
         await methods.setProp('marblesPosition', JSON.stringify(newMarblesPosition))
         const marblesMeeting = checkMarblesMeeting(marblesPosition, newMarblesPosition, newPosition)
+
+
         if (marblesMeeting.meet)
             await hitPlayer(newPosition, newMarblesPosition, marblesMeeting, tossNumber)
         else {
             methods.sendGameEvents(23, 'marblesPosition', newMarblesPosition)
+
+            const isGameEnds = checkGameEnds(marblesPosition, newMarblesPosition, newPosition)
+            if (isGameEnds)
+                methods.sendGameEvents(24, 'gameEnd', {
+                    "winner" : currentPlayer
+                })
+
             if (tossNumber !== 6)
                 changeTurn()
         }
@@ -187,6 +202,17 @@ module.exports = (io, socket, gameMeta, marketKey) => {
         return {
             meet: false
         }
+    }
+
+    const checkGameEnds = (marblesPosition, newMarblesPosition) => {
+        const tilesStartEndLastCurrentPlayer = tilesStartEndLast[currentPlayer - 1]
+        const marblesAtEnd = []
+        newMarblesPosition[currentPlayer.toString()].forEach((marblesPos, marbleIndx) => {
+            if (marblesPos >= tilesStartEndLastCurrentPlayer[2] && marblesPos <= tilesStartEndLastCurrentPlayer[2])
+                marblesAtEnd.push(marblesPos)
+        })
+        const diff = _.difference([tilesStartEndLastCurrentPlayer[2], tilesStartEndLastCurrentPlayer[2] + 1, tilesStartEndLastCurrentPlayer[3] - 1, tilesStartEndLastCurrentPlayer[3]], marblesAtEnd)
+        return diff.length === 0
     }
 
     const hitPlayer = async (newPosition, newMarblesPosition, marblesMeeting, tossNumber) => {

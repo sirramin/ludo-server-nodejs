@@ -33,15 +33,20 @@ module.exports = (io) => {
             socket.on('disconnect', (reason) => {
                 matchMaking.kickUserFromRoomByDC()
             })
+            mySocket.on('reconnect', () => {
+                mySocket.emit('subscribe', 'theRoom')
+            })
             socket.on('event', async (msg) => {
-                logger.info(msg)
+                const eventData = JSON.parse(msg)
+                logger.info(eventData)
                 const marketName = (socket.userInfo.market === 'mtn' || socket.userInfo.market === 'mci') ? socket.userInfo.market : 'market',
                     marketKey = gameMeta.name + ':users:' + marketName,
                     logicEvents = require('../logics/' + gameMeta.name + '/gameEvents')(io, socket, gameMeta, marketKey)
-                logicEvents.getAct(msg)
+                logicEvents.getAct(eventData)
             })
             socket.on('message', (message) => {
-                logger.info(message)
+                const messageData = JSON.parse(msg)
+                logger.info(messageData)
             })
         })
 

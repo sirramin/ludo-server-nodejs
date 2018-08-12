@@ -179,7 +179,7 @@ module.exports = (io, socket, gameMeta) => {
     const kickUserFromRoomByDC = async () => {
         const userCurrentRoom = await findUserCurrentRoom()
         if (userCurrentRoom) {
-            setTimeout(async () => {
+            const dcTimeout = setTimeout(async () => {
                 const roomData = await redisClient.hmget(roomsPrefix + userCurrentRoom, 'players', 'info', 'positions')
                 const currentpaylersParsed = JSON.parse(roomData[0])
                 const roomState = JSON.parse(roomData[1]).state

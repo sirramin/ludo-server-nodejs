@@ -11,11 +11,6 @@ module.exports = (roomId, players, methods) => {
         orbs['player' + i] = 3
     }
 
-
-    // remainingTime[roomId] = maxTime
-    // diceAttempts[roomId] = 0
-
-
     const sendPositions = async () => {
         await methods.setProp('remainingTime', maxTime)
         await methods.setProp('diceAttempts', 0)

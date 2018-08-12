@@ -37,47 +37,56 @@
                     socket.emit('joinRoom', '')
                 })
 
-                $('#rollDice').click(() => {
+                $('#rollDice').on('click', () => {
                     $('#move').html('<option value="">--</option>')
-                    socket.emit('event', {
+                    socket.emit('event', JSON.stringify({
                         act: 'rollDice',
                         data: {}
-                    })
+                    }))
                 })
 
                 $('select').on('change', function () {
-                    if(this.value)
-                    socket.emit('event', {
-                        act: 'move',
-                        data: {
-                            marbleNumber: this.value
-                        }
-                    })
+                    if (this.value)
+                        socket.emit('event', JSON.stringify({
+                            act: 'move',
+                            data: {
+                                marbleNumber: this.value
+                            }
+                        }))
                 });
 
                 socket.on('message', function (msg) {
                     $('#messages').append($('<li>').text(JSON.stringify(msg)))
                 })
 
-                socket.on('player joined', function (roomId) {
-                    $('#messages').append($('<li>').text('player joined: ' + roomId))
-                })
-
-                socket.on('game started', function (roomId) {
-                    $('#messages').append($('<li>').text('game started roomId: ' + roomId))
-                })
-
-                socket.on('room destroyed', function (roomId) {
-                    $('#messages').append($('<li>').text('room destroyed: ' + roomId))
-                })
+                // socket.on('player joined', function (roomId) {
+                //     $('#messages').append($('<li>').text('player joined: ' + roomId))
+                // })
+                //
+                // socket.on('game started', function (roomId) {
+                //     $('#messages').append($('<li>').text('game started roomId: ' + roomId))
+                // })
+                //
+                // socket.on('room destroyed', function (roomId) {
+                //     $('#messages').append($('<li>').text('room destroyed: ' + roomId))
+                // })
 
                 socket.on('matchEvent', function (data) {
-                    $('#messages').append($('<li>').text(data.event  + JSON.stringify(data.data)))
+                    $('#messages').append($('<li>').text(data.event + JSON.stringify(data.data)))
                 })
 
 
-                let yourTrun = false
-                let color = 'black'
+                var yourTrun = false
+                var color = 'black'
+
+                const diceClick = () => {
+                    setTimeout(function () {
+                        if (yourTrun) {
+                            $('#rollDice').click()
+                        }
+                    }, 2000)
+                }
+
                 socket.on('gameEvent', function (data) {
                     if (data.event === 'changeTurn') {
                         yourTrun = false
@@ -90,31 +99,50 @@
                         yourTrun = true
                         color = 'blue'
                         $('#rollDice').show()
-                        $('#rollDice').click()
-                        $('#move').show()
+                        diceClick()
                         $('#messages').append($('<li>').text(data.event).css('color', color))
                     }
-                    else if (data.event === 'marblesCanMove') {
-                        if(yourTrun) {
-                            $('#messages').append($('<li>').text(data.event + ' ' + data.data).css('color', color))
-                            const marblesArray = data.data
-                            marblesArray.forEach((item, index) => {
-                                $('#move').append('<option value="' + item + '">' + item + '</option>')
-                            })
-                        }
+                    else if (data.event === 'marblesCanMove' && yourTrun) {
+                        console.log('marblesCanMove')
+                        console.log('yourTrun')
+                        $('#rollDice').hide()
+                        $('#move').show()
+                        $('#messages').append($('<li>').text(data.event + ' ' + data.data).css('color', color))
+                        const marblesArray = data.data
+                        // var selectedNumber = Math.floor(Math.random() * marblesArray.length) + 1;
+
+                        console.log("my array: ", marblesArray);
+                        var rand = marblesArray[Math.floor(Math.random() * marblesArray.length)];
+                        console.log("picked number: ", rand);
+                        setTimeout(function () {
+                            console.log("move!");
+                            socket.emit('event', JSON.stringify({
+                                act: 'move',
+                                data: {
+                                    marbleNumber: rand
+                                }
+                            }))
+                        }, 2000)
+
+                        marblesArray.forEach((item, index) => {
+
+                            $('#move').append('<option value="' + item + '">' + item + '</option>')
+
+                        })
                     }
                     else if (data.event === 'yourPlayerNumber')
                         $('#playerNumber').text(data.data)
                     else
                         $('#messages').append($('<li>').text(data.event + ' ' + JSON.stringify(data.data)).css('color', color))
 
+
                     if (data.event === 'canRollDiceAgain' && yourTrun) {
-                        $('#rollDice').click()
+                        diceClick()
                     }
                     if (data.event === 'marblesPosition' && yourTrun) {
-                        $('#rollDice').click()
+                        console.log('--------' + yourTrun + '----------')
+                        diceClick()
                     }
-
                 })
             })
         })
