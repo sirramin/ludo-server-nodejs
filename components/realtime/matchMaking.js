@@ -210,9 +210,14 @@ module.exports = (io, socket, gameMeta) => {
         })
     }
 
+    const reconnect = () => {
+
+    }
+
     return {
         findAvailableRooms: findAvailableRooms,
         kickUserFromRoomByDC: kickUserFromRoomByDC,
-        findUserCurrentRoom: findUserCurrentRoom
+        findUserCurrentRoom: findUserCurrentRoom,
+        reconnect: reconnect
     }
 }

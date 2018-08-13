@@ -33,8 +33,8 @@ module.exports = (io) => {
             socket.on('disconnect', (reason) => {
                 matchMaking.kickUserFromRoomByDC()
             })
-            mySocket.on('reconnect', () => {
-                mySocket.emit('subscribe', 'theRoom')
+            socket.on('reconnect', () => {
+                matchMaking.reconnect()
             })
             socket.on('event', async (msg) => {
                 const eventData = JSON.parse(msg)
