@@ -1,6 +1,6 @@
 const rpn = require('request-promise-native')
 
-module.exports = (gameMeta, roomId, roomPlayers, marketKey) => {
+module.exports = (gameMeta, roomId, roomPlayers, roomPlayersWithNames, marketKey) => {
 
     const start = async () => {
         const options = {
@@ -9,6 +9,7 @@ module.exports = (gameMeta, roomId, roomPlayers, marketKey) => {
             body: {
                 "roomId": roomId,
                 "players": JSON.stringify(roomPlayers),
+                "roomPlayersWithNames": JSON.stringify(roomPlayersWithNames),
                 "gameMeta": JSON.stringify(gameMeta),
                 "marketKey": marketKey
             },

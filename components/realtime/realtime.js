@@ -13,6 +13,17 @@ module.exports = (io) => {
                     socket.emit('message', 'socket id: ' + socket.id)
                     await addSocketIdToRedis(userInfo, socket.id)
                     next()
+                    // const IsConnectedBefore = await checkIsConnectedBefore(userInfo)
+                    // if (!IsConnectedBefore) {
+                    //     socket.emit('message', userInfo)
+                    //     socket.emit('message', 'socket id: ' + socket.id)
+                    //     await addSocketIdToRedis(userInfo, socket.id)
+                    //     next()
+                    // }
+                    // else {
+                    //     socket.emit('message', 'you already connected')
+                    //     next('you already connected')
+                    // }
                 }
                 catch (err) {
                     // socket.emit('message', 'Unauthorized')
@@ -26,6 +37,8 @@ module.exports = (io) => {
             logger.info(socket.id)
             const gameMeta = await gameIdentifier.getGameMeta(socket.userInfo.dbUrl)
             const matchMaking = require('./matchMaking')(io, socket, gameMeta)
+            if (await hasRoomBefore())
+                await reconnect()
             socket.on('joinRoom', (message) => {
                 logger.info('joined')
                 matchMaking.findAvailableRooms()
@@ -33,12 +46,12 @@ module.exports = (io) => {
             socket.on('disconnect', (reason) => {
                 matchMaking.kickUserFromRoomByDC()
             })
-            socket.on('reconnect', () => {
-                matchMaking.reconnect()
-            })
+            // socket.on('reconnect', () => {
+            //     matchMaking.reconnect()
+            // })
             socket.on('event', async (msg) => {
                 const eventData = JSON.parse(msg)
-                logger.info(eventData)
+                // logger.info(eventData)
                 const marketName = (socket.userInfo.market === 'mtn' || socket.userInfo.market === 'mci') ? socket.userInfo.market : 'market',
                     marketKey = gameMeta.name + ':users:' + marketName,
                     logicEvents = require('../logics/' + gameMeta.name + '/gameEvents')(io, socket, gameMeta, marketKey)
@@ -50,12 +63,41 @@ module.exports = (io) => {
             })
         })
 
+    const reconnect = async () => {
+
+    }
+
+    const checkIsConnectedBefore = async (userInfo) => {
+        const userDataParsed = await getUserInfoFromRedis(userInfo)
+        if (userDataParsed && userDataParsed.hasOwnProperty('socketId'))
+            return userDataParsed.socketId
+        else return false
+    }
+
+    const hasRoomBefore = async (userInfo) => {
+        const userDataParsed = await getUserInfoFromRedis(userInfo)
+        if (userDataParsed && userDataParsed.hasOwnProperty('roomId'))
+            return userDataParsed.roomId
+        else return false
+    }
+
     const addSocketIdToRedis = async (userInfo, socketId) => {
-        const marketName = (userInfo.market === 'mtn' || userInfo.market === 'mci') ? userInfo.market : 'market',
-            marketKey = userInfo.dbUrl + ':users:' + marketName,
+        let userDataParsed = await getUserInfoFromRedis(userInfo)
+        userDataParsed.socketId = socketId
+        const marketKey = getMarketKey(userInfo)
+        await redisClient.hset(marketKey, userInfo.userId, JSON.stringify(userDataParsed))
+    }
+
+    const getUserInfoFromRedis = async (userInfo) => {
+        const marketKey = getMarketKey(userInfo),
             userData = await redisClient.hget(marketKey, userInfo.userId),
             userDataParsed = JSON.parse(userData)
-        userDataParsed.socketId = socketId
-        await redisClient.hset(marketKey, userInfo.userId, JSON.stringify(userDataParsed))
+        return (userDataParsed)
+    }
+
+    const getMarketKey = (userInfo) => {
+        const marketName = (userInfo.market === 'mtn' || userInfo.market === 'mci') ? userInfo.market : 'market',
+            marketKey = userInfo.dbUrl + ':users:' + marketName
+        return marketKey
     }
 }

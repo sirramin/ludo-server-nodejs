@@ -62,7 +62,7 @@ module.exports = (io, gameMeta, roomId, marketKey) => {
         delete userDataParsed[roomId]
         await redisClient.hset(marketKey, userId, JSON.stringify(userDataParsed))
         let socket = io.sockets.connected[socketId]
-        socket.leave(roomId)
+        io.of('/').adapter.remoteLeave(socket.id, roomId, (err) => {})
         sendGameEvents(203, 'playerLeft', {
             userId: userId
         })

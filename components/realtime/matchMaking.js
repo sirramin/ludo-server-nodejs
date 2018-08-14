@@ -145,9 +145,15 @@ module.exports = (io, socket, gameMeta) => {
         const roomHash = await redisClient.HMGET(roomsPrefix + roomId, 'info', 'players')
         const roomHashParsed = JSON.parse(roomHash[0])
         const roomPlayers = JSON.parse(roomHash[1])
+        let roomPlayersWithNames = []
+        for (let i = 0; i < roomPlayers.length; i++) {
+            const playerNumber = (i + 1)
+            const userData = await redisClient.HGET(marketKey, roomPlayers[i])
+            roomPlayersWithNames.push({player: playerNumber, userId: roomPlayers[i], name: JSON.parse(userData).name})
+        }
         roomHashParsed.state = 'started'
         await redisClient.HSET(roomsPrefix + roomId, 'info', JSON.stringify(roomHashParsed))
-        const webHookCaller = require('./webHookCaller')(gameMeta, roomId, roomPlayers, marketKey)
+        const webHookCaller = require('./webHookCaller')(gameMeta, roomId, roomPlayers, roomPlayersWithNames, marketKey)
         return await webHookCaller.start()
     }
 
@@ -167,7 +173,7 @@ module.exports = (io, socket, gameMeta) => {
                 clients.forEach(client => io.of('/').adapter.remoteLeave(client, roomId));
             }
         })
-        logger.info(roomId + ' destroyed ')
+        logger.info(roomId + ' destroyed')
     }
 
     const asyncLoopRemovePlayersRoomInRedis = async (roomplayersArray, roomId) => {
@@ -177,29 +183,57 @@ module.exports = (io, socket, gameMeta) => {
     }
 
     const kickUserFromRoomByDC = async () => {
+        await removeUserSocketIdFromRedis()
+        await addDisconnectStatusToUser()
         const userCurrentRoom = await findUserCurrentRoom()
         if (userCurrentRoom) {
-            const dcTimeout = setTimeout(async () => {
-                const roomData = await redisClient.hmget(roomsPrefix + userCurrentRoom, 'players', 'info', 'positions')
-                const currentpaylersParsed = JSON.parse(roomData[0])
-                const roomState = JSON.parse(roomData[1]).state
-                const positions = JSON.parse(roomData[2])
-                if (currentpaylersParsed && currentpaylersParsed.length === 1 && roomState === 'waiting') {
-                    destroyRoom(userCurrentRoom)
+            setTimeout(async () => {
+                const userDataParsed = await getUserData()
+                if(userDataParsed && userDataParsed.hasOwnProperty('dc') && userDataParsed.dc) {
+                    const roomData = await redisClient.hmget(roomsPrefix + userCurrentRoom, 'players', 'info')
+                    const currentPlayersParsed = JSON.parse(roomData[0])
+                    const roomState = JSON.parse(roomData[1]).state
+                    // const positions = JSON.parse(roomData[2])
+                    if (currentPlayersParsed && currentPlayersParsed.length === 1 && roomState === 'waiting') {
+                        destroyRoom(userCurrentRoom)
+                    }
+                    else if (currentPlayersParsed && currentPlayersParsed.length > 1) {
+                        await updateUserRoom(userCurrentRoom)
+                        currentPlayersParsed.splice(currentPlayersParsed.indexOf(userId), 1)
+                        // positions.splice(currentPlayersParsed.indexOf(userId), 1)
+                        await redisClient.HSET(roomsPrefix + userCurrentRoom, 'players', JSON.stringify(currentPlayersParsed))
+                        await redisClient.ZINCRBY(roomsListPrefix, -1, userCurrentRoom)
+                    }
+                    // socket.leave(userCurrentRoom)
+                    sendMatchEvents(userCurrentRoom, 6, 'playerLeft', {userId: userId})
+                    io.of('/').adapter.remoteLeave(socket.id, userCurrentRoom, (err) => {
+                    })
                 }
-                else if (currentpaylersParsed && currentpaylersParsed.length > 1) {
-                    await updateUserRoom(userCurrentRoom)
-                    currentpaylersParsed.splice(currentpaylersParsed.indexOf(userId), 1)
-                    positions.splice(currentpaylersParsed.indexOf(userId), 1)
-                    await redisClient.HSET(roomsPrefix + userCurrentRoom, 'players', JSON.stringify(currentpaylersParsed))
-                    await redisClient.ZINCRBY(roomsListPrefix, -1, userCurrentRoom)
-                }
-                socket.leave(userCurrentRoom)
-                sendMatchEvents(userCurrentRoom, 6, 'playerLeft', {
-                    userId: userId
-                })
             }, gameMeta.kickTime)
         }
+    }
+
+    const getUserData = async () => {
+        const userData = await redisClient.hget(marketKey, userId)
+        return JSON.parse(userData)
+    }
+
+    const setUserData = async (userDataParsed) => {
+        await redisClient.hset(marketKey, userId, JSON.stringify(userDataParsed))
+    }
+
+    const removeUserSocketIdFromRedis = async () => {
+        const userDataParsed = await getUserData()
+        if (userDataParsed)
+            delete userDataParsed['socketId']
+        await setUserData(userDataParsed)
+    }
+
+    const addDisconnectStatusToUser = async() => {
+        const userDataParsed = await getUserData()
+        if (userDataParsed)
+            userDataParsed['dc'] = true
+        await setUserData(userDataParsed)
     }
 
     const sendMatchEvents = (roomId, code, event, data) => {
@@ -210,8 +244,21 @@ module.exports = (io, socket, gameMeta) => {
         })
     }
 
-    const reconnect = () => {
-
+    const reconnect = async () => {
+        clearTimeout(dcTimeout)
+        const userData = await redisClient.HGET(marketKey, userId)
+        const userDataParsed = JSON.parse(userData)
+        const roomId = userDataParsed.roomId
+        const oldSocketId = userDataParsed.socketId
+        const newSocketId = socket.id
+        userDataParsed.socketId = newSocketId
+        await redisClient.HSET(marketKey, userId, JSON.stringify(userDataParsed))
+        io.of('/').adapter.remoteLeave(oldSocketId, roomId, (err) => {
+            if (err)
+                logger.info('err leaving socket' + userId)
+            io.of('/').adapter.remoteJoin(newSocketId, roomId, (err) => {
+            })
+        })
     }
 
     return {

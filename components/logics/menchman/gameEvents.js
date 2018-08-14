@@ -96,11 +96,9 @@ module.exports = (io, socket, gameMeta, marketKey) => {
 
             if (!newPosition)
                 marblesCantMove = _.union(marblesCantMove, [currentMarbleNumber]);
-            logger.info('---------1--------')
 
             if (tossNumber !== 6 && marblePosition === 0)
                 marblesCantMove = _.union(marblesCantMove, [currentMarbleNumber]);
-            logger.info('---------2--------')
 
             // checking other marbles in their starting tile conflict
             if (tileStarts.indexOf(newPosition) !== -1) { // if this current player marble target meet one of the tileStarts
@@ -120,7 +118,6 @@ module.exports = (io, socket, gameMeta, marketKey) => {
                 // tossNumber === 6 && marblePosition === 0 &&
                 if (marbleNumber2 + 1 !== currentMarbleNumber && newPosition === marblePosition2 && marblePosition2 !== 0)
                     marblesCantMove = _.union(marblesCantMove, [currentMarbleNumber]);
-                logger.info('---------4--------')
 
                 //player has not enough space in its last tiles
                 if (marblePosition !== 0 && newPosition >= tilesStartEndLastCurrentPlayer[2]) {
