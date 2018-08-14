@@ -1,7 +1,7 @@
 const _ = require('lodash')
 module.exports = (roomId, players, roomPlayersWithNames, methods) => {
     const numberOfplayers = players.length
-    const maxTime = 11
+    const maxTime = 61
     let positions = []
     let marblesPosition = {}
     let orbs = {}
@@ -18,6 +18,7 @@ module.exports = (roomId, players, roomPlayersWithNames, methods) => {
             const playerNumber = (index + 1)
             // positions.push({player: playerNumber, userId: item.userId, name: item.name})
             marblesPosition[playerNumber] = [0, 0, 0, 0]
+            methods.sendEventToSpecificSocket(item, 202, 'yourPlayerNumber', playerNumber)
         })
         positions = roomPlayersWithNames
         await methods.setMultipleProps(...['positions', JSON.stringify(positions), 'marblesPosition', JSON.stringify(marblesPosition), 'orbs', JSON.stringify(orbs)])
@@ -33,7 +34,7 @@ module.exports = (roomId, players, roomPlayersWithNames, methods) => {
         //must be optimised
         const playeruserId = findUserId()
         await methods.sendEventToSpecificSocket(playeruserId, 201, 'yourTurn')
-        await methods.sendEventToSpecificSocket(playeruserId, 202, 'yourPlayerNumber', rand + 1)
+        // await methods.sendEventToSpecificSocket(playeruserId, 202, 'yourPlayerNumber', rand + 1)
         methods.sendGameEvents(102, 'firstTurn', firstTurn)
         timerCounter()
         methods.sendGameEvents(103, 'timerStarted')
@@ -81,7 +82,7 @@ module.exports = (roomId, players, roomPlayersWithNames, methods) => {
         })
         const playeruserId = findUserId()
         methods.sendEventToSpecificSocket(playeruserId, 201, 'yourTurn')
-        methods.sendEventToSpecificSocket(playeruserId, 202, 'yourPlayerNumber', nextPlayer)
+        // methods.sendEventToSpecificSocket(playeruserId, 202, 'yourPlayerNumber', nextPlayer)
     }
 
     const getInitialProperties = async () => {

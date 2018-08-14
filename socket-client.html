@@ -20,24 +20,24 @@
     $(function () {
         // socket = io('http://192.168.5.90:3000', {transports: ['websocket']})
         $('#connect').click(async () => {
-            if (!localStorage.token) {
-                const res = await $.ajax({
-                    url: "http://192.168.5.90:3000/user/signInAsGuest",
-                    type: 'post',
-                    data: {
-                        market: 'cafeBazaar'
-                    },
-                    headers: {
-                        gameid: '5b39d163afff3d2cf7833f6e', //menchman game
-                    },
-                    dataType: 'json',
-                })
-                localStorage.setItem("token", res.data.token)
-                token = res.data.token
-            }
-            else {
-                token = localStorage.token
-            }
+            // if (!localStorage.token) {
+            const res = await $.ajax({
+                url: "http://192.168.5.90:3000/user/signInAsGuest",
+                type: 'post',
+                data: {
+                    market: 'cafeBazaar'
+                },
+                headers: {
+                    gameid: '5b39d163afff3d2cf7833f6e', //menchman game
+                },
+                dataType: 'json',
+            })
+            // localStorage.setItem("token", res.data.token)
+            const token = res.data.token
+            // }
+            // else {
+            //     token = localStorage.token
+            // }
             socket = io('http://192.168.5.90:3000', {transports: ['websocket'], query: {token: token}})
             $('#joinRoom').click(() => {
                 socket.emit('joinRoom', '')
@@ -73,18 +73,6 @@
                 $('#messages').append($('<li>').text(JSON.stringify(msg)))
             })
 
-            // socket.on('player joined', function (roomId) {
-            //     $('#messages').append($('<li>').text('player joined: ' + roomId))
-            // })
-            //
-            // socket.on('game started', function (roomId) {
-            //     $('#messages').append($('<li>').text('game started roomId: ' + roomId))
-            // })
-            //
-            // socket.on('room destroyed', function (roomId) {
-            //     $('#messages').append($('<li>').text('room destroyed: ' + roomId))
-            // })
-
             socket.on('matchEvent', function (data) {
                 $('#messages').append($('<li>').text(data.event + JSON.stringify(data.data)))
             })
@@ -96,7 +84,7 @@
             const diceClick = () => {
                 setTimeout(function () {
                     if (yourTrun) {
-                        $('#rollDice').click()
+                        // $('#rollDice').click()
                     }
                 }, 2000)
             }
@@ -113,7 +101,7 @@
                     yourTrun = true
                     color = 'blue'
                     $('#rollDice').show()
-                    diceClick()
+                    // diceClick()
                     $('#messages').append($('<li>').text(data.event).css('color', color))
                 }
                 else if (data.event === 'marblesCanMove' && yourTrun) {
@@ -125,18 +113,18 @@
                     const marblesArray = data.data
                     // var selectedNumber = Math.floor(Math.random() * marblesArray.length) + 1;
 
-                    console.log("my array: ", marblesArray);
-                    var rand = marblesArray[Math.floor(Math.random() * marblesArray.length)];
-                    console.log("picked number: ", rand);
-                    setTimeout(function () {
-                        console.log("move!");
-                        socket.emit('event', JSON.stringify({
-                            act: 'move',
-                            data: {
-                                marbleNumber: rand
-                            }
-                        }))
-                    }, 2000)
+                    // console.log("my array: ", marblesArray);
+                    // var rand = marblesArray[Math.floor(Math.random() * marblesArray.length)];
+                    // console.log("picked number: ", rand);
+                    // setTimeout(function () {
+                    //     console.log("move!");
+                    //     socket.emit('event', JSON.stringify({
+                    //         act: 'move',
+                    //         data: {
+                    //             marbleNumber: rand
+                    //         }
+                    //     }))
+                    // }, 2000)
 
                     marblesArray.forEach((item, index) => {
 
@@ -144,18 +132,22 @@
 
                     })
                 }
-                else if (data.event === 'yourPlayerNumber')
+                else if (data.event === 'yourPlayerNumber') {
+                    $('#messages').append($('<li>').text(data.event + ' ' + JSON.stringify(data.data)).css('color', color))
                     $('#playerNumber').text(data.data)
+                }
                 else
                     $('#messages').append($('<li>').text(data.event + ' ' + JSON.stringify(data.data)).css('color', color))
 
 
                 if (data.event === 'canRollDiceAgain' && yourTrun) {
-                    diceClick()
+                    $('#rollDice').show()
+                    // diceClick()
                 }
                 if (data.event === 'marblesPosition' && yourTrun) {
                     console.log('--------' + yourTrun + '----------')
-                    diceClick()
+                    $('#rollDice').show()
+                    // diceClick()
                 }
             })
         })

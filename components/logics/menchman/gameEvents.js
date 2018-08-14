@@ -1,6 +1,6 @@
 const _ = require('lodash')
 module.exports = (io, socket, gameMeta, marketKey) => {
-    const maxTime = 11
+    const maxTime = 61
     userId = socket.userInfo.userId
     let matchMaking, roomId, methods, roomInfo, positions, marblesPosition, currentPlayer, orbs, currentPlayerMarbles,
         diceAttempts, remainingTime
@@ -241,7 +241,7 @@ module.exports = (io, socket, gameMeta, marketKey) => {
         })
         const playeruserId = findUserId(nextPlayer)
         methods.sendEventToSpecificSocket(playeruserId, 201, 'yourTurn')
-        methods.sendEventToSpecificSocket(playeruserId, 202, 'yourPlayerNumber', nextPlayer)
+        // methods.sendEventToSpecificSocket(playeruserId, 202, 'yourPlayerNumber', nextPlayer)
     }
 
     return ({

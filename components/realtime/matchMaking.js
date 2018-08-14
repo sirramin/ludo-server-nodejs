@@ -245,19 +245,18 @@ module.exports = (io, socket, gameMeta) => {
     }
 
     const reconnect = async () => {
-        clearTimeout(dcTimeout)
         const userData = await redisClient.HGET(marketKey, userId)
         const userDataParsed = JSON.parse(userData)
         const roomId = userDataParsed.roomId
         const oldSocketId = userDataParsed.socketId
         const newSocketId = socket.id
         userDataParsed.socketId = newSocketId
+        userDataParsed.dc = false
         await redisClient.HSET(marketKey, userId, JSON.stringify(userDataParsed))
         io.of('/').adapter.remoteLeave(oldSocketId, roomId, (err) => {
             if (err)
                 logger.info('err leaving socket' + userId)
-            io.of('/').adapter.remoteJoin(newSocketId, roomId, (err) => {
-            })
+            io.of('/').adapter.remoteJoin(newSocketId, roomId, (err) => {})
         })
     }
 
