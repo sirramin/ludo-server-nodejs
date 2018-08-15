@@ -27,10 +27,12 @@ module.exports = (io) => {
             const gameMeta = await gameIdentifier.getGameMeta(socket.userInfo.dbUrl)
             const matchMaking = require('./matchMaking')(io, socket, gameMeta)
             //must merge
-            // const isConnectedBefore = await checkIsConnectedBefore(socket.userInfo)
-            // const hasRoomBefore = await checkHasRoomBefore(socket.userInfo)
-            // if (isConnectedBefore)
-            //     await matchMaking.reconnect(hasRoomBefore)
+            const isConnectedBefore = await checkIsConnectedBefore(socket.userInfo)
+            if (isConnectedBefore) {
+                await matchMaking.changeSocketIdAndSocketRoom()
+                const hasRoomBefore = await checkHasRoomBefore(socket.userInfo)
+
+            }
             socket.on('joinRoom', (message) => {
                 logger.info('joined')
                 matchMaking.findAvailableRooms()
@@ -58,7 +60,7 @@ module.exports = (io) => {
 
     const checkIsConnectedBefore = async (userInfo) => {
         const userDataParsed = await getUserInfoFromRedis(userInfo)
-        if (userDataParsed && userDataParsed.hasOwnProperty('socketId'))
+        if (userDataParsed && userDataParsed.hasOwnProperty('dc'))
             return userDataParsed.socketId
         else return false
     }

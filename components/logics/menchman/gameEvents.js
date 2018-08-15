@@ -39,7 +39,6 @@ module.exports = (io, socket, gameMeta, marketKey) => {
         currentPlayerMarbles = marblesPosition[currentPlayer.toString()]
         positions = JSON.parse(roomInfo['positions'])
         orbs = JSON.parse(roomInfo['orbs'])
-
     }
 
 
