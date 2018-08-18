@@ -189,29 +189,35 @@ module.exports = (io, socket, gameMeta) => {
         if (userCurrentRoom) {
             setTimeout(async () => {
                 const userDataParsed = await getUserData()
-                if(userDataParsed && userDataParsed.hasOwnProperty('dc') && userDataParsed.dc) {
+                if (userDataParsed && userDataParsed.hasOwnProperty('dc') && userDataParsed.dc) {
                     const roomData = await redisClient.hmget(roomsPrefix + userCurrentRoom, 'players', 'info')
                     const currentPlayersParsed = JSON.parse(roomData[0])
                     const roomState = JSON.parse(roomData[1]).state
                     if (currentPlayersParsed && currentPlayersParsed.length === 1 && roomState === 'waiting') {
-                        destroyRoom(userCurrentRoom)
+                        await destroyRoom(userCurrentRoom)
                     }
                     else if (currentPlayersParsed && currentPlayersParsed.length > 1) {
                         await updateUserRoom(userCurrentRoom)
                         currentPlayersParsed.splice(currentPlayersParsed.indexOf(userId), 1)
                         await redisClient.HSET(roomsPrefix + userCurrentRoom, 'players', JSON.stringify(currentPlayersParsed))
                         await redisClient.ZINCRBY(roomsListPrefix, -1, userCurrentRoom)
-
+                        const gameLeft = require('../logics/' + gameMeta.name + '/gameLeft')(io, socket, gameMeta, marketKey, userCurrentRoom)
+                        await gameLeft.handleLeft()
+                        io.of('/').adapter.remoteLeave(socket.id, userCurrentRoom, (err) => {
+                        })
+                        if (currentPlayersParsed.length === 2) {
+                            await makeRemainingPlayerWinner()
+                        }
                     }
-                    sendMatchEvents(userCurrentRoom, 6, 'playerLeft', {userId: userId})
-                    io.of('/').adapter.remoteLeave(socket.id, userCurrentRoom, (err) => {
-                    })
-                    const gameLeft = require('../logics/' + gameMeta.name + '/gameLeft')(io, socket, gameMeta, marketKey, userCurrentRoom)
-                    await gameLeft.handleLeft()
-
                 }
             }, gameMeta.kickTime)
         }
+    }
+
+    const makeRemainingPlayerWinner = async (roomId) => {
+        const players = JSON.parse(await redisClient.HGET(roomsPrefix + roomId, 'players'))
+        // await redisClient.HSET(roomsPrefix + roomId, 'winner', JSON.stringify(players[0]))
+
     }
 
     const getUserData = async () => {
@@ -230,7 +236,7 @@ module.exports = (io, socket, gameMeta) => {
         await setUserData(userDataParsed)
     }
 
-    const addDisconnectStatusToUser = async() => {
+    const addDisconnectStatusToUser = async () => {
         const userDataParsed = await getUserData()
         if (userDataParsed)
             userDataParsed['dc'] = true
@@ -257,7 +263,8 @@ module.exports = (io, socket, gameMeta) => {
         io.of('/').adapter.remoteLeave(oldSocketId, roomId, (err) => {
             if (err)
                 logger.info('err leaving socket' + userId)
-            io.of('/').adapter.remoteJoin(newSocketId, roomId, (err) => {})
+            io.of('/').adapter.remoteJoin(newSocketId, roomId, (err) => {
+            })
         })
     }
 

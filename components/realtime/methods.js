@@ -44,28 +44,30 @@ module.exports = (io, gameMeta, roomId, marketKey) => {
     }
 
     const kickUser = async (userId) => {
-        const currentpaylers = await getProp('players')
-        if (currentpaylers && currentpaylers.length === 1) {
+        const currentPlayers = await getProp('players')
+        if (currentPlayers && currentPlayers.length === 1) {
             // winner code ---------------
         }
-        else if (currentpaylers.length > 1) {
+        else if (currentPlayers.length > 1) {
             await updateUserRoom(roomId, userId)
-            currentpaylers.splice(currentpaylers.indexOf(userId), 1)
-            await redisClient.HSET(roomPrefix, 'players', JSON.stringify(currentpaylers))
+            currentPlayers.splice(currentPlayers.indexOf(userId), 1)
+            await redisClient.HSET(roomPrefix, 'players', JSON.stringify(currentPlayers))
             await redisClient.ZINCRBY(roomsListPrefix, -1, roomId)
-            // remove from position and marbleposition and send data again ------------------------
-
+            const gameLeft = require('../logics/' + gameMeta.name + '/gameLeft')(io, socket, gameMeta, marketKey, roomId)
+            await gameLeft.handleLeft()
         }
         const userData = await redisClient.hget(marketKey, userId)
         const userDataParsed = JSON.parse(userData)
         const socketId = userDataParsed.socketId
         delete userDataParsed[roomId]
         await redisClient.hset(marketKey, userId, JSON.stringify(userDataParsed))
-        let socket = io.sockets.connected[socketId]
-        io.of('/').adapter.remoteLeave(socket.id, roomId, (err) => {})
-        sendGameEvents(203, 'playerLeft', {
-            userId: userId
+        // let socket = io.sockets.connected[socketId]
+        io.of('/').adapter.remoteLeave(socketId, roomId, (err) => {
+            sendGameEvents(203, 'playerLeft', {
+                userId: userId
+            })
         })
+
     }
 
     const destroyRoom = async () => {

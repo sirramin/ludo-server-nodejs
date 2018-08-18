@@ -32,7 +32,7 @@
                     dataType: 'json',
                 })
                 localStorage.setItem("token", res.data.token)
-                const token = res.data.token
+                token = res.data.token
             }
             else {
                 token = localStorage.token

@@ -1,7 +1,7 @@
 const _ = require('lodash')
 module.exports = (roomId, players, roomPlayersWithNames, methods) => {
     const numberOfplayers = players.length
-    const maxTime = 61
+    const maxTime = 5
     let positions = []
     let marblesPosition = {}
     let orbs = {}
@@ -32,9 +32,9 @@ module.exports = (roomId, players, roomPlayersWithNames, methods) => {
         currentPlayer = firstTurn
         await methods.setProp('currentPlayer', currentPlayer)
         //must be optimised
-        const playeruserId = findUserId()
-        await methods.sendEventToSpecificSocket(playeruserId, 201, 'yourTurn')
-        // await methods.sendEventToSpecificSocket(playeruserId, 202, 'yourPlayerNumber', rand + 1)
+        const playerUserId = findUserId()
+        await methods.sendEventToSpecificSocket(playerUserId, 201, 'yourTurn')
+        // await methods.sendEventToSpecificSocket(playerUserId, 202, 'yourPlayerNumber', rand + 1)
         methods.sendGameEvents(102, 'firstTurn', firstTurn)
         timerCounter()
         methods.sendGameEvents(103, 'timerStarted')
@@ -43,14 +43,15 @@ module.exports = (roomId, players, roomPlayersWithNames, methods) => {
     const timerCounter = () => {
         const timerInterval = setInterval(async () => {
             const remainingTime = await methods.incrProp('remainingTime', -1)
-            if(remainingTime < -10) clearInterval(timerInterval)
+            if (remainingTime < -10 || positions.length === 1) clearInterval(timerInterval)
             // logger.info('roomId: '+ roomId + ' remainingTime: ' + remainingTime)
             if (remainingTime === 0) {
                 await getInitialProperties()
-                if (orbs['player' + currentPlayer] === 1)
+                if (positions.length === 1) clearInterval(timerInterval)
+                if (orbs['player' + currentPlayer] === 1 && positions.length > 1)
                     await methods.kickUser(findUserId())
-                else {
-                    changeTurn()
+                else if(positions.length > 1) {
+                    await changeTurn()
                 }
             }
         }, 1000)
@@ -80,9 +81,9 @@ module.exports = (roomId, players, roomPlayersWithNames, methods) => {
             "timeEnds": true,
             "orbs": orbs
         })
-        const playeruserId = findUserId()
-        methods.sendEventToSpecificSocket(playeruserId, 201, 'yourTurn')
-        // methods.sendEventToSpecificSocket(playeruserId, 202, 'yourPlayerNumber', nextPlayer)
+        const playerUserId = findUserId()
+        await methods.sendEventToSpecificSocket(playerUserId, 201, 'yourTurn')
+        // methods.sendEventToSpecificSocket(playerUserId, 202, 'yourPlayerNumber', nextPlayer)
     }
 
     const getInitialProperties = async () => {
