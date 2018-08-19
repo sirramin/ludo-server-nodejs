@@ -1,7 +1,7 @@
 const _ = require('lodash')
 module.exports = (roomId, players, roomPlayersWithNames, methods) => {
     const numberOfplayers = players.length
-    const maxTime = 5
+    const maxTime = 11
     let positions = []
     let marblesPosition = {}
     let orbs = {}
@@ -23,7 +23,7 @@ module.exports = (roomId, players, roomPlayersWithNames, methods) => {
         positions = roomPlayersWithNames
         await methods.setMultipleProps(...['positions', JSON.stringify(positions), 'marblesPosition', JSON.stringify(marblesPosition), 'orbs', JSON.stringify(orbs)])
         methods.sendGameEvents(101, 'positions', positions)
-        firstTurn()
+        await firstTurn()
     }
 
     const firstTurn = async () => {

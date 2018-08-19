@@ -30,15 +30,15 @@ module.exports = (io) => {
             const isConnectedBefore = await checkIsConnectedBefore(socket.userInfo)
             if (isConnectedBefore) {
                 await matchMaking.changeSocketIdAndSocketRoom()
-                const hasRoomBefore = await checkHasRoomBefore(socket.userInfo)
-
+                // const hasRoomBefore = await checkHasRoomBefore(socket.userInfo)
+                // if (hasRoomBefore) matchMaking.returnUserToGame(hasRoomBefore)      //hasRoomBefore = roomId
             }
             socket.on('joinRoom', (message) => {
                 logger.info('joined')
                 matchMaking.findAvailableRooms()
             })
-            socket.on('disconnect', (reason) => {
-                matchMaking.kickUserFromRoomByDC()
+            socket.on('disconnect', async (reason) => {
+                await matchMaking.kickUserFromRoomByDC()
             })
             // socket.on('reconnect', () => {
             //     matchMaking.reconnect()

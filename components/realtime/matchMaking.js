@@ -201,12 +201,13 @@ module.exports = (io, socket, gameMeta) => {
                         currentPlayersParsed.splice(currentPlayersParsed.indexOf(userId), 1)
                         await redisClient.HSET(roomsPrefix + userCurrentRoom, 'players', JSON.stringify(currentPlayersParsed))
                         await redisClient.ZINCRBY(roomsListPrefix, -1, userCurrentRoom)
-                        const gameLeft = require('../logics/' + gameMeta.name + '/gameLeft')(io, socket, gameMeta, marketKey, userCurrentRoom)
+                        const gameLeft = require('../logics/' + gameMeta.name + '/gameLeft')(io, userId, gameMeta, marketKey, userCurrentRoom)
                         await gameLeft.handleLeft()
                         io.of('/').adapter.remoteLeave(socket.id, userCurrentRoom, (err) => {
                         })
-                        if (currentPlayersParsed.length === 2) {
-                            await makeRemainingPlayerWinner()
+                        if (currentPlayersParsed.length === 1) {
+                            const methods = require('./methods')(io, gameMeta, userCurrentRoom, marketKey)
+                            await methods.makeRemainingPlayerWinner(userCurrentRoom, socket.id)
                         }
                     }
                 }
@@ -214,11 +215,7 @@ module.exports = (io, socket, gameMeta) => {
         }
     }
 
-    const makeRemainingPlayerWinner = async (roomId) => {
-        const players = JSON.parse(await redisClient.HGET(roomsPrefix + roomId, 'players'))
-        // await redisClient.HSET(roomsPrefix + roomId, 'winner', JSON.stringify(players[0]))
 
-    }
 
     const getUserData = async () => {
         const userData = await redisClient.hget(marketKey, userId)
@@ -266,6 +263,10 @@ module.exports = (io, socket, gameMeta) => {
             io.of('/').adapter.remoteJoin(newSocketId, roomId, (err) => {
             })
         })
+    }
+
+    const returnUserToGame = async () => {
+
     }
 
     return {

@@ -1,7 +1,6 @@
 const _ = require('lodash')
-module.exports = (io, socket, gameMeta, marketKey, roomId) => {
-    const maxTime = 5,
-        userId = socket.userInfo.userId,
+module.exports = (io, userId, gameMeta, marketKey, roomId) => {
+    const maxTime = 11,
         methods = require('../../realtime/methods')(io, gameMeta, roomId, marketKey)
     let roomInfo, positions, currentPlayer, thisPlayerNumber, thisPlayerIndex, marblesPosition, orbs
 
@@ -61,7 +60,6 @@ module.exports = (io, socket, gameMeta, marketKey, roomId) => {
         })
         const playerUserId = findUserIdOfNextPlayer(nextPlayer)
         await methods.sendEventToSpecificSocket(playerUserId, 201, 'yourTurn')
-        // methods.sendEventToSpecificSocket(playerUserId, 202, 'yourPlayerNumber', nextPlayer)
     }
 
     const findUserIdOfNextPlayer = (nextPlayer) => {
