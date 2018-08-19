@@ -2,7 +2,10 @@ const redisClient = require('../../common/redis-client')
 
 module.exports = (io, gameMeta, roomId, marketKey) => {
     const roomPrefix = gameMeta.name + ':rooms:' + roomId,
-        roomsListPrefix = gameMeta.name + ':rooms:roomsList'
+        roomsListPrefix = gameMeta.name + ':rooms:roomsList',
+        market = marketKey.substr(marketKey.indexOf('users:' + 6), marketKey.length),
+        leaderboardService = require('../leaderboard/service')(gameMeta.name, market)
+
 
     const sendGameEvents = (code, event, data) => {
         io.to(roomId).emit('gameEvent', {
@@ -19,6 +22,14 @@ module.exports = (io, gameMeta, roomId, marketKey) => {
             code: code,
             event: event,
             data: data
+        });
+    }
+
+    const broadcast = async (socket, msg) => {
+        socket.broadcast.emit('gameEvent', {
+            code: 85,
+            event: 'chat',
+            data: msg
         });
     }
 
@@ -45,21 +56,26 @@ module.exports = (io, gameMeta, roomId, marketKey) => {
 
     const kickUser = async (userId) => {
         const currentPlayers = await getProp('players')
-        const userData = await redisClient.hget(marketKey, userId)
-        const userDataParsed = JSON.parse(userData)
-        const socketId = userDataParsed.socketId
-        if (currentPlayers && currentPlayers.length === 1) {
-            await makeRemainingPlayerWinner(roomId, socketId)
-        }
-        else if (currentPlayers.length > 1) {
+        const socketId = await getUserSocketIdFromRedis(userId)
+        if (currentPlayers.length > 1) {
             await updateUserRoom(roomId, userId)
             currentPlayers.splice(currentPlayers.indexOf(userId), 1)
             await redisClient.HSET(roomPrefix, 'players', JSON.stringify(currentPlayers))
             await redisClient.ZINCRBY(roomsListPrefix, -1, roomId)
             const gameLeft = require('../logics/' + gameMeta.name + '/gameLeft')(io, userId, gameMeta, marketKey, roomId)
             await gameLeft.handleLeft()
+            io.of('/').adapter.remoteDisconnect(socketId, true, async (err) => {
+                logger.info('---------- remoteDisconnect kick-------------------')
+                if (currentPlayers && currentPlayers.length === 1) {
+                    await makeRemainingPlayerWinner(roomId)
+                }
+            })
         }
-        io.of('/').adapter.remoteLeave(socketId, roomId, (err) => {})
+    }
+
+    const getUserSocketIdFromRedis = async (userId) => {
+        const userDataParsed = JSON.parse(await redisClient.HGET(marketKey, userId))
+        return userDataParsed.socketId
     }
 
     const updateUserRoom = async (roomId, userId) => {
@@ -72,7 +88,7 @@ module.exports = (io, gameMeta, roomId, marketKey) => {
         await redisClient.hset(marketKey, userDataParsed.userId, JSON.stringify(userDataParsed))
     }
 
-    const makeRemainingPlayerWinner = async (roomId, socketId) => {
+    const makeRemainingPlayerWinner = async (roomId) => {
         const players = await getProp('players')
         const winnerId = players[0]
         await setProp('winner', winnerId)
@@ -80,11 +96,16 @@ module.exports = (io, gameMeta, roomId, marketKey) => {
             "winner": winnerId
         })
         await updateUserRoom(roomId, winnerId)
-        io.of('/').adapter.remoteLeave(socketId, roomId, (err) => {
-            if(err)
-                logger.error(err)
-            logger.info('---------- left the socketIO room-------------------')
+        // await addToLeaderboard(winnerId)
+        const winnerSocketId = await getUserSocketIdFromRedis(winnerId)
+        io.of('/').adapter.remoteDisconnect(winnerSocketId, true, (err) => {
+            logger.info('---------- remoteDisconnect winner-------------------')
         })
+    }
+
+    const addToLeaderboard = async (userId) => {
+        const userDataParsed = JSON.parse(await redisClient.HGET(marketKey, userId))
+        leaderboardService.addScore(userDataParsed.name)
     }
 
     return {
@@ -96,6 +117,7 @@ module.exports = (io, gameMeta, roomId, marketKey) => {
         getAllProps: getAllProps,
         kickUser: kickUser,
         incrProp: incrProp,
-        makeRemainingPlayerWinner: makeRemainingPlayerWinner
+        makeRemainingPlayerWinner: makeRemainingPlayerWinner,
+        broadcast: broadcast
     }
 }

@@ -5,17 +5,19 @@ module.exports = (io, socket, gameMeta, marketKey) => {
     let matchMaking, roomId, methods, roomInfo, positions, marblesPosition, currentPlayer, orbs, currentPlayerMarbles,
         diceAttempts, remainingTime
 
-    const getAct = (msg) => {
+    const getAct = async (msg) => {
         const {act, data} = msg
         if (act === 'rollDice')
-            rollDice()
+            await rollDice()
         if (act === 'move')
-            move(data.marbleNumber)
+            await move(data.marbleNumber)
+        if (act === 'chat')
+            chat(data.msg)
     }
 
     const rollDice = async () => {
         await getInitialProperties()
-        await methods.setProp('remainingTime', maxTime)
+        // await methods.setProp('remainingTime', maxTime)
         if (diceAttempts)
             diceAttempts = await methods.incrProp('diceAttempts', 1)
         else
@@ -43,6 +45,9 @@ module.exports = (io, socket, gameMeta, marketKey) => {
 
 
     const checkRules = async (tossNumber) => {
+        if (tossNumber === 6)
+            await methods.setProp('remainingTime', maxTime)
+
         if (playerHasMarbleOnRoad()) {
             const marbs = whichMarblesCanMove(tossNumber)
             if (marbs.length) {
@@ -51,19 +56,18 @@ module.exports = (io, socket, gameMeta, marketKey) => {
             }
             else {
                 methods.sendGameEvents(21, 'marblesCanMove', marbs)
-                changeTurn()
+                await changeTurn()
             }
         }
         else /* All In Nest */ {
             if (tossNumber === 6) {
-                await methods.setProp('remainingTime', maxTime)
                 await methods.setProp('diceAttempts', 0)
                 await saveTossNumber(tossNumber)
                 methods.sendGameEvents(21, 'marblesCanMove', [1, 2, 3, 4])
             }
             else  /* tossNumber !== 6 */ {
                 if (diceAttempts === 3) {
-                    changeTurn()
+                    await changeTurn()
                 }
                 else methods.sendGameEvents(22, 'canRollDiceAgain', true)
             }
@@ -71,7 +75,7 @@ module.exports = (io, socket, gameMeta, marketKey) => {
     }
 
     const saveTossNumber = async (tossNumber) => {
-        methods.setProp('tossNumber', tossNumber)
+        await methods.setProp('tossNumber', tossNumber)
     }
 
     const playerHasMarbleOnRoad = () => {
@@ -158,7 +162,7 @@ module.exports = (io, socket, gameMeta, marketKey) => {
 
     const move = async (marbleNumber) => {
         await getInitialProperties()
-        await methods.setProp('remainingTime', maxTime)
+        // await methods.setProp('remainingTime', maxTime)
         const tossNumber = parseInt(roomInfo.tossNumber)
         const marblePosition = currentPlayerMarbles[marbleNumber - 1]
         const newPosition = positionCalculator(marblePosition, tossNumber)
@@ -176,11 +180,11 @@ module.exports = (io, socket, gameMeta, marketKey) => {
             const isGameEnds = checkGameEnds(marblesPosition, newMarblesPosition, newPosition)
             if (isGameEnds)
                 methods.sendGameEvents(24, 'gameEnd', {
-                    "winner" : currentPlayer
+                    "winner": currentPlayer
                 })
 
             if (tossNumber !== 6)
-                changeTurn()
+                await changeTurn()
         }
     }
 
@@ -243,9 +247,11 @@ module.exports = (io, socket, gameMeta, marketKey) => {
         // methods.sendEventToSpecificSocket(playerUserId, 202, 'yourPlayerNumber', nextPlayer)
     }
 
+    const chat = (msg) => {
+        methods.broadcast(socket, msg)
+    }
+
     return ({
-        // rollDice: rollDice,
-        // move: move,
         getAct: getAct
     })
 
