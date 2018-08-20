@@ -7,7 +7,9 @@ module.exports = (io, userId, gameMeta, marketKey, roomId) => {
     const handleLeft = async () => {
         await getInitialProperties()
         await affectRoomInRedis()
-        if (await isLeftPlayerTurn() && positions.length > 2) {
+        logger.info(' positions.length: ' + positions.length)
+        if (await isLeftPlayerTurn() && positions.length > 1) {
+            logger.info('------changeTurn 1 -----------')
             await changeTurn()
         }
     }
@@ -18,7 +20,7 @@ module.exports = (io, userId, gameMeta, marketKey, roomId) => {
         delete orbs['player' + thisPlayerNumber.toString()]
         await methods.setMultipleProps(['positions', JSON.stringify(positions), 'orbs', JSON.stringify(orbs), 'marblesPosition', JSON.stringify(marblesPosition)])
         methods.sendGameEvents(6, 'playerLeft', {
-            userId: userId,
+            player: thisPlayerNumber,
             positions: positions,
             marblesPosition: marblesPosition,
             orbs: orbs
@@ -34,7 +36,7 @@ module.exports = (io, userId, gameMeta, marketKey, roomId) => {
         positions = JSON.parse(roomInfo['positions'])
         currentPlayer = parseInt(roomInfo['currentPlayer'])
         thisPlayerNumber = findThisPlayerNumber()
-        thisPlayerIndex = thisPlayerNumber -1
+        thisPlayerIndex = thisPlayerNumber - 1
         marblesPosition = JSON.parse(roomInfo['marblesPosition'])
         orbs = JSON.parse(roomInfo['orbs'])
     }
@@ -51,15 +53,19 @@ module.exports = (io, userId, gameMeta, marketKey, roomId) => {
         await methods.setProp('diceAttempts', 0)
         const numberOfPlayers = positions.length
         const nextPlayer = currentPlayer + 1 > numberOfPlayers ? 1 : currentPlayer + 1
-        await methods.setProp('currentPlayer', nextPlayer)
-        methods.sendGameEvents(104, 'changeTurn', {
-            "player": nextPlayer,
-            "decreaseOrb": false,
-            "timeEnds": false,
-            "orbs": orbs
-        })
-        const playerUserId = findUserIdOfNextPlayer(nextPlayer)
-        await methods.sendEventToSpecificSocket(playerUserId, 201, 'yourTurn')
+        if (orbs['player' + nextPlayer] > 0) {
+            logger.info('------changeTurn  orb > 0 -----------')
+            await methods.setProp('currentPlayer', nextPlayer)
+            methods.sendGameEvents(104, 'changeTurn', {
+                "player": nextPlayer,
+                "decreaseOrb": false,
+                "timeEnds": false,
+                "orbs": orbs,
+                "kick": true
+            })
+            const playerUserId = findUserIdOfNextPlayer(nextPlayer)
+            await methods.sendEventToSpecificSocket(playerUserId, 201, 'yourTurn')
+        }
     }
 
     const findUserIdOfNextPlayer = (nextPlayer) => {

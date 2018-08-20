@@ -33,9 +33,9 @@ module.exports = (io) => {
                 // const hasRoomBefore = await checkHasRoomBefore(socket.userInfo)
                 // if (hasRoomBefore) matchMaking.returnUserToGame(hasRoomBefore)      //hasRoomBefore = roomId
             }
-            socket.on('joinRoom', (message) => {
+            socket.on('joinRoom', async (leagueId) => {
                 logger.info('joined')
-                matchMaking.findAvailableRooms()
+                await matchMaking.findAvailableRooms(leagueId)
             })
             socket.on('disconnect', async (reason) => {
                 await matchMaking.kickUserFromRoomByDC()

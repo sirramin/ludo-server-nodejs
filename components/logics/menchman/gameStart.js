@@ -50,7 +50,7 @@ module.exports = (roomId, players, roomPlayersWithNames, methods) => {
                 if (positions.length === 1) clearInterval(timerInterval)
                 if (orbs['player' + currentPlayer] === 1 && positions.length > 1)
                     await methods.kickUser(findUserId())
-                else if(positions.length > 1) {
+                else if (positions.length > 1) {
                     await changeTurn()
                 }
             }
@@ -70,20 +70,21 @@ module.exports = (roomId, players, roomPlayersWithNames, methods) => {
         currentPlayer = await methods.getProp('currentPlayer')
         const previousPlayer = currentPlayer
         const nextPlayer = previousPlayer + 1 > numberOfplayers ? 1 : previousPlayer + 1
-        currentPlayer = nextPlayer
-        let propsArray = ['currentPlayer', currentPlayer]
-        orbs['player' + previousPlayer] -= 1
-        propsArray.push('orbs', JSON.stringify(orbs))
-        await methods.setMultipleProps(...propsArray)
-        methods.sendGameEvents(104, 'changeTurn', {
-            "player": nextPlayer,
-            "decreaseOrb": true,
-            "timeEnds": true,
-            "orbs": orbs
-        })
-        const playerUserId = findUserId()
-        await methods.sendEventToSpecificSocket(playerUserId, 201, 'yourTurn')
-        // methods.sendEventToSpecificSocket(playerUserId, 202, 'yourPlayerNumber', nextPlayer)
+        if (orbs['player' + nextPlayer] > 0) {
+            currentPlayer = nextPlayer
+            let propsArray = ['currentPlayer', currentPlayer]
+            orbs['player' + previousPlayer] -= 1
+            propsArray.push('orbs', JSON.stringify(orbs))
+            await methods.setMultipleProps(...propsArray)
+            methods.sendGameEvents(104, 'changeTurn', {
+                "player": nextPlayer,
+                "decreaseOrb": true,
+                "timeEnds": true,
+                "orbs": orbs
+            })
+            const playerUserId = findUserId()
+            await methods.sendEventToSpecificSocket(playerUserId, 201, 'yourTurn')
+        }
     }
 
     const getInitialProperties = async () => {

@@ -62,10 +62,11 @@ module.exports = (io, gameMeta, roomId, marketKey) => {
             currentPlayers.splice(currentPlayers.indexOf(userId), 1)
             await redisClient.HSET(roomPrefix, 'players', JSON.stringify(currentPlayers))
             await redisClient.ZINCRBY(roomsListPrefix, -1, roomId)
-            const gameLeft = require('../logics/' + gameMeta.name + '/gameLeft')(io, userId, gameMeta, marketKey, roomId)
-            await gameLeft.handleLeft()
             io.of('/').adapter.remoteDisconnect(socketId, true, async (err) => {
+                const gameLeft = require('../logics/' + gameMeta.name + '/gameLeft')(io, userId, gameMeta, marketKey, roomId)
+                await gameLeft.handleLeft()
                 logger.info('---------- remoteDisconnect kick-------------------')
+                await addToLeaderboard(userId, false)
                 if (currentPlayers && currentPlayers.length === 1) {
                     await makeRemainingPlayerWinner(roomId)
                 }
@@ -90,22 +91,24 @@ module.exports = (io, gameMeta, roomId, marketKey) => {
 
     const makeRemainingPlayerWinner = async (roomId) => {
         const players = await getProp('players')
+        const winnerPlayerNumber = (await getProp('positions'))[0].player
         const winnerId = players[0]
         await setProp('winner', winnerId)
         sendGameEvents(24, 'gameEnd', {
-            "winner": winnerId
+            "winner": winnerPlayerNumber
         })
         await updateUserRoom(roomId, winnerId)
-        // await addToLeaderboard(winnerId)
+        await addToLeaderboard(winnerId, true)
         const winnerSocketId = await getUserSocketIdFromRedis(winnerId)
         io.of('/').adapter.remoteDisconnect(winnerSocketId, true, (err) => {
             logger.info('---------- remoteDisconnect winner-------------------')
         })
     }
 
-    const addToLeaderboard = async (userId) => {
+    const addToLeaderboard = async (userId, isWinner) => {
         const userDataParsed = JSON.parse(await redisClient.HGET(marketKey, userId))
-        leaderboardService.addScore(userDataParsed.name)
+        const leagueId = (await getProp('info')).leagueId
+        await leaderboardService.addScore(userDataParsed.name, userId, leagueId, isWinner)
     }
 
     return {
@@ -118,6 +121,7 @@ module.exports = (io, gameMeta, roomId, marketKey) => {
         kickUser: kickUser,
         incrProp: incrProp,
         makeRemainingPlayerWinner: makeRemainingPlayerWinner,
-        broadcast: broadcast
+        broadcast: broadcast,
+        addToLeaderboard: addToLeaderboard
     }
 }
