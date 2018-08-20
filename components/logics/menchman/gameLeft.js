@@ -64,7 +64,7 @@ module.exports = (io, userId, gameMeta, marketKey, roomId) => {
                 "kick": true
             })
             const playerUserId = findUserIdOfNextPlayer(nextPlayer)
-            await methods.sendEventToSpecificSocket(playerUserId, 201, 'yourTurn')
+            await methods.sendEventToSpecificSocket(playerUserId, 201, 'yourTurn', 1)
         }
     }
 

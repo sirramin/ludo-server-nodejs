@@ -33,7 +33,7 @@ module.exports = (roomId, players, roomPlayersWithNames, methods) => {
         await methods.setProp('currentPlayer', currentPlayer)
         //must be optimised
         const playerUserId = findUserId()
-        await methods.sendEventToSpecificSocket(playerUserId, 201, 'yourTurn')
+        await methods.sendEventToSpecificSocket(playerUserId, 201, 'yourTurn', 1)
         // await methods.sendEventToSpecificSocket(playerUserId, 202, 'yourPlayerNumber', rand + 1)
         methods.sendGameEvents(102, 'firstTurn', firstTurn)
         timerCounter()
@@ -83,7 +83,7 @@ module.exports = (roomId, players, roomPlayersWithNames, methods) => {
                 "orbs": orbs
             })
             const playerUserId = findUserId()
-            await methods.sendEventToSpecificSocket(playerUserId, 201, 'yourTurn')
+            await methods.sendEventToSpecificSocket(playerUserId, 201, 'yourTurn', 1)
         }
     }
 

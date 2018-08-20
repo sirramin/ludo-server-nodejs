@@ -50,12 +50,13 @@ module.exports = (io, socket, gameMeta, marketKey) => {
 
         if (playerHasMarbleOnRoad()) {
             const marbs = whichMarblesCanMove(tossNumber)
-            if (marbs.length) {
+            if (marbs.length > 0) {
+                logger.info(JSON.stringify(marbs))
                 methods.sendGameEvents(21, 'marblesCanMove', marbs)
                 await saveTossNumber(tossNumber)
             }
             else {
-                methods.sendGameEvents(21, 'marblesCanMove', marbs)
+                methods.sendGameEvents(21, 'marblesCanMove', [])
                 if (tossNumber === 6)
                     methods.sendGameEvents(22, 'canRollDiceAgain', true)
                 await changeTurn()
@@ -66,6 +67,7 @@ module.exports = (io, socket, gameMeta, marketKey) => {
                 await methods.setProp('diceAttempts', 0)
                 await saveTossNumber(tossNumber)
                 methods.sendGameEvents(21, 'marblesCanMove', [1, 2, 3, 4])
+                logger.info(JSON.stringify([1, 2, 3, 4]))
             }
             else  /* tossNumber !== 6 */ {
                 if (diceAttempts === 3) {
@@ -194,19 +196,27 @@ module.exports = (io, socket, gameMeta, marketKey) => {
     }
 
     const checkMarblesMeeting = (marblesPosition, newMarblesPosition, newPosition) => {
-        for (let key in marblesPosition) {
-            marblesPosition[key.toString()].forEach((val, index) => {
-                if (val === newPosition)
-                    return {
-                        meet: true,
-                        player: key,
-                        marble: index
+        let returnValue
+        dance:
+            for (let key in marblesPosition) {
+                for (let j = 0; j < marblesPosition[key].length; j++) {
+                    if (marblesPosition[key][j] === newPosition) {
+                        returnValue = {
+                            meet: true,
+                            player: key,
+                            marble: j
+                        }
+                        break dance
                     }
-            })
-        }
-        return {
+                }
+            }
+        logger.info(JSON.stringify(returnValue))
+        if (returnValue)
+            return returnValue
+        else return {
             meet: false
         }
+
     }
 
     const checkGameEnds = (marblesPosition, newMarblesPosition) => {
@@ -222,11 +232,11 @@ module.exports = (io, socket, gameMeta, marketKey) => {
 
     const hitPlayer = async (newPosition, newMarblesPosition, marblesMeeting, tossNumber) => {
         newMarblesPosition[marblesMeeting.player][marblesMeeting.marble] = 0
+        logger.info('marblesMeeting.marble: ' + marblesMeeting.marble)
         await methods.setProp('marblesPosition', JSON.stringify(newMarblesPosition))
+        methods.sendGameEvents(23, 'marblesPosition', newMarblesPosition)
         if (tossNumber === 6)
             methods.sendGameEvents(22, 'canRollDiceAgain', true)
-
-        methods.sendGameEvents(23, 'marblesPosition', newMarblesPosition)
         if (tossNumber !== 6)
             await changeTurn()
     }
@@ -251,7 +261,7 @@ module.exports = (io, socket, gameMeta, marketKey) => {
             "orbs": orbs
         })
         const playerUserId = findUserId(nextPlayer)
-        await methods.sendEventToSpecificSocket(playerUserId, 201, 'yourTurn')
+        await methods.sendEventToSpecificSocket(playerUserId, 201, 'yourTurn', 1)
         // methods.sendEventToSpecificSocket(playerUserId, 202, 'yourPlayerNumber', nextPlayer)
     }
 
