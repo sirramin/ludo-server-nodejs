@@ -1,6 +1,9 @@
 const auth = require('../../common/authMiddleware')
 const response = require('../../common/response')
-const router = require('express').Router();
+const router = require('express').Router()
+const serviceClass = require('./service-class')
+
+
 // const textbox = require('textbox')
 module.exports = () => {
 
@@ -50,9 +53,9 @@ module.exports = () => {
      */
     router.get('/:operator', auth, async (req, res) => {
         const {name, userId, dbUrl, market} = req.userInfo
-        const service = require('./service')(dbUrl, market)
+        const serviceObj = new serviceClass(dbUrl, market)
         try {
-            const leaders = await service.getLeaderboard(name, userId)
+            const leaders = await serviceObj.getLeaderboard(name, userId)
             // text box
             response(res, '', 200, {leaders: leaders})
         }

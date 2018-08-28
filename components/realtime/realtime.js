@@ -2,6 +2,7 @@ const jwt = require('../../common/jwt'),
     gameIdentifier = require('../../common/gameIdentifier'),
     redisClient = require('../../common/redis-client')
 
+
 module.exports = (io) => {
     io
         .use(async (socket, next) => {
@@ -23,6 +24,12 @@ module.exports = (io) => {
             }
         })
         .on('connection', async (socket) => {
+
+            const monitor = require('socket.io-monitor')
+            const {emitter} = monitor.bind(io, {server: false})
+            emitter.getState()
+            emitter.on('join', ({id, rooms}) => console.log('socket %s joins rooms %s', id, rooms))
+
             logger.info(socket.id)
             const gameMeta = await gameIdentifier.getGameMeta(socket.userInfo.dbUrl)
             const matchMaking = require('./matchMaking')(io, socket, gameMeta)
@@ -34,7 +41,7 @@ module.exports = (io) => {
                 // if (hasRoomBefore) matchMaking.returnUserToGame(hasRoomBefore)      //hasRoomBefore = roomId
             }
             socket.on('joinRoom', async (leagueId) => {
-                logger.info('joined')
+                // logger.info('joined')
                 await matchMaking.findAvailableRooms(leagueId)
             })
             socket.on('disconnect', async (reason) => {

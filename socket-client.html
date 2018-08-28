@@ -21,7 +21,7 @@
         $('#connect').click(async () => {
             if (!localStorage.token) {
                 const res = await $.ajax({
-                    url: "http://192.168.5.90:3000/user/signInAsGuest",
+                    url: "http://192.168.5.34:3000/user/signInAsGuest",
                     type: 'post',
                     data: {
                         market: 'cafeBazaar'
@@ -37,7 +37,7 @@
             else {
                 token = localStorage.token
             }
-            const socket = io('http://192.168.5.90:3000', {transports: ['websocket'], query: {token: token}})
+            const socket = io('http://192.168.5.34:3000', {transports: ['websocket'], query: {token: token}})
             $('#joinRoom').click(() => {
                 socket.emit('joinRoom', 1)
             })
