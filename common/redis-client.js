@@ -2,7 +2,10 @@
 // const redisClient = redis.createClient()
 // const asyncRedis = require("async-redis");
 const redis = require('promise-redis')()
-const redisClientAsync = redis.createClient()
+
+if (!redisClientAsync)
+    redisClientAsync = redis.createClient()
+
 
 redisClientAsync.on("error", function (err) {
     logger.log("Error " + err);

@@ -9,6 +9,8 @@ const cors = require('cors')
 global.connections = {}
 global.schedulerExecuted = false
 global.logger = require('./common/logger')
+global.redisClient = null
+global.redisClientAsync = null
 require('./common/memwatch')
 // app.setMaxListeners(0)
 app.use(cors())
