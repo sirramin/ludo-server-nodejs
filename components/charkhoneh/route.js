@@ -82,13 +82,16 @@ module.exports = () => {
      * @apiError (Errors) 3 Error checking status
      */
     router.get('/statusAfterLogin/:phoneNumber', gameIdentifier, (req, res) => {
-        const phoneNumber = req.params.phoneNumber
         const service = require('./service')(req.dbUrl)
+        if (!req.params.phoneNumber) {
+            return service.response(res, "phoneNumber required", 1)
+        }
+        const phoneNumber = req.params.phoneNumber
         service.checkStatusAfterLogin(phoneNumber)
             .then((isSubscribed) => {
                 service.response(res, "", 2, isSubscribed)
             }).catch((err) => {
-            service.response(res, err.message, err.statusCode)
+            service.response(res, 'Error checking status', 3)
         })
     })
 
