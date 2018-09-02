@@ -82,7 +82,7 @@ module.exports = (io, socket, gameMeta) => {
         await redisClient.HMSET(roomsPrefix + roomId, 'info', JSON.stringify(roomInfo), 'players', JSON.stringify(currentPlayers))
         await redisClient.ZINCRBY(roomsListPrefix, 1, roomId)
         await updateUserRoom(roomId)
-        io.of('/').adapter.remoteJoin(newSocketId, roomId, (err) => {
+        io.of('/').adapter.remoteJoin(socket.id, roomId, (err) => {
         })
 
         sendMatchEvents(roomId, 3, 'playerJoined', {
