@@ -1,7 +1,7 @@
 const auth = require('../../common/authMiddleware')
 const response = require('../../common/response')
 const router = require('express').Router()
-const serviceClass = require('./service-class')
+const serviceClass = require('./class/service-class')
 
 
 // const textbox = require('textbox')

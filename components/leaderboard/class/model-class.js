@@ -1,5 +1,5 @@
 const _ = require('lodash')
-const mongooseClientClass = require('../../common/mongoose-client-class')
+const mongooseClientClass = require('../../../common/mongoose-client-class')
 
 const leaderboardModelClass = class {
 

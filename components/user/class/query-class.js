@@ -52,6 +52,15 @@ const userQueryClass = class {
             })
     }
 
+    async getUserCoins(userId) {
+        return await this.userModel.findOne({userId: userId}).lean().exec()
+    }
+
+    async updateCoin(userId, coin) {
+        return await this.userModel.findOneAndUpdate({_id: userId}, {$inc: {coin: coin}})
+    }
+
+
 }
 
 module.exports = userQueryClass

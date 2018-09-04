@@ -1,6 +1,6 @@
 const _ = require('lodash')
 module.exports = (io, socket, gameMeta, marketKey) => {
-    const maxTime = 11
+    const maxTime = 11 ,
     userId = socket.userInfo.userId
     let matchMaking, roomId, methods, roomInfo, positions, marblesPosition, currentPlayer, orbs, currentPlayerMarbles,
         diceAttempts, remainingTime

@@ -1,8 +1,8 @@
 const Leaderboard = require('leaderboard-promise'),
-    redisClient = require('../../common/redis-client'),
+    redisClient = require('../../../common/redis-client'),
     _ = require('lodash'),
     queryClass = require('./query-class'),
-    userQueryClass = require('../user/query-class')
+    userQueryClass = require('../../user/class/query-class')
 
 const leaderboardClass = class {
 
