@@ -1,7 +1,8 @@
 const gameIdentifier = require('../../common/gameIdentifier').findGameName,
     response = require('../../common/response'),
-    auth = require('../../common/authMiddleware')
-const router = require('express').Router()
+    auth = require('../../common/authMiddleware'),
+    router = require('express').Router(),
+    serviceClass = require('./class/service-class')
 
 
 module.exports = () => {
@@ -18,15 +19,32 @@ module.exports = () => {
         }
     })
 
-    router.post('/signin', async (req, res, next) => {
-
+    router.post('/signin', gameIdentifier, async (req, res, next) => {
+        if (!req.body.username) {
+            response(res, "username required", 1)
+        }
+        if (!req.body.password) {
+            response(res, "password required", 2)
+        }
+        const {username, password} = req.body
+        const serviceObj = new serviceClass(req.dbUrl)
+        try {
+            const token = await serviceObj.signin(username, password)
+            response(res, '', 5, {token: token})
+        }
+        catch (e) {
+            response(res, e.message, e.code)
+        }
     })
 
     router.post('/signInAsGuest', gameIdentifier, async (req, res, next) => {
-        const {market} = req.body
-        const service = require('./service')(req.dbUrl, market)
-        const guest = await service.registerGuestUser()
-        response(res, '', 2, guest)
+        const {market} = req.body,
+            service = require('./service')(req.dbUrl, market),
+            tokenAndUserId = await service.registerGuestUser(),
+            gameService = require('../logics/' + req.dbUrl + '/service-class'),
+            gameServiceObj = new gameService(req.dbUrl)
+        await gameServiceObj.insertUserGameData(tokenAndUserId.userId)
+        response(res, '', 2, tokenAndUserId.token)
     })
 
     router.put('/update', async (req, res, next) => {

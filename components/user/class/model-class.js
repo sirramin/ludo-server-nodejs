@@ -1,7 +1,7 @@
 const _ = require('lodash')
 const mongooseClientClass = require('../../../common/mongoose-client-class')
 
-const leaderboardModelClass = class {
+const userModelClass = class {
 
     constructor(dbUrl) {
         this.dbUrl = dbUrl
@@ -33,4 +33,4 @@ const leaderboardModelClass = class {
     }
 }
 
-module.exports = leaderboardModelClass
+module.exports = userModelClass

@@ -27,8 +27,8 @@ module.exports = (dbUrl, market) => {
             const guest = await query.insertGuestUser(market, name)
             const userId = guest._doc._id.toString()
             await addUserToRedis(name, userId)
-            token = await jwt.generateJwt(dbUrl, userId, name, market)
-            return {token: token}
+            const token = await jwt.generateJwt(dbUrl, userId, name, market)
+            return {token: token, userId: userId}
         }
         catch (err) {
             return ({message: 'error registering guest user', statusCode: 2})

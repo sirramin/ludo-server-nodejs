@@ -35,15 +35,26 @@ module.exports = (io) => {
         const castleNumber = parseInt(req.body.castleNumber)
         try {
             const unlockedCastles = await serviceClassObj.buyCastle(userId, castleNumber)
-            response(res, '', 200, unlockedCastles)
+            response(res, '', 200, {unlockedCastles: unlockedCastles})
         }
         catch (err) {
-            logger.error(err.message)
             response(res, err.message, err.code)
         }
     })
 
     route.post('/menchman/selectCastle', auth, async (req, res, next) => {
+        if (!req.body.castleNumber) {
+            return response(res, "castleNumber required", 1)
+        }
+        const {name, userId, dbUrl, market} = req.userInfo
+        const castleNumber = parseInt(req.body.castleNumber)
+        try {
+            const selectedCastle = await serviceClassObj.selectCastle(userId, castleNumber)
+            response(res, '', 200, {selectedCastle: selectedCastle})
+        }
+        catch (err) {
+            response(res, err.message, err.code)
+        }
 
     })
 

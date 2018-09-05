@@ -1,22 +1,25 @@
 const mongooseClient = require('mongoose')
+let dbUrl4
 const mongooseClientClass = class {
 
     constructor(dbUrl) {
-        this.dbUrl = dbUrl
+
+        dbUrl4 = dbUrl
     }
 
     getClient() {
-        if (!connections[this.dbUrl])
-            connections[this.dbUrl] = mongooseClient.createConnection('mongodb://localhost/' + this.dbUrl)
+        if (!connections[dbUrl4] && dbUrl4 !== undefined) {
+            connections[dbUrl4] = mongooseClient.createConnection('mongodb://localhost/' + dbUrl4)
 
-        connections[this.dbUrl].on('error', console.error.bind(console, 'connection error:'))
-        connections[this.dbUrl].once('open', function () {
-            logger.info('mongoose connected to:' + this.dbUrl)
-        })
+            connections[dbUrl4].on('error', console.error.bind(console, 'connection error:'))
+            // const dbUrl2 = this.dbUrl
+            connections[dbUrl4].once('open', function () {
+                logger.info('mongoose connected to:' + dbUrl4)
+            })
+        }
 
         return mongooseClient
     }
-
 }
 
 module.exports = mongooseClientClass

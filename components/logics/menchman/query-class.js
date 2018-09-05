@@ -11,7 +11,6 @@ const userGameDataQueryClass = class {
     }
 
     async getUserData(userId) {
-        // const userData = await this.userGameDataModel.findOne({userId: ObjectId(userId)}).populate('userId').lean().exec()
         const userData = await this.userGameDataModel.aggregate([
             {
                 $match: {
@@ -28,7 +27,13 @@ const userGameDataQueryClass = class {
                     }
             }
         ]).exec()
-        return userData
+        return userData[0]
+    }
+
+    async insertUserGameData(userId) {
+        return await this.userGameDataModel.create({
+            userId: userId
+        })
     }
 
     async getCastleCoin(castleNumber) {
@@ -37,8 +42,16 @@ const userGameDataQueryClass = class {
     }
 
     async addCastleToUserGameData(userId, castleNumber) {
-        const userGameData = await this.userGameDataModel.findOneAndUpdate({userId: userId}, {$set: {selectedCastle: castleNumber }, $addToSet: { unlockedCastles: castleNumber } }, {new: true})
+        const userGameData = await this.userGameDataModel.findOneAndUpdate({userId: userId}, {
+            $set: {selectedCastle: castleNumber},
+            $addToSet: {unlockedCastles: castleNumber}
+        }, {new: true})
         return userGameData.unlockedCastles
+    }
+
+    async updateSelectedCastle(userId, castleNumber) {
+        const userGameData = await this.userGameDataModel.findOneAndUpdate({userId: userId}, {$set: {selectedCastle: castleNumber}}, {new: true})
+        return userGameData.selectedCastle
     }
 }
 
