@@ -51,7 +51,7 @@ module.exports = () => {
      *
      * @apiError (Errors) 31 Error getting leaderboard
      */
-    router.get('/:operator', auth, async (req, res) => {
+    router.get('/operator', auth, async (req, res) => {
         const {name, userId, dbUrl, market} = req.userInfo
         const serviceObj = new serviceClass(dbUrl, market)
         try {
@@ -88,6 +88,19 @@ module.exports = () => {
         catch (err) {
             logger.error(err.message)
             response(res, 'error adding score', 41)
+        }
+    })
+
+    router.get('/leagues', auth, async (req, res) => {
+        const {name, userId, dbUrl, market} = req.userInfo
+        const serviceObj = new serviceClass(dbUrl, market)
+        try {
+            const leagues = await serviceObj.getLeagues()
+            response(res, '', 200, {leagues: leagues})
+        }
+        catch (err) {
+            logger.error(err.message)
+            response(res, 'Error getting leagues', 31)
         }
     })
 

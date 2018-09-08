@@ -12,6 +12,10 @@ const leaderboardQueryClass = class {
         const league = await this.leagueModel.findOne({leagueId: leagueId}).lean().exec()
         return league.winsBaseScore
     }
+
+    async getLeagues() {
+        return await this.leagueModel.find().lean().exec()
+    }
 }
 
 module.exports = leaderboardQueryClass

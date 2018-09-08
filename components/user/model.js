@@ -3,9 +3,9 @@ module.exports = (dbUrl) => {
     const {mongooseClient} = require('../../common/mongoose-client')(dbUrl)
     const userSchema = new mongooseClient.Schema({
         name: {type: String, required: true},
-        username: {type: String, unique: true, index: false},
+        username: {type: String, unique: true},
         password: String,
-        phoneNumber: {type: String, unique: true, index: false},
+        phoneNumber: {type: String, unique: true},
         market: {type: String, required: true},
         coin: {type: Number, default: 1400},
         win: {type: Number, default: 0},
@@ -15,7 +15,9 @@ module.exports = (dbUrl) => {
         verificationCode: String,
         charkhonehCancelled: Boolean,
         charkhonehHistory: [],
-        charkhonehProducts: []
+        charkhonehProducts: [],
+        email: String,
+        emailCode: Number
     });
     userSchema.set('autoIndex', false);
     if (_.has(connections[dbUrl].models, 'users'))

@@ -9,9 +9,9 @@ const userModelClass = class {
         this.mongooseClient = mongooseClientObj.getClient()
         this.userSchema = this.mongooseClient.Schema({
             name: {type: String, required: true},
-            username: {type: String, unique: true, index: false},
+            username: {type: String, unique: true},
             password: String,
-            phoneNumber: {type: String, unique: true, index: false},
+            phoneNumber: {type: String, unique: true},
             market: {type: String, required: true},
             coin: {type: Number, default: 1400},
             win: {type: Number, default: 0},
@@ -21,7 +21,9 @@ const userModelClass = class {
             verificationCode: String,
             charkhonehCancelled: Boolean,
             charkhonehHistory: [],
-            charkhonehProducts: []
+            charkhonehProducts: [],
+            email: String,
+            emailCode: Number
         })
     }
 

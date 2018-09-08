@@ -44,11 +44,27 @@ module.exports = () => {
             gameService = require('../logics/' + req.dbUrl + '/service-class'),
             gameServiceObj = new gameService(req.dbUrl)
         await gameServiceObj.insertUserGameData(tokenAndUserId.userId)
-        response(res, '', 2, tokenAndUserId.token)
+        response(res, '', 2, {
+            token: tokenAndUserId.token,
+            game: req.dbUrl
+        })
     })
 
-    router.put('/update', async (req, res, next) => {
-
+    router.post('/update', auth, async (req, res, next) => {
+        const {userId, dbUrl, market} = req.userInfo
+        const {username, password, email, name} = req.body
+        const serviceObj = new serviceClass(dbUrl)
+        try {
+            const updatedUser = await serviceObj.updateUser(userId, username, password, email, name)
+            response(res, '', 5, {
+                name: updatedUser.name,
+                username: updatedUser.username,
+                email: updatedUser.email
+            })
+        }
+        catch (e) {
+            response(res, e.message, e.code)
+        }
     })
 
     /**
@@ -110,6 +126,18 @@ module.exports = () => {
         }
     })
 
+    router.post('/forgot', gameIdentifier, async (req, res, next) => {
+        if (!req.body.emailOrUsername) {
+            return response(res, 'email or Username required', 1)
+        }
+        const {emailOrUsername} = req.body
+        const serviceObj = new serviceClass(req.dbUrl)
+        await serviceObj.forgot(emailOrUsername)
+    })
+
+    router.post('/forgot-code', async (req, res, next) => {
+
+    })
 
     return router
 }

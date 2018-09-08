@@ -13,6 +13,17 @@ const userQueryClass = class {
         return await this.userModel.findOne({username: username}).lean().exec()
     }
 
+    async checkUserExistsByEmailOrUsername(emailOrUsername) {
+        return await this.userModel.findOne({
+                $or: [{
+                    email: /emailOrUsername/
+                }, {
+                    username: /emailOrUsername/
+                }]
+            }
+        ).lean().exec()
+    }
+
 
     async insertUser(username, hashedPassword, phoneNumber, market, name) {
         const user = new this.userModel({
@@ -60,7 +71,9 @@ const userQueryClass = class {
         return await this.userModel.findOneAndUpdate({_id: userId}, {$inc: {coin: coin}})
     }
 
-    async
+    async saveEmailCode(userId, emailCode) {
+        return await this.userModel.findOneAndUpdate({_id: userId}, {emailCode: emailCode})
+    }
 
 }
 

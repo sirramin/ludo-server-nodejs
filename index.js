@@ -11,7 +11,7 @@ global.schedulerExecuted = false
 global.logger = require('./common/logger')
 global.redisClient = null
 global.redisClientAsync = null
-require('./common/memwatch')
+// require('./common/memwatch')
 // app.setMaxListeners(0)
 app.use(cors())
 app.use(morgan('combined'))

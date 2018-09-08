@@ -122,6 +122,10 @@ const leaderboardClass = class {
         await redisClient.hset(this.usersPath, userId, JSON.stringify(userInfoParse))
     }
 
+    async getLeagues() {
+        return await this.query.getLeagues()
+    }
+
 }
 
 module.exports = leaderboardClass
