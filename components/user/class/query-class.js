@@ -16,9 +16,9 @@ const userQueryClass = class {
     async checkUserExistsByEmailOrUsername(emailOrUsername) {
         return await this.userModel.findOne({
                 $or: [{
-                    email: /emailOrUsername/
+                    email: emailOrUsername
                 }, {
-                    username: /emailOrUsername/
+                    username: emailOrUsername
                 }]
             }
         ).lean().exec()
@@ -73,6 +73,11 @@ const userQueryClass = class {
 
     async saveEmailCode(userId, emailCode) {
         return await this.userModel.findOneAndUpdate({_id: userId}, {emailCode: emailCode})
+    }
+
+    async getUserEmailCode(userId) {
+        const userInfo = await this.userModel.findById(userId).lean().exec()
+        return userInfo.emailCode
     }
 
 }

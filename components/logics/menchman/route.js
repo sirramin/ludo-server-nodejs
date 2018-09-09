@@ -62,7 +62,20 @@ module.exports = (io) => {
         const {name, userId, dbUrl, market} = req.userInfo
         try {
             const userData = await userGameDataQueryObj.getUserData(userId)
-            response(res, '', 200, userData)
+            const userInfo = userData.userInfo[0]
+            response(res, '', 200, {
+                unlockedCastles: userData.unlockedCastles,
+                mineLevel: userData.mineLevel,
+                capacityLevel: userData.capacityLevel,
+                capacity: userData.capacity,
+                coinPerHour: userData.coinPerHour,
+                userId: userInfo._id,
+                coin: userInfo.coin,
+                market: userInfo.market,
+                name: userInfo.name,
+                username: userInfo.username,
+                email: userInfo.email
+            })
         }
         catch (err) {
             logger.error(err.message)

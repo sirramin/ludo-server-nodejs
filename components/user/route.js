@@ -57,6 +57,7 @@ module.exports = () => {
         try {
             const updatedUser = await serviceObj.updateUser(userId, username, password, email, name)
             response(res, '', 5, {
+                userId: updatedUser._id,
                 name: updatedUser.name,
                 username: updatedUser.username,
                 email: updatedUser.email
@@ -131,13 +132,52 @@ module.exports = () => {
             return response(res, 'email or Username required', 1)
         }
         const {emailOrUsername} = req.body
-        const serviceObj = new serviceClass(req.dbUrl)
-        await serviceObj.forgot(emailOrUsername)
+        try {
+            const serviceObj = new serviceClass(req.dbUrl)
+            const userId = await serviceObj.forgot(emailOrUsername)
+            return response(res, '', 2, {userId: userId})
+        }
+        catch (e) {
+            response(res, e.message, e.code)
+        }
     })
 
-    router.post('/forgot-code', async (req, res, next) => {
-
+    router.post('/forgot/verifyCode', gameIdentifier, async (req, res, next) => {
+        if (!req.body.userId) {
+            return response(res, 'userId required', 1)
+        }
+        if (!req.body.emailCode) {
+            return response(res, 'email code required', 1)
+        }
+        const {userId, emailCode} = req.body
+        try {
+            const serviceObj = new serviceClass(req.dbUrl)
+            await serviceObj.verifyCode(userId, parseInt(emailCode))
+            return response(res, '', 2, 'code is correct')
+        }
+        catch (e) {
+            response(res, e.message, e.code)
+        }
     })
+
+    router.post('/reset-pass', gameIdentifier, async (req, res, next) => {
+        if (!req.body.userId) {
+            return response(res, 'userId required', 1)
+        }
+        if (!req.body.emailCode) {
+            return response(res, 'email code required', 1)
+        }
+        const {userId, emailCode} = req.body
+        try {
+            const serviceObj = new serviceClass(req.dbUrl)
+            await serviceObj.verifyCode(userId, parseInt(emailCode))
+            return response(res, '', 2, 'code is correct')
+        }
+        catch (e) {
+            response(res, e.message, e.code)
+        }
+    })
+
 
     return router
 }

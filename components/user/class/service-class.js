@@ -1,7 +1,8 @@
 const jwt = require('../../../common/jwt'),
     _ = require('lodash'),
     queryClass = require('./query-class'),
-    bcryptjs = require('bcryptjs')
+    bcryptjs = require('bcryptjs'),
+    nodemailer = require('nodemailer')
 
 
 const userServiceClass = class {
@@ -40,13 +41,52 @@ const userServiceClass = class {
         if (!userInfo) throw({message: 'User not exists', code: 3})
         if (!userInfo.hasOwnProperty('email'))
             throw({message: 'User has not set any email', code: 4})
-        const emailCode = _.random(100000, 999999)
+        const emailCode = _.random(1000, 9999)
         await this.queryClassObj.saveEmailCode(userInfo._id, emailCode)
+        await userServiceClass.sendMail(userInfo.email, emailCode)
+        return userInfo._id
     }
 
-    async sendMail(email) {
-        // let transporter = nodemailer.createTransport(transport[, defaults])
+    async sendMail(email, emailCode) {
+        let transporter = nodemailer.createTransport({
+            host: 'mail.artagamestudio.com',
+            port: 587,
+            secure: false, // true for 465, false for other ports
+            auth: {
+                user: 'ramin.s@artagamestudio.com',
+                pass: 'q9Xd22W3y9'
+                // user: 'forgot@artagamestudio.com',
+                // pass: 'u3zHnBTp'
+            },
+            tls: {
+                rejectUnauthorized: false
+            }
+        })
 
+        let mailOptions = {
+            from: '"Menchman Support"  <ramin.s@artagamestudio.com>',
+            to: email,
+            subject: 'فراموشی رمز',
+            // text: emailCode + 'کد: ',
+            html: '<span>کد فراموشی رمز شما: </span><span>' + emailCode + '</span>'
+        }
+        try {
+            const info = await userServiceClass.sendMail(mailOptions)
+            logger.info('Forgot email sent: %s', info.messageId)
+        }
+        catch (e) {
+            logger.error('Error sending email: ' + e)
+            throw({message: 'Error sending email', code: 6})
+        }
+    }
+
+    async verifyCode(userId, emailCode) {
+        const emailCodeInDb = await this.queryClassObj.getUserEmailCode(userId)
+        if(!emailCodeInDb)
+            throw({message: 'User has not request code before', code: 3})
+        if(emailCodeInDb !== emailCode)
+            throw({message: 'code is not correct', code: 3})
+        return true
     }
 
 }
