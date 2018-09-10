@@ -160,18 +160,21 @@ module.exports = () => {
         }
     })
 
-    router.post('/reset-pass', gameIdentifier, async (req, res, next) => {
+    router.post('/resetPass', gameIdentifier, async (req, res, next) => {
         if (!req.body.userId) {
             return response(res, 'userId required', 1)
         }
-        if (!req.body.emailCode) {
+        if (!req.body.newPassword) {
             return response(res, 'email code required', 1)
         }
-        const {userId, emailCode} = req.body
+        if (!req.body.repeat) {
+            return response(res, 'repeat required', 1)
+        }
+        const {userId, newPassword, repeat} = req.body
         try {
             const serviceObj = new serviceClass(req.dbUrl)
-            await serviceObj.verifyCode(userId, parseInt(emailCode))
-            return response(res, '', 2, 'code is correct')
+            await serviceObj.resetPass(userId, newPassword, repeat)
+            return response(res, '', 2, 'Password changed')
         }
         catch (e) {
             response(res, e.message, e.code)

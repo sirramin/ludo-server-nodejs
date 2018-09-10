@@ -71,7 +71,7 @@ const userServiceClass = class {
             html: '<span>کد فراموشی رمز شما: </span><span>' + emailCode + '</span>'
         }
         try {
-            const info = await userServiceClass.sendMail(mailOptions)
+            const info = await transporter.sendMail(mailOptions)
             logger.info('Forgot email sent: %s', info.messageId)
         }
         catch (e) {
@@ -87,6 +87,19 @@ const userServiceClass = class {
         if(emailCodeInDb !== emailCode)
             throw({message: 'code is not correct', code: 3})
         return true
+    }
+
+    async resetPass(userId, newPassword, repeat) {
+        if(newPassword !== repeat)
+            throw({message: 'passwords are not match', code: 3})
+
+        const hashedPassword = await bcryptjs.hash(newPassword, 10)
+        try {
+            return await this.queryClassObj.updateUser({_id: userId}, {password: hashedPassword})
+        }
+        catch (e) {
+            throw({message: 'problem updating user', code: 3})
+        }
     }
 
 }

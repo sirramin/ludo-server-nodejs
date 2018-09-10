@@ -13,6 +13,10 @@ const userQueryClass = class {
         return await this.userModel.findOne({username: username}).lean().exec()
     }
 
+    async getUserById(userId) {
+        return await this.userModel.findById(userId).lean().exec()
+    }
+
     async checkUserExistsByEmailOrUsername(emailOrUsername) {
         return await this.userModel.findOne({
                 $or: [{
@@ -79,6 +83,8 @@ const userQueryClass = class {
         const userInfo = await this.userModel.findById(userId).lean().exec()
         return userInfo.emailCode
     }
+
+
 
 }
 
