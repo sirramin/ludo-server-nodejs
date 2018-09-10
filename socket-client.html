@@ -12,7 +12,9 @@
 <select id="move">
     <option value="">--</option>
 </select>
-<script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
+<button id="leftRoom">leftRoom</button>
+<!--<script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>-->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.1/socket.io.js"></script>
 <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
 <script>
     // const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYlVybCI6Im1lbmNobWFuIiwidXNlcklkIjoiNWI0MWZkZGY0YTBjYzg2YjQzMDMwODExIiwibmFtZSI6InVzZXI1ODYxNSIsIm1hcmtldCI6Im1jaSIsInVzZXJuYW1lIjoic2lycmFtaW41IiwiaWF0IjoxNTMxMDUxNDg3LCJleHAiOjE1MzE5MTU0ODd9.j9BamCitP6RiOCjJ-5ppvI-Kpqq4EMHRnAlBEFfrzV0"
@@ -38,15 +40,26 @@
             }
             else {
                 token = localStorage.token
+                const res = await $.ajax({
+                    url: target + "/logics/menchman/getUserGameData",
+                    type: 'get',
+                    headers: {
+                        token: localStorage.token
+                    },
+                    dataType: 'json',
+                })
+
+                if (!localStorage.userId)
+                    localStorage.setItem("userId", res.data.userId)
             }
             const socket = io(target, {transports: ['websocket'], query: {token: token}})
             $('#joinRoom').click(() => {
                 socket.emit('joinRoom', 1)
             })
 
-            // $('#disconnect').click(()=>{
-            //     socket.disconnect()
-            // })
+            $('#leftRoom').click(() => {
+                socket.emit('leftRoom', 1)
+            })
             //
             // $('#open').click(()=>{
             //     socket.open()

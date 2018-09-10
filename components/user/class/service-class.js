@@ -43,8 +43,13 @@ const userServiceClass = class {
             throw({message: 'User has not set any email', code: 4})
         const emailCode = _.random(1000, 9999)
         await this.queryClassObj.saveEmailCode(userInfo._id, emailCode)
-        await userServiceClass.sendMail(userInfo.email, emailCode)
-        return userInfo._id
+        try {
+            await this.sendMail(userInfo.email, emailCode)
+            return userInfo._id
+        }
+        catch (e) {
+
+        }
     }
 
     async sendMail(email, emailCode) {
@@ -82,15 +87,15 @@ const userServiceClass = class {
 
     async verifyCode(userId, emailCode) {
         const emailCodeInDb = await this.queryClassObj.getUserEmailCode(userId)
-        if(!emailCodeInDb)
+        if (!emailCodeInDb)
             throw({message: 'User has not request code before', code: 3})
-        if(emailCodeInDb !== emailCode)
+        if (emailCodeInDb !== emailCode)
             throw({message: 'code is not correct', code: 3})
         return true
     }
 
     async resetPass(userId, newPassword, repeat) {
-        if(newPassword !== repeat)
+        if (newPassword !== repeat)
             throw({message: 'passwords are not match', code: 3})
 
         const hashedPassword = await bcryptjs.hash(newPassword, 10)

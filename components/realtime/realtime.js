@@ -41,18 +41,16 @@ module.exports = (io) => {
                 // if (hasRoomBefore) matchMaking.returnUserToGame(hasRoomBefore)      //hasRoomBefore = roomId
             }
             socket.on('joinRoom', async (leagueId) => {
-                // logger.info('joined')
                 await matchMaking.findAvailableRooms(leagueId)
+            })
+            socket.on('leftRoom', async () => {
+                await matchMaking.leftRoom()
             })
             socket.on('disconnect', async (reason) => {
                 await matchMaking.kickUserFromRoomByDC()
             })
-            // socket.on('reconnect', () => {
-            //     matchMaking.reconnect()
-            // })
             socket.on('event', async (msg) => {
                 const eventData = JSON.parse(msg)
-                // logger.info(eventData)
                 const marketName = (socket.userInfo.market === 'mtn' || socket.userInfo.market === 'mci') ? socket.userInfo.market : 'market',
                     marketKey = gameMeta.name + ':users:' + marketName,
                     logicEvents = require('../logics/' + gameMeta.name + '/gameEvents')(io, socket, gameMeta, marketKey)

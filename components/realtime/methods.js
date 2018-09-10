@@ -6,7 +6,6 @@ module.exports = (io, gameMeta, roomId, marketKey) => {
         market = marketKey.substr(marketKey.indexOf('users:' + 6), marketKey.length),
         leaderboardService = require('../leaderboard/service')(gameMeta.name, market)
 
-
     const sendGameEvents = (code, event, data) => {
         io.to(roomId).emit('gameEvent', {
             code: code,
@@ -54,6 +53,11 @@ module.exports = (io, gameMeta, roomId, marketKey) => {
         return await redisClient.HGETALL(roomPrefix)
     }
 
+    const deleteRoom = async (roomId) => {
+        await redisClient.DEL(roomPrefix)
+        await redisClient.ZREM(roomsListPrefix, roomId)
+    }
+
     const kickUser = async (userId) => {
         const currentPlayers = await getProp('players')
         const socketId = await getUserSocketIdFromRedis(userId)
@@ -62,6 +66,7 @@ module.exports = (io, gameMeta, roomId, marketKey) => {
             currentPlayers.splice(currentPlayers.indexOf(userId), 1)
             await redisClient.HSET(roomPrefix, 'players', JSON.stringify(currentPlayers))
             await redisClient.ZINCRBY(roomsListPrefix, -1, roomId)
+            await sendEventToSpecificSocket(userId, 203, 'youWillBeKicked', 1)
             io.of('/').adapter.remoteDisconnect(socketId, true, async (err) => {
                 const gameLeft = require('../logics/' + gameMeta.name + '/gameLeft')(io, userId, gameMeta, marketKey, roomId)
                 await gameLeft.handleLeft()
@@ -103,6 +108,11 @@ module.exports = (io, gameMeta, roomId, marketKey) => {
         io.of('/').adapter.remoteDisconnect(winnerSocketId, true, (err) => {
             logger.info('---------- remoteDisconnect winner-------------------')
         })
+        await deleteRoom(roomId)
+        // const roomInfo = await getProp('info')
+        // roomInfo.state = 'finished'
+        // await setProp('info', JSON.stringify(roomInfo))
+
     }
 
     const addToLeaderboard = async (userId, isWinner) => {

@@ -43,7 +43,7 @@ module.exports = (roomId, players, roomPlayersWithNames, methods) => {
     const timerCounter = () => {
         const timerInterval = setInterval(async () => {
             const remainingTime = await methods.incrProp('remainingTime', -1)
-            if (remainingTime < -10 || positions.length === 1) clearInterval(timerInterval)
+            if (remainingTime < 1 || positions.length === 1) clearInterval(timerInterval)
             // logger.info('roomId: '+ roomId + ' remainingTime: ' + remainingTime)
             if (remainingTime === 0) {
                 await getInitialProperties()
