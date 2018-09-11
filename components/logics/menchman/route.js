@@ -55,7 +55,6 @@ module.exports = (io) => {
         catch (err) {
             response(res, err.message, err.code)
         }
-
     })
 
     route.get('/menchman/getUserGameData', auth, async (req, res, next) => {
@@ -65,6 +64,7 @@ module.exports = (io) => {
             const userInfo = userData.userInfo[0]
             response(res, '', 200, {
                 unlockedCastles: userData.unlockedCastles,
+                selectedCastle: userData.selectedCastle,
                 mineLevel: userData.mineLevel,
                 capacityLevel: userData.capacityLevel,
                 capacity: userData.capacity,

@@ -250,6 +250,7 @@ module.exports = (io, socket, gameMeta, marketKey) => {
 
     const changeTurn = async () => {
         await methods.setProp('remainingTime', maxTime)
+        logger.info('------ max time -----')
         await methods.setProp('diceAttempts', 0)
         const numberOfplayers = positions.length
         const nextPlayer = currentPlayer + 1 > numberOfplayers ? 1 : currentPlayer + 1

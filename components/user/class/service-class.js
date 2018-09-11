@@ -58,8 +58,8 @@ const userServiceClass = class {
             port: 587,
             secure: false, // true for 465, false for other ports
             auth: {
-                user: 'ramin.s@artagamestudio.com',
-                pass: 'q9Xd22W3y9'
+                user: 'menchman@artagamestudio.com',
+                pass: 'KsY92uHpQ7'
                 // user: 'forgot@artagamestudio.com',
                 // pass: 'u3zHnBTp'
             },

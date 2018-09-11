@@ -1,6 +1,7 @@
 const _ = require('lodash'),
     queryClass = require('./query-class'),
-    userQueryClass = require('../../user/class/query-class')
+    userQueryClass = require('../../user/class/query-class'),
+    redisClient = require('../../../common/redis-client')
 
 const gameDataServiceClass = class {
 
@@ -38,7 +39,8 @@ const gameDataServiceClass = class {
     }
 
     async selectCastle(userId, castleNumber) {
-        return await this.query.updateSelectedCastle(userId, castleNumber)
+         await this.query.updateSelectedCastle(userId, castleNumber)
+        return await redisClient.hset('menchman:users:market', userId, castleNumber)
     }
 
 }

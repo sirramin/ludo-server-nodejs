@@ -157,8 +157,12 @@ module.exports = (io, socket, gameMeta) => {
         }
         roomHashParsed.state = 'started'
         await redisClient.HSET(roomsPrefix + roomId, 'info', JSON.stringify(roomHashParsed))
-        const webHookCaller = require('./webHookCaller')(gameMeta, roomId, roomPlayers, roomPlayersWithNames, marketKey)
-        return await webHookCaller.start()
+
+        const methods = require('./methods')(io, gameMeta, roomId, marketKey)
+        const logicStart = require('../logics/' + gameMeta.name + '/gameStart')(roomId, roomPlayers, roomPlayersWithNames, methods)
+        await logicStart.sendPositions()
+        // const webHookCaller = require('./webHookCaller')(gameMeta, roomId, roomPlayers, roomPlayersWithNames, marketKey)
+        // return await webHookCaller.start()
     }
 
     const destroyRoom = async (roomId) => {

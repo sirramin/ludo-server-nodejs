@@ -15,7 +15,7 @@ const userGameDataModelClass = class {
             capacityLevel: {type: Number, default: 1},
             capacity: {type: Number, default: 1000},
             coinPerHour: {type: Number, default: 200},
-            selectedCastle: {type: [Number], default: 1}
+            selectedCastle: {type: Number, default: 1}
         })
 
         this.castleSchema = this.mongooseClient.Schema({

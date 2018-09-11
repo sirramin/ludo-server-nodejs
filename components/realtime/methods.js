@@ -46,6 +46,7 @@ module.exports = (io, gameMeta, roomId, marketKey) => {
     }
 
     const incrProp = async (field, number) => {
+        if(field === 'remainingTime' && number)
         return await redisClient.HINCRBY(roomPrefix, field, number)
     }
 
@@ -132,6 +133,7 @@ module.exports = (io, gameMeta, roomId, marketKey) => {
         incrProp: incrProp,
         makeRemainingPlayerWinner: makeRemainingPlayerWinner,
         broadcast: broadcast,
-        addToLeaderboard: addToLeaderboard
+        addToLeaderboard: addToLeaderboard,
+        deleteRoom: deleteRoom
     }
 }

@@ -43,11 +43,14 @@ module.exports = (roomId, players, roomPlayersWithNames, methods) => {
     const timerCounter = () => {
         const timerInterval = setInterval(async () => {
             const remainingTime = await methods.incrProp('remainingTime', -1)
-            if (remainingTime < 1 || positions.length === 1) clearInterval(timerInterval)
-            // logger.info('roomId: '+ roomId + ' remainingTime: ' + remainingTime)
+            if (remainingTime < -1 || positions.length === 1) {
+                clearInterval(timerInterval)
+                methods.deleteRoom(roomId)
+            }
+            logger.info('roomId: '+ roomId + ' remainingTime: ' + remainingTime)
             if (remainingTime === 0) {
                 await getInitialProperties()
-                if (positions.length === 1) clearInterval(timerInterval)
+                // if (positions.length === 1) clearInterval(timerInterval)
                 if (orbs['player' + currentPlayer] === 1 && positions.length > 1)
                     await methods.kickUser(findUserId())
                 else if (positions.length > 1) {
@@ -66,6 +69,7 @@ module.exports = (roomId, players, roomPlayersWithNames, methods) => {
 
     const changeTurn = async () => {
         await methods.setProp('remainingTime', maxTime)
+        logger.info('------ max time -----')
         await methods.setProp('diceAttempts', 0)
         currentPlayer = await methods.getProp('currentPlayer')
         const previousPlayer = currentPlayer
