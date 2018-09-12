@@ -53,7 +53,7 @@ module.exports = () => {
     router.post('/update', auth, async (req, res, next) => {
         const {userId, dbUrl, market} = req.userInfo
         const {username, password, email, name} = req.body
-        const serviceObj = new serviceClass(dbUrl)
+        const serviceObj = new serviceClass(dbUrl, market)
         try {
             const updatedUser = await serviceObj.updateUser(userId, username, password, email, name)
             response(res, '', 5, {

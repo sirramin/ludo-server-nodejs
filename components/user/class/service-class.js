@@ -2,13 +2,15 @@ const jwt = require('../../../common/jwt'),
     _ = require('lodash'),
     queryClass = require('./query-class'),
     bcryptjs = require('bcryptjs'),
-    nodemailer = require('nodemailer')
+    nodemailer = require('nodemailer'),
+    redisClient = require('../../../common/redis-client')
 
 
 const userServiceClass = class {
 
-    constructor(dbUrl) {
+    constructor(dbUrl, market) {
         this.dbUrl = dbUrl
+        this.marketKey = this.dbUrl + ':users:' + 'market'
         this.queryClassObj = new queryClass(this.dbUrl)
     }
 
@@ -26,9 +28,22 @@ const userServiceClass = class {
 
     async updateUser(userId, username, pass, email, name) {
         let updateObject = {}, hashedPassword
-        if (username) updateObject.username = username
-        if (email) updateObject.email = email
-        if (name) updateObject.name = name
+        if (username) {
+            updateObject.username = username
+            if (await this.queryClassObj.checkUserAlreadyExists({username: username}))
+                throw({message: 'username already exists', code: 4})
+        }
+        if (email) {
+            updateObject.email = email
+            if (await this.queryClassObj.checkUserAlreadyExists({email: email}))
+                throw({message: 'email already exists', code: 5})
+        }
+        if (name) {
+            updateObject.name = name
+            const userInfoParsed = JSON.parse(await redisClient.hget(this.marketKey, userId))
+            userInfoParsed.name = name
+            await redisClient.hset(this.marketKey, userId, JSON.stringify(userInfoParsed))
+        }
         if (pass) {
             hashedPassword = await bcryptjs.hash(pass, 10)
             updateObject.password = hashedPassword

@@ -22,7 +22,7 @@ const userModelClass = class {
             charkhonehCancelled: Boolean,
             charkhonehHistory: [],
             charkhonehProducts: [],
-            email: String,
+            email: {type: String, unique: true},
             emailCode: Number
         })
     }

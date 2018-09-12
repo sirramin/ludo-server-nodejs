@@ -13,9 +13,7 @@ const userQueryClass = class {
         return await this.userModel.findOne({username: username}).lean().exec()
     }
 
-    async getUserById(userId) {
-        return await this.userModel.findById(userId).lean().exec()
-    }
+
 
     async checkUserExistsByEmailOrUsername(emailOrUsername) {
         return await this.userModel.findOne({
@@ -28,6 +26,13 @@ const userQueryClass = class {
         ).lean().exec()
     }
 
+    async checkUserAlreadyExists(query) {
+        return await this.userModel.findOne(query).lean().exec()
+    }
+
+    async getUserById(userId) {
+        return await this.userModel.findById(userId).lean().exec()
+    }
 
     async insertUser(username, hashedPassword, phoneNumber, market, name) {
         const user = new this.userModel({

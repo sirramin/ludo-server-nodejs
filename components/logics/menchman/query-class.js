@@ -50,7 +50,7 @@ const userGameDataQueryClass = class {
     }
 
     async updateSelectedCastle(userId, castleNumber) {
-        const userGameData = await this.userGameDataModel.findOneAndUpdate({userId: userId}, {selectedCastle: castleNumber}, {new: true})
+        const userGameData = await this.userGameDataModel.findOneAndUpdate({userId: userId}, {$set: {selectedCastle: castleNumber}}, {new: true})
         return userGameData.selectedCastle
     }
 }

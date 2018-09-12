@@ -38,9 +38,14 @@ const gameDataServiceClass = class {
         return unlockedCastles.indexOf(castleNumber) > -1
     }
 
-    async selectCastle(userId, castleNumber) {
-         await this.query.updateSelectedCastle(userId, castleNumber)
-        return await redisClient.hset('menchman:users:market', userId, castleNumber)
+    async selectCastle(userId, castleNumber, market) {
+        const marketName = (socket.userInfo.market === 'mtn' || socket.userInfo.market === 'mci') ? socket.userInfo.market : 'market',
+            marketKey = 'menchman:users:' + marketName
+
+        const userInfoParsed = JSON.parse(await redisClient.hget(marketKey, userId))
+        userInfoParsed.castleNumber = castleNumber
+        await redisClient.hset('menchman:users:' + market, userId, JSON.stringify(userInfoParsed))
+        return await this.query.updateSelectedCastle(userId, castleNumber)
     }
 
 }

@@ -1,9 +1,11 @@
-const _ = require('lodash')
+const _ = require('lodash'),
+    redisClient = require('../../common/redis-client')
+
 module.exports = (io, socket, gameMeta, marketKey) => {
-    const maxTime = 11 ,
-    userId = socket.userInfo.userId
+    const maxTime = 11,
+        userId = socket.userInfo.userId
     let matchMaking, roomId, methods, roomInfo, positions, marblesPosition, currentPlayer, orbs, currentPlayerMarbles,
-        diceAttempts, remainingTime
+        diceAttempts, remainingTime, playerCastleNumber
 
     const getAct = async (msg) => {
         const {act, data} = msg
@@ -22,7 +24,16 @@ module.exports = (io, socket, gameMeta, marketKey) => {
             diceAttempts = await methods.incrProp('diceAttempts', 1)
         else
             diceAttempts = await methods.setProp('diceAttempts', 1)
-        const tossNumber = Math.floor(Math.random() * 6) + 1
+
+        let tossNumber
+
+        if (playerCastleNumber === 2) {
+            const rand = _.random(0, 100)
+            rand < 21 ? tossNumber = 6 : tossNumber = _.random(1, 5)
+        }
+        else
+            tossNumber = _.random(1, 6)
+
         methods.sendGameEvents(20, 'tossNumber', tossNumber)
         await checkRules(tossNumber)
     }
@@ -41,6 +52,7 @@ module.exports = (io, socket, gameMeta, marketKey) => {
         currentPlayerMarbles = marblesPosition[currentPlayer.toString()]
         positions = JSON.parse(roomInfo['positions'])
         orbs = JSON.parse(roomInfo['orbs'])
+        playerCastleNumber = parseInt(JSON.parse(await redisClient.hget(marketKey, userId)).castleNumber)
     }
 
 
@@ -70,7 +82,8 @@ module.exports = (io, socket, gameMeta, marketKey) => {
                 logger.info(JSON.stringify([1, 2, 3, 4]))
             }
             else  /* tossNumber !== 6 */ {
-                if (diceAttempts === 3) {
+                const timeCanRollDice = (playerCastleNumber === 3) ? 4 : 3
+                if (diceAttempts === timeCanRollDice) {
                     await changeTurn()
                 }
                 else methods.sendGameEvents(22, 'canRollDiceAgain', true)
@@ -108,7 +121,7 @@ module.exports = (io, socket, gameMeta, marketKey) => {
                 marblesCantMove = _.union(marblesCantMove, [currentMarbleNumber]);
 
             // checking other marbles in their starting tile conflict
-            if (tileStarts.indexOf(newPosition) !== -1) { // if this current player marble target meet one of the tileStarts
+            if (tileStarts.indexOf(newPosition) !== -1 && (playerCastleNumber !== 4)) { // if this current player marble target meet one of the tileStarts
                 const targetPlayerIndex = tileStarts.indexOf(newPosition)
                 const targetPlayerMarblesPosition = marblesPosition[(targetPlayerIndex + 1).toString()]
                 if (targetPlayerMarblesPosition && targetPlayerMarblesPosition.length) { // kick must include in check
