@@ -112,11 +112,15 @@ module.exports = (dbUrl, market) => {
         await redisClient.hset(usersPath, userId, JSON.stringify(userInfoParse))
     }
 
+    const getRank = async (userId) => {
+        return await lb.rank(userId) + 1
+    }
 
     return {
         getLeaderboard: getLeaderboard,
         addScore: addScore,
         firstTimeScore: firstTimeScore,
-        changeName: changeName
+        changeName: changeName,
+        getRank: getRank
     }
 }

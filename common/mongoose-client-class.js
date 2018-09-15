@@ -9,7 +9,7 @@ const mongooseClientClass = class {
 
     getClient() {
         if (!connections[dbUrl4] && dbUrl4 !== undefined) {
-            connections[dbUrl4] = mongooseClient.createConnection('mongodb://localhost/' + dbUrl4)
+            connections[dbUrl4] = mongooseClient.createConnection('mongodb://localhost/' + dbUrl4, { useNewUrlParser: true })
 
             connections[dbUrl4].on('error', console.error.bind(console, 'connection error:'))
             // const dbUrl2 = this.dbUrl

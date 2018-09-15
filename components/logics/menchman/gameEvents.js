@@ -5,7 +5,7 @@ module.exports = (io, socket, gameMeta, marketKey) => {
     const maxTime = 11,
         userId = socket.userInfo.userId
     let matchMaking, roomId, methods, roomInfo, positions, marblesPosition, currentPlayer, orbs, currentPlayerMarbles,
-        diceAttempts, remainingTime, playerCastleNumber
+        diceAttempts, remainingTime, playerCastleNumber, hits, beats
 
     const getAct = async (msg) => {
         const {act, data} = msg
@@ -15,6 +15,8 @@ module.exports = (io, socket, gameMeta, marketKey) => {
             await move(data.marbleNumber)
         if (act === 'chat')
             chat(data.msg)
+        if (act === 'profile')
+            await profile()
     }
 
     const rollDice = async () => {
@@ -52,7 +54,9 @@ module.exports = (io, socket, gameMeta, marketKey) => {
         currentPlayerMarbles = marblesPosition[currentPlayer.toString()]
         positions = JSON.parse(roomInfo['positions'])
         orbs = JSON.parse(roomInfo['orbs'])
-        playerCastleNumber = parseInt(JSON.parse(await redisClient.hget(marketKey, userId)).castleNumber)
+        hits = JSON.parse(roomInfo['hits'])
+        beats = JSON.parse(roomInfo['beats'])
+        playerCastleNumber = parseInt(await methods.getUserData()).castleNumber
     }
 
 
@@ -248,10 +252,17 @@ module.exports = (io, socket, gameMeta, marketKey) => {
         logger.info('marblesMeeting.marble: ' + marblesMeeting.marble)
         await methods.setProp('marblesPosition', JSON.stringify(newMarblesPosition))
         methods.sendGameEvents(23, 'marblesPosition', newMarblesPosition)
+        await increaseHitAndBeat(currentPlayer, marblesMeeting.player)
         if (tossNumber === 6)
             methods.sendGameEvents(22, 'canRollDiceAgain', true)
         if (tossNumber !== 6)
             await changeTurn()
+    }
+
+    const increaseHitAndBeat = async (hitter, beaten) => {
+        hits[hitter - 1] += 1
+        beats[beaten - 1] += 1
+        await methods.setMultipleProps(['hits', JSON.stringify(hits), 'beats', JSON.stringify(beats)])
     }
 
     const findUserId = (nextPlayer) => {
@@ -281,6 +292,31 @@ module.exports = (io, socket, gameMeta, marketKey) => {
 
     const chat = (msg) => {
         methods.broadcast(socket, msg)
+    }
+
+    const profile = async () => {
+        await getInitialProperties()
+        let stats = []
+        for (let i in positions) {
+            const pos = positions[i]
+            const leaderboardData = await methods.getleaderboardData(pos.userId)
+            const userDataParsed = await methods.getUserData()
+            const castleNumber = userDataParsed.castleNumber ? parseInt(userDataParsed.castleNumber) : 1
+            const record = parseInt(userDataParsed.record)
+            const hit = hits[i]
+            const beat = beats[i]
+            stats.push({
+                leaderboardRank: leaderboardData.rank,
+                name: pos.name,
+                player: pos.player,
+                victoryRate: leaderboardData.victoryRate,
+                record: record,
+                castleNumber: castleNumber,
+                hit: hit,
+                beat: beat
+            })
+        }
+        await methods.sendEventToSpecificSocket(userId, 25, 'profile', stats)
     }
 
     return ({

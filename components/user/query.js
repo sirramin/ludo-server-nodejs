@@ -33,7 +33,7 @@ module.exports = (dbUrl) => {
     }
 
     const updateScoreInMongo = async (userId, win, lose, score) => {
-        await userModel.update({_id: userId},
+        await userModel.updateOne({_id: userId},
             {
                 $set: {
                     win: win,

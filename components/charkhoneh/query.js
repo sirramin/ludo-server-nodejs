@@ -36,13 +36,13 @@ module.exports = (dbUrl) => {
     }
 
     const findUserAndCancel = (phoneNumber) => {
-        return userModel.update({phoneNumber: phoneNumber}, {
+        return userModel.updateOne({phoneNumber: phoneNumber}, {
             $set: {charkhonehCancelled: true}
         })
     }
 
     const updateVerifyCode = async (phoneNumber, verificationCode) => {
-        return await userModel.update({phoneNumber: phoneNumber}, {
+        return await userModel.updateOne({phoneNumber: phoneNumber}, {
             phoneNumber: phoneNumber,
             verificationCode: verificationCode
         })
@@ -54,13 +54,13 @@ module.exports = (dbUrl) => {
     }
 
     const updateUser = async (phoneNumber) => {
-        return await userModel.update({phoneNumber: phoneNumber}, {
+        return await userModel.updateOne({phoneNumber: phoneNumber}, {
             $set: {charkhonehCancelled: false}
         })
     }
 
     const cancelChakhoneh = async (phoneNumber) => {
-        return await userModel.update({phoneNumber: phoneNumber}, {
+        return await userModel.updateOne({phoneNumber: phoneNumber}, {
             $set: {charkhonehCancelled: true}
         })
     }

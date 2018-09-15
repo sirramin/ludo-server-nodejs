@@ -7,7 +7,7 @@ module.exports = (dbUrl) => {
         const userModel = require('../user/model')(dbUrl)
         schedule.scheduleJob('0 59 23 * * *', function () {
             logger.log('Coin schedule exceuted at ' + Date());
-            userModel.update({
+            userModel.updateMany({
                     market: 'mtn',
                     charkhonehCancelled: false,
                     charkhonehHistory: {$ne: []},

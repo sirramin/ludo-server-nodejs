@@ -62,7 +62,7 @@ const userQueryClass = class {
     }
 
     async updateScoreInMongo(userId, win, lose, score) {
-        await this.userModel.update({_id: userId},
+        await this.userModel.updateOne({_id: userId},
             {
                 $set: {
                     win: win,

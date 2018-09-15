@@ -29,7 +29,7 @@ module.exports = (io, gameMeta, roomId, marketKey) => {
             code: 85,
             event: 'chat',
             data: msg
-        });
+        })
     }
 
     const setProp = async (field, value) => {
@@ -46,8 +46,8 @@ module.exports = (io, gameMeta, roomId, marketKey) => {
     }
 
     const incrProp = async (field, number) => {
-        if(field === 'remainingTime' && number)
-        return await redisClient.HINCRBY(roomPrefix, field, number)
+        if (field === 'remainingTime' && number)
+            return await redisClient.HINCRBY(roomPrefix, field, number)
     }
 
     const getAllProps = async () => {
@@ -122,6 +122,21 @@ module.exports = (io, gameMeta, roomId, marketKey) => {
         await leaderboardService.addScore(userDataParsed.name, userId, leagueId, isWinner)
     }
 
+    const getleaderboardData = async (userId) => {
+        const rank = await leaderboardService.getRank(userId)
+        const win = parseInt(userDataParsed.win)
+        const lose = parseInt(userDataParsed.lose)
+        const victoryRate = (win / (win + lose)) * 100
+        return {
+            rank: rank,
+            victoryRate: victoryRate
+        }
+    }
+
+    const getUserData = async (userId) => {
+        return JSON.parse(await redisClient.hget(marketKey, userId)
+    }
+
     return {
         sendGameEvents: sendGameEvents,
         sendEventToSpecificSocket: sendEventToSpecificSocket,
@@ -134,6 +149,8 @@ module.exports = (io, gameMeta, roomId, marketKey) => {
         makeRemainingPlayerWinner: makeRemainingPlayerWinner,
         broadcast: broadcast,
         addToLeaderboard: addToLeaderboard,
-        deleteRoom: deleteRoom
+        deleteRoom: deleteRoom,
+        getleaderboardData: getleaderboardData,
+        getUserData: getUserData,
     }
 }

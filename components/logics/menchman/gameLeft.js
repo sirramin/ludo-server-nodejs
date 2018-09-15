@@ -2,12 +2,13 @@ const _ = require('lodash')
 module.exports = (io, userId, gameMeta, marketKey, roomId) => {
     const maxTime = 11,
         methods = require('../../realtime/methods')(io, gameMeta, roomId, marketKey)
-    let roomInfo, positions, currentPlayer, thisPlayerNumber, thisPlayerIndex, marblesPosition, orbs
+    let roomInfo, positions, currentPlayer, thisPlayerNumber, thisPlayerIndex, marblesPosition, orbs, hits
 
     const handleLeft = async () => {
         await getInitialProperties()
         await affectRoomInRedis()
         logger.info(' positions.length: ' + positions.length)
+        await registerRecord()
         if (await isLeftPlayerTurn() && positions.length > 1) {
             logger.info('------changeTurn 1 -----------')
             await changeTurn()
@@ -39,6 +40,7 @@ module.exports = (io, userId, gameMeta, marketKey, roomId) => {
         thisPlayerIndex = thisPlayerNumber - 1
         marblesPosition = JSON.parse(roomInfo['marblesPosition'])
         orbs = JSON.parse(roomInfo['orbs'])
+        hits = JSON.parse(roomInfo['hits'])
     }
 
     const findThisPlayerNumber = () => {
@@ -74,6 +76,15 @@ module.exports = (io, userId, gameMeta, marketKey, roomId) => {
             return o.player === nextPlayer
         })
         return userObj.userId
+    }
+
+    const registerRecord = async () => {
+        const lastRecord = await methods.getProp('record')
+        const thisPlayerHit = hits[thisPlayerIndex]
+        if (lastRecord && thisPlayerHit <= lastRecord)
+            return
+        else if(thisPlayerHit > 0)
+            return await methods.setProp('record', thisPlayerHit)
     }
 
     return ({

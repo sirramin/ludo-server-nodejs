@@ -6,9 +6,13 @@ module.exports = (roomId, players, roomPlayersWithNames, methods) => {
     let marblesPosition = {}
     let orbs = {}
     let currentPlayer
+    let hits = []
+    let beats = []
 
     for (let i = 1; i <= numberOfplayers; i++) {
         orbs['player' + i] = 3
+        hits[i-1] = 0
+        beats[i-1] = 0
     }
 
     const sendPositions = async () => {
@@ -21,7 +25,7 @@ module.exports = (roomId, players, roomPlayersWithNames, methods) => {
             methods.sendEventToSpecificSocket(item, 202, 'yourPlayerNumber', playerNumber)
         })
         positions = roomPlayersWithNames
-        await methods.setMultipleProps(...['positions', JSON.stringify(positions), 'marblesPosition', JSON.stringify(marblesPosition), 'orbs', JSON.stringify(orbs)])
+        await methods.setMultipleProps(...['positions', JSON.stringify(positions), 'marblesPosition', JSON.stringify(marblesPosition), 'orbs', JSON.stringify(orbs), 'hits', JSON.stringify(hits), 'beats', JSON.stringify(beats)])
         methods.sendGameEvents(101, 'positions', positions)
         await firstTurn()
     }
@@ -47,7 +51,7 @@ module.exports = (roomId, players, roomPlayersWithNames, methods) => {
                 clearInterval(timerInterval)
                 methods.deleteRoom(roomId)
             }
-            logger.info('roomId: '+ roomId + ' remainingTime: ' + remainingTime)
+            // logger.info('roomId: '+ roomId + ' remainingTime: ' + remainingTime)
             if (remainingTime === 0) {
                 await getInitialProperties()
                 // if (positions.length === 1) clearInterval(timerInterval)
