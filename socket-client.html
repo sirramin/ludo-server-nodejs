@@ -13,6 +13,7 @@
     <option value="">--</option>
 </select>
 <button id="leftRoom">leftRoom</button>
+<button id="profile">profile</button>
 <!--<script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>-->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.1/socket.io.js"></script>
 <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
@@ -60,10 +61,12 @@
             $('#leftRoom').click(() => {
                 socket.emit('leftRoom', 1)
             })
-            //
-            // $('#open').click(()=>{
-            //     socket.open()
-            // })
+
+            $('#profile').click(() => {
+                socket.emit('event', JSON.stringify({
+                    act: 'profile'
+                }))
+            })
 
             $('#rollDice').on('click', () => {
                 $('#move').html('<option value="">--</option>')
@@ -90,6 +93,10 @@
             socket.on('matchEvent', function (data) {
                 $('#messages').append($('<li>').text(data.event + JSON.stringify(data.data)))
             })
+
+            // socket.on('profile', function (data) {
+            //     $('#messages').append($('<li>').text(data.event + JSON.stringify(data.data)))
+            // })
 
 
             var yourTrun = false

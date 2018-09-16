@@ -1,5 +1,4 @@
-const _ = require('lodash'),
-    redisClient = require('../../common/redis-client')
+const _ = require('lodash')
 
 module.exports = (io, socket, gameMeta, marketKey) => {
     const maxTime = 11,
@@ -56,7 +55,7 @@ module.exports = (io, socket, gameMeta, marketKey) => {
         orbs = JSON.parse(roomInfo['orbs'])
         hits = JSON.parse(roomInfo['hits'])
         beats = JSON.parse(roomInfo['beats'])
-        playerCastleNumber = parseInt(await methods.getUserData()).castleNumber
+        playerCastleNumber = parseInt(await methods.getUserData(userId)).castleNumber
     }
 
 
@@ -274,7 +273,6 @@ module.exports = (io, socket, gameMeta, marketKey) => {
 
     const changeTurn = async () => {
         await methods.setProp('remainingTime', maxTime)
-        logger.info('------ max time -----')
         await methods.setProp('diceAttempts', 0)
         const numberOfplayers = positions.length
         const nextPlayer = currentPlayer + 1 > numberOfplayers ? 1 : currentPlayer + 1
@@ -299,17 +297,21 @@ module.exports = (io, socket, gameMeta, marketKey) => {
         let stats = []
         for (let i in positions) {
             const pos = positions[i]
-            const leaderboardData = await methods.getleaderboardData(pos.userId)
-            const userDataParsed = await methods.getUserData()
+            const leaderboardData = await methods.getleaderboardRank(pos.userId)
+            logger.info('pos.userId: ' + pos.userId)
+            const userDataParsed = await methods.getUserData(pos.userId)
             const castleNumber = userDataParsed.castleNumber ? parseInt(userDataParsed.castleNumber) : 1
-            const record = parseInt(userDataParsed.record)
+            const record = userDataParsed.record ? parseInt(userDataParsed.record) : 0
             const hit = hits[i]
             const beat = beats[i]
+            const win = parseInt(userDataParsed.win)
+            const lose = parseInt(userDataParsed.lose)
+            const victoryRate = (win / (win + lose)) * 100
             stats.push({
                 leaderboardRank: leaderboardData.rank,
                 name: pos.name,
                 player: pos.player,
-                victoryRate: leaderboardData.victoryRate,
+                victoryRate: (win + lose >= 5) ? victoryRate : 'less than 5',
                 record: record,
                 castleNumber: castleNumber,
                 hit: hit,

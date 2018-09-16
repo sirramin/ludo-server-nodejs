@@ -28,7 +28,7 @@ module.exports = (io) => {
             const monitor = require('socket.io-monitor')
             const {emitter} = monitor.bind(io, {server: false})
             emitter.getState()
-            emitter.on('join', ({id, rooms}) => console.log('socket %s joins rooms %s', id, rooms))
+            emitter.on('join', ({id, rooms}) => logger.info('socket %s joins rooms %s', id, rooms))
 
             logger.info(socket.id)
             const gameMeta = await gameIdentifier.getGameMeta(socket.userInfo.dbUrl)

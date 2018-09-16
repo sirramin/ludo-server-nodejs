@@ -73,7 +73,6 @@ module.exports = (roomId, players, roomPlayersWithNames, methods) => {
 
     const changeTurn = async () => {
         await methods.setProp('remainingTime', maxTime)
-        logger.info('------ max time -----')
         await methods.setProp('diceAttempts', 0)
         currentPlayer = await methods.getProp('currentPlayer')
         const previousPlayer = currentPlayer

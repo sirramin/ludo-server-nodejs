@@ -122,19 +122,14 @@ module.exports = (io, gameMeta, roomId, marketKey) => {
         await leaderboardService.addScore(userDataParsed.name, userId, leagueId, isWinner)
     }
 
-    const getleaderboardData = async (userId) => {
-        const rank = await leaderboardService.getRank(userId)
-        const win = parseInt(userDataParsed.win)
-        const lose = parseInt(userDataParsed.lose)
-        const victoryRate = (win / (win + lose)) * 100
-        return {
-            rank: rank,
-            victoryRate: victoryRate
-        }
+    const getleaderboardRank = async (userId) => {
+        return await leaderboardService.getRank(userId)
     }
 
     const getUserData = async (userId) => {
-        return JSON.parse(await redisClient.hget(marketKey, userId)
+        logger.info(marketKey)
+        logger.info(userId)
+        return JSON.parse(await redisClient.HGET(marketKey, userId))
     }
 
     return {
@@ -150,7 +145,7 @@ module.exports = (io, gameMeta, roomId, marketKey) => {
         broadcast: broadcast,
         addToLeaderboard: addToLeaderboard,
         deleteRoom: deleteRoom,
-        getleaderboardData: getleaderboardData,
-        getUserData: getUserData,
+        getleaderboardRank: getleaderboardRank,
+        getUserData: getUserData
     }
 }
