@@ -1,7 +1,8 @@
 const _ = require('lodash'),
     queryClass = require('./query-class'),
     userQueryClass = require('../../user/class/query-class'),
-    redisClient = require('../../../common/redis-client')
+    redisClient = require('../../../common/redis-client'),
+    gameIdentifier = require('../../../common/gameIdentifier')
 
 const gameDataServiceClass = class {
 
@@ -39,13 +40,34 @@ const gameDataServiceClass = class {
     }
 
     async selectCastle(userId, castleNumber, market) {
-        const marketName = (socket.userInfo.market === 'mtn' || socket.userInfo.market === 'mci') ? socket.userInfo.market : 'market',
+        const marketName = (market === 'mtn' || market === 'mci') ? market : 'market',
             marketKey = 'menchman:users:' + marketName
 
         const userInfoParsed = JSON.parse(await redisClient.hget(marketKey, userId))
         userInfoParsed.castleNumber = castleNumber
         await redisClient.hset('menchman:users:' + market, userId, JSON.stringify(userInfoParsed))
         return await this.query.updateSelectedCastle(userId, castleNumber)
+    }
+
+    async updateLevels(level, userId) {
+        const gameMeta = await gameIdentifier.getGameMeta(this.dbUrl)
+        const userData = await this.query.getUserData(userId)
+        let updateQuery
+        if (level === 'capacity') {
+            if (userData.capacityLevel >= gameMeta.capacityMaxLevel)
+                throw({message: 'Bigger than max level', code: 3})
+
+            updateQuery = {$inc: {capacityLevel: 1}}
+        }
+
+        if (level === 'cph') {
+            if (userData.cphLevel >= gameMeta.cphMaxLevel)
+                throw({message: 'Bigger than max level', code: 3})
+
+            updateQuery = {$inc: {cphLevel: 1}}
+        }
+
+        return await this.query.updateLevels(userId, updateQuery)
     }
 
 }

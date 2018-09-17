@@ -11,7 +11,7 @@ const userGameDataModelClass = class {
         this.userGameDataSchema = this.mongooseClient.Schema({
             userId: {type: this.ObjectId},
             unlockedCastles: {type: [Number], default: [1]},
-            mineLevel: {type: Number, default: 1},
+            cphLevel: {type: Number, default: 1},
             capacityLevel: {type: Number, default: 1},
             capacity: {type: Number, default: 1000},
             coinPerHour: {type: Number, default: 200},

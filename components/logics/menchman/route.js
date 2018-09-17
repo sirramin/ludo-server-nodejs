@@ -66,7 +66,7 @@ module.exports = (io) => {
             response(res, '', 200, {
                 unlockedCastles: userData.unlockedCastles,
                 selectedCastle: userData.selectedCastle,
-                mineLevel: userData.mineLevel,
+                cphLevel: userData.cphLevel,
                 capacityLevel: userData.capacityLevel,
                 capacity: userData.capacity,
                 coinPerHour: userData.coinPerHour,
@@ -81,6 +81,21 @@ module.exports = (io) => {
         catch (err) {
             logger.error(err.message)
             response(res, 'Error getting user game data', 31)
+        }
+    })
+
+    route.post('/menchman/updateLevels', auth, async (req, res, next) => {
+        const {name, userId, dbUrl, market} = req.userInfo
+        if (!req.body.level) {
+            return response(res, 'capacityLevel or cphLevel are required', 1)
+        }
+        try {
+            const serviceObj = new serviceClass(dbUrl)
+            await serviceObj.updateLevels(req.body.level, userId)
+            return response(res, '', 2, 'level increased')
+        }
+        catch (e) {
+            response(res, e.message, e.code)
         }
     })
 

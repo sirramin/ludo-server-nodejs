@@ -53,6 +53,10 @@ const userGameDataQueryClass = class {
         const userGameData = await this.userGameDataModel.findOneAndUpdate({userId: userId}, {$set: {selectedCastle: castleNumber}}, {new: true})
         return userGameData.selectedCastle
     }
+
+    async updateLevels(userId, updateQuery) {
+        return await this.userGameDataModel.findOneAndUpdate({userId: userId}, updateQuery, {new: true})
+    }
 }
 
 module.exports = userGameDataQueryClass

@@ -181,6 +181,23 @@ module.exports = () => {
         }
     })
 
+    router.get('/mine/configs', gameIdentifier, async (req, res, next) => {
+        try {
+            const timestamp = Math.round(new Date().getTime() / 1000)
+            const gameMeta = await gameIdentifier.getGameMeta(req.dbUrl)
+            return response(res, '', 2, {
+                timestamp: timestamp,
+                capacityBase: gameMeta.capacityBase,
+                capacityStage: gameMeta.capacityStage,
+                cphBase: gameMeta.cphBase,
+                cphStage: gameMeta.cphStage
+            })
+        }
+        catch (e) {
+            response(res, '', 3)
+        }
+    })
+
 
     return router
 }

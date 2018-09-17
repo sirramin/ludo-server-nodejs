@@ -89,8 +89,6 @@ const userQueryClass = class {
         return userInfo.emailCode
     }
 
-
-
 }
 
 module.exports = userQueryClass

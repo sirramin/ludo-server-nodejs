@@ -59,7 +59,7 @@ const userServiceClass = class {
         const emailCode = _.random(1000, 9999)
         await this.queryClassObj.saveEmailCode(userInfo._id, emailCode)
         try {
-            await this.sendMail(userInfo.email, emailCode)
+            await userServiceClass.sendMail(userInfo.email, emailCode)
             return userInfo._id
         }
         catch (e) {
@@ -67,7 +67,7 @@ const userServiceClass = class {
         }
     }
 
-    async sendMail(email, emailCode) {
+    static async sendMail(email, emailCode) {
         let transporter = nodemailer.createTransport({
             host: 'mail.artagamestudio.com',
             port: 587,
@@ -121,6 +121,8 @@ const userServiceClass = class {
             throw({message: 'problem updating user', code: 3})
         }
     }
+
+
 
 }
 
