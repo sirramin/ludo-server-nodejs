@@ -198,6 +198,13 @@ module.exports = () => {
         }
     })
 
+    router.get('/timestamp', async (req, res, next) => {
+        const timestamp = Math.round(new Date().getTime() / 1000)
+        return response(res, '', 1, {
+            timestamp: timestamp
+        })
+    })
+
 
     return router
 }
