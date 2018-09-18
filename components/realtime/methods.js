@@ -127,8 +127,6 @@ module.exports = (io, gameMeta, roomId, marketKey) => {
     }
 
     const getUserData = async (userId) => {
-        logger.info(marketKey)
-        logger.info(userId)
         return JSON.parse(await redisClient.HGET(marketKey, userId))
     }
 

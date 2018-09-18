@@ -1,7 +1,7 @@
 const _ = require('lodash')
 module.exports = (roomId, players, roomPlayersWithNames, methods) => {
     const numberOfplayers = players.length
-    const maxTime = 11
+    const maxTime = 110
     let positions = []
     let marblesPosition = {}
     let orbs = {}

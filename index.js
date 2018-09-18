@@ -12,7 +12,7 @@ global.logger = require('./common/logger')
 global.redisClient = null
 global.redisClientAsync = null
 // require('./common/memwatch')
-// require('./common/reset-handler')
+require('./common/reset-handler')(io)
 // app.setMaxListeners(0)
 app.use(cors())
 app.use(morgan('combined'))

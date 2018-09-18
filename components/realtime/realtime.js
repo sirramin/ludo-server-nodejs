@@ -30,7 +30,7 @@ module.exports = (io) => {
             emitter.getState()
             emitter.on('join', ({id, rooms}) => logger.info('socket %s joins rooms %s', id, rooms))
 
-            logger.info(socket.id)
+            logger.info('socket.id connected:' + socket.id)
             const gameMeta = await gameIdentifier.getGameMeta(socket.userInfo.dbUrl)
             const matchMaking = require('./matchMaking')(io, socket, gameMeta)
             //must merge
