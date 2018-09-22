@@ -52,6 +52,7 @@
 
                 if (!localStorage.userId)
                     localStorage.setItem("userId", res.data.userId)
+                localStorage.setItem("UserGameData", JSON.stringify(res.data))
             }
             const socket = io(target, {transports: ['websocket'], query: {token: token}})
             $('#joinRoom').click(() => {

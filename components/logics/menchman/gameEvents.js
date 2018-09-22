@@ -48,6 +48,7 @@ module.exports = (io, socket, gameMeta, marketKey) => {
         if (!marketKey) marketKey = JSON.parse(roomInfo['info']).marketKey
         currentPlayer = parseInt(roomInfo['currentPlayer'])
         diceAttempts = parseInt(roomInfo['diceAttempts'])
+        logger.info('diceAttempts1: ' + diceAttempts)
         remainingTime = parseInt(roomInfo['remainingTime'])
         marblesPosition = JSON.parse(roomInfo['marblesPosition'])
         currentPlayerMarbles = marblesPosition[currentPlayer.toString()]
@@ -86,6 +87,8 @@ module.exports = (io, socket, gameMeta, marketKey) => {
             }
             else  /* tossNumber !== 6 */ {
                 const timeCanRollDice = (playerCastleNumber === 3) ? 4 : 3
+                // diceAttempts = parseInt(await methods.getProp('diceAttempts'))
+                logger.info('diceAttempts2: ' + diceAttempts)
                 if (diceAttempts === timeCanRollDice) {
                     await changeTurn()
                 }

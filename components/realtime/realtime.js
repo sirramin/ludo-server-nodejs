@@ -24,17 +24,16 @@ module.exports = (io) => {
             }
         })
         .on('connection', async (socket) => {
-
             const monitor = require('socket.io-monitor')
             const {emitter} = monitor.bind(io, {server: false})
             emitter.getState()
-            emitter.on('join', ({id, rooms}) => logger.info('socket %s joins rooms %s', id, rooms))
+            emitter.on('join', ({id, rooms}) => logger.info('socket id: ' + id +  ' joins room: ' + rooms))
 
             logger.info('socket.id connected:' + socket.id)
             const gameMeta = await gameIdentifier.getGameMeta(socket.userInfo.dbUrl)
             const matchMaking = require('./matchMaking')(io, socket, gameMeta)
             //must merge
-            const isConnectedBefore = await checkIsConnectedBefore(socket.userInfo)
+            const isConnectedBefore = await checkIsConnectedBefore(socket.userInfo, gameMeta)
             if (isConnectedBefore) {
                 await matchMaking.changeSocketIdAndSocketRoom()
                 // const hasRoomBefore = await checkHasRoomBefore(socket.userInfo)
@@ -63,19 +62,20 @@ module.exports = (io) => {
         })
 
 
-    const checkIsConnectedBefore = async (userInfo) => {
+    const checkIsConnectedBefore = async (userInfo, gameMeta) => {
         const userDataParsed = await getUserInfoFromRedis(userInfo)
-        if (userDataParsed && userDataParsed.hasOwnProperty('dc'))
+        const userRoom = await getUserRoomFromRedis(userInfo, gameMeta)
+        if (userDataParsed && userDataParsed.hasOwnProperty('dc') || userRoom)
             return userDataParsed.socketId
         else return false
     }
 
-    const checkHasRoomBefore = async (userInfo) => {
-        const userDataParsed = await getUserInfoFromRedis(userInfo)
-        if (userDataParsed && userDataParsed.hasOwnProperty('roomId'))
-            return userDataParsed.roomId
-        else return false
-    }
+    // const checkHasRoomBefore = async (userInfo) => {
+    //     const userDataParsed = await getUserInfoFromRedis(userInfo)
+    //     if (userDataParsed && userDataParsed.hasOwnProperty('roomId'))
+    //         return userDataParsed.roomId
+    //     else return false
+    // }
 
     const addSocketIdToRedis = async (userInfo, socketId) => {
         const marketKey = getMarketKey(userInfo)
@@ -89,6 +89,13 @@ module.exports = (io) => {
         const userData = await redisClient.hget(marketKey, userInfo.userId),
             userDataParsed = JSON.parse(userData)
         return (userDataParsed)
+    }
+
+    const getUserRoomFromRedis = async (userInfo, gameMeta) => {
+        const marketName = (userInfo.market === 'mtn' || userInfo.market === 'mci') ? userInfo.market : 'market',
+        userRoomPrefix = gameMeta.name + ':user_room:' + marketName
+        const userRoom = await redisClient.hget(userRoomPrefix, userInfo.userId)
+        return userRoom
     }
 
     const getMarketKey = (userInfo) => {

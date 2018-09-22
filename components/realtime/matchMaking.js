@@ -3,10 +3,11 @@ const redisClient = require('../../common/redis-client'),
 
 module.exports = (io, socket, gameMeta) => {
     const userId = socket.userInfo.userId,
+        marketName = (socket.userInfo.market === 'mtn' || socket.userInfo.market === 'mci') ? socket.userInfo.market : 'market',
+        marketKey = gameMeta.name + ':users:' + marketName,
         roomsListPrefix = gameMeta.name + ':rooms:roomsList',
         roomsPrefix = gameMeta.name + ':rooms:',
-        marketName = (socket.userInfo.market === 'mtn' || socket.userInfo.market === 'mci') ? socket.userInfo.market : 'market',
-        marketKey = gameMeta.name + ':users:' + marketName
+        userRoomPrefix = gameMeta.name + ':user_room:' + marketName
 
     const findAvailableRooms = async (leagueId) => {
         leagueId = leagueId ? leagueId : 1
@@ -31,13 +32,7 @@ module.exports = (io, socket, gameMeta) => {
     }
 
     const findUserCurrentRoom = async () => {
-        const userData = await redisClient.hget(marketKey, userId)
-        if (userData) {
-            const userDataParsed = JSON.parse(userData)
-            return userDataParsed.hasOwnProperty('roomId') ? userDataParsed.roomId : null
-        }
-        else
-            return userData
+        return await redisClient.hget(userRoomPrefix, userId)
     }
 
     const asyncLoop = async (i, leagueId) => {
@@ -116,15 +111,24 @@ module.exports = (io, socket, gameMeta) => {
         }, gameMeta.waitingTime)
     }
 
+    // const updateUserRoom_old = async (roomId, anyUserId) => {
+    //     const user_id = anyUserId ? anyUserId : userId
+    //     const userData = await redisClient.HGET(marketKey, user_id)
+    //     const userDataParsed = JSON.parse(userData)
+    //     if (!userDataParsed.roomId)
+    //         userDataParsed.roomId = roomId
+    //     else
+    //         delete userDataParsed.roomId
+    //     await redisClient.hset(marketKey, userDataParsed.userId, JSON.stringify(userDataParsed))
+    // }
+
     const updateUserRoom = async (roomId, anyUserId) => {
         const user_id = anyUserId ? anyUserId : userId
-        const userData = await redisClient.HGET(marketKey, user_id)
-        const userDataParsed = JSON.parse(userData)
-        if (!userDataParsed.roomId)
-            userDataParsed.roomId = roomId
-        else
-            delete userDataParsed.roomId
-        await redisClient.hset(marketKey, userDataParsed.userId, JSON.stringify(userDataParsed))
+        return await redisClient.hset(userRoomPrefix, user_id, roomId)
+    }
+
+    const deleteUserRoom = async (userId) => {
+        return await redisClient.HDEL(userRoomPrefix, userId)
     }
 
     const roomWaitingTimeOver = async (roomId) => {
@@ -186,7 +190,8 @@ module.exports = (io, socket, gameMeta) => {
 
     const asyncLoopRemovePlayersRoomInRedis = async (roomPlayersArray, roomId) => {
         for (let i = 0; i < roomPlayersArray.length; i++) {
-            await updateUserRoom(roomId, roomPlayersArray[i])
+            await deleteUserRoom(roomPlayersArray[i])
+            // await updateUserRoom('', roomPlayersArray[i])
         }
     }
 
@@ -205,7 +210,7 @@ module.exports = (io, socket, gameMeta) => {
                         await destroyRoom(userCurrentRoom)
                     }
                     else if (currentPlayersParsed && currentPlayersParsed.length > 1) {
-                        await updateUserRoom(userCurrentRoom)
+                        await deleteUserRoom(userId)
                         currentPlayersParsed.splice(currentPlayersParsed.indexOf(userId), 1)
                         await redisClient.HSET(roomsPrefix + userCurrentRoom, 'players', JSON.stringify(currentPlayersParsed))
                         await redisClient.ZINCRBY(roomsListPrefix, -1, userCurrentRoom)
@@ -237,7 +242,7 @@ module.exports = (io, socket, gameMeta) => {
                 await destroyRoom(userCurrentRoom)
             }
             else if (currentPlayersParsed && currentPlayersParsed.length > 1) {
-                await updateUserRoom(userCurrentRoom)
+                await deleteUserRoom(userId)
                 currentPlayersParsed.splice(currentPlayersParsed.indexOf(userId), 1)
                 await redisClient.HSET(roomsPrefix + userCurrentRoom, 'players', JSON.stringify(currentPlayersParsed))
                 await redisClient.ZINCRBY(roomsListPrefix, -1, userCurrentRoom)

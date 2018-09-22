@@ -12,7 +12,6 @@ global.logger = require('./common/logger')
 global.redisClient = null
 global.redisClientAsync = null
 // require('./common/memwatch')
-require('./common/reset-handler')(io)
 // app.setMaxListeners(0)
 app.use(cors())
 app.use(morgan('combined'))
@@ -23,4 +22,10 @@ app.use(bodyParser.json())
 app.use('/', require('./common/mainRouter')(io))
 require('./components/realtime/realtime')(io)
 const port = 3000
-http.listen(port, () => logger.info('Server running at http://127.0.0.1:'+ port + '. Process PID: ' + process.pid))
+http.listen(port, () => {
+    logger.info('Server running at http://127.0.0.1:' + port + '. Process PID: ' + process.pid)
+    const resetHandler = require('./common/reset-handler')(io)
+    setTimeout(() => {
+        resetHandler.findOpenGames()
+    }, 3000)
+})

@@ -6,14 +6,14 @@ let marblesPosition = {}
 let orbs = {}
 let currentPlayer
 
-module.exports.handler = (roomId, methods) => {
-    sendFirstTurn(methods)
+module.exports.handler = async (roomId, methods) => {
+    await sendCurrentTurn(methods)
     timerCounter(roomId, methods)
 }
 
-const sendcurrentTurn = (methods) => {
-    getInitialProperties(methods)
-    methods.sendEventToSpecificSocket()
+const sendCurrentTurn = async (methods) => {
+    await getInitialProperties(methods)
+    await methods.sendEventToSpecificSocket(findUserId(), 201, 'yourTurnAfterRestart', 1)
 }
 
 const timerCounter = (roomId, methods) => {
