@@ -53,6 +53,7 @@ module.exports = () => {
      * @apiError (Errors) 4 Code is not valid
      */
     router.post('/verifySmsCode', gameIdentifier, async (req, res) => {
+        logger.info(req.body)
         const service = require('./service')(req.dbUrl)
         if (!req.body.phoneNumber) {
             return service.response(res, "phoneNumber required", 1)

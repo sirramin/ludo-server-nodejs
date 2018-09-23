@@ -1,6 +1,6 @@
 const _ = require('lodash')
 
-const maxTime = 11
+const maxTime = 110
 let positions = []
 let marblesPosition = {}
 let orbs = {}

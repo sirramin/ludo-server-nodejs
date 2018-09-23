@@ -1,6 +1,6 @@
 const _ = require('lodash')
 module.exports = (io, userId, gameMeta, marketKey, roomId) => {
-    const maxTime = 11,
+    const maxTime = 110,
         methods = require('../../realtime/methods')(io, gameMeta, roomId, marketKey)
     let roomInfo, positions, currentPlayer, thisPlayerNumber, thisPlayerIndex, marblesPosition, orbs, hits
 
