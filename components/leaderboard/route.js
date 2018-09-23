@@ -51,7 +51,7 @@ module.exports = () => {
      *
      * @apiError (Errors) 31 Error getting leaderboard
      */
-    router.get('/operator', auth, async (req, res) => {
+    router.get('/:operator', auth, async (req, res) => {
         const {name, userId, dbUrl, market} = req.userInfo
         const serviceObj = new serviceClass(dbUrl, market)
         try {
