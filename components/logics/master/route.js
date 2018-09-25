@@ -2,9 +2,9 @@ const route = require('express').Router(),
     response = require('../../../common/response'),
     auth = require('../../../common/authMiddleware'),
     userGameDataQueryClass = require('./query-class'),
-    userGameDataQueryObj = new userGameDataQueryClass('menchman'),
+    userGameDataQueryObj = new userGameDataQueryClass('master-of-minds'),
     serviceClass = require('./service-class'),
-    serviceClassObj = new serviceClass('menchman')
+    serviceClassObj = new serviceClass('master-of-minds')
 
 
 module.exports = (io) => {
@@ -28,7 +28,7 @@ module.exports = (io) => {
     //     const gameStart = require('./gameEvents')(roomId, players, methods)
     // })
 
-    route.post('/menchman/buyCastle', auth, async (req, res, next) => {
+    route.post('/master/buyCastle', auth, async (req, res, next) => {
         if (!req.body.castleNumber) {
             return response(res, "castleNumber required", 1)
         }
@@ -43,7 +43,7 @@ module.exports = (io) => {
         }
     })
 
-    route.post('/menchman/selectCastle', auth, async (req, res, next) => {
+    route.post('/master/selectCastle', auth, async (req, res, next) => {
         if (!req.body.castleNumber) {
             return response(res, "castleNumber required", 1)
         }
@@ -58,7 +58,7 @@ module.exports = (io) => {
         }
     })
 
-    route.get('/menchman/getUserGameData', auth, async (req, res, next) => {
+    route.get('/master/getUserGameData', auth, async (req, res, next) => {
         const {name, userId, dbUrl, market} = req.userInfo
         try {
             const userData = await userGameDataQueryObj.getUserData(userId)
@@ -84,7 +84,7 @@ module.exports = (io) => {
         }
     })
 
-    route.post('/menchman/updateLevels', auth, async (req, res, next) => {
+    route.post('/master/updateLevels', auth, async (req, res, next) => {
         const {name, userId, dbUrl, market} = req.userInfo
         if (!req.body.level) {
             return response(res, 'capacityLevel or cphLevel are required', 1)

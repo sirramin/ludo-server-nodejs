@@ -8,17 +8,13 @@ module.exports = (io, socket, gameMeta, marketKey) => {
 
     const getAct = async (msg) => {
         const {act, data} = msg
-        if (act === 'rollDice')
-            await rollDice()
-        if (act === 'move')
-            await move(data.marbleNumber)
+        if (act === 'arrange')
+            await arrange()
         if (act === 'chat')
             chat(data.msg)
-        if (act === 'profile')
-            await profile()
     }
 
-    const rollDice = async () => {
+    const arrange = async () => {
         await getInitialProperties()
         // await methods.setProp('remainingTime', maxTime)
         if (diceAttempts)

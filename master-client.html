@@ -32,7 +32,7 @@
                         market: 'cafeBazaar'
                     },
                     headers: {
-                        gameid: '5b39d163afff3d2cf7833f6e', //menchman game
+                        gameid: '5b39d183afff3d2cf7833f6f', //master game
                     },
                     dataType: 'json',
                 })
@@ -42,7 +42,7 @@
             else {
                 token = localStorage.token
                 const res = await $.ajax({
-                    url: target + "/logics/menchman/getUserGameData",
+                    url: target + "/logics/master/getUserGameData",
                     type: 'get',
                     headers: {
                         token: localStorage.token
