@@ -204,10 +204,12 @@ module.exports = (io, socket, gameMeta, marketKey) => {
                 methods.sendGameEvents(22, 'canRollDiceAgain', true)
 
             const isGameEnds = checkGameEnds(marblesPosition, newMarblesPosition, newPosition)
-            if (isGameEnds)
+            if (isGameEnds) {
                 methods.sendGameEvents(24, 'gameEnd', {
                     "winner": currentPlayer
                 })
+                await methods.deleteRoom(roomId)
+            }
 
             if (tossNumber !== 6)
                 await changeTurn()

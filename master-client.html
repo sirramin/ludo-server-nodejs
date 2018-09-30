@@ -8,12 +8,16 @@
 <ul id="messages"></ul>
 <button id="connect">connect</button>
 <button id="joinRoom">joinRoom</button>
-<button id="rollDice">rollDice</button>
-<select id="move">
-    <option value="">--</option>
+<select id="move" multiple>
+    <option value="0">purple</option>
+    <option value="1">blue</option>
+    <option value="2">green</option>
+    <option value="3">red</option>
+    <option value="4">yellow</option>
+    <option value="5">silver</option>
 </select>
+<button id="arrange">arrange</button>
 <button id="leftRoom">leftRoom</button>
-<button id="profile">profile</button>
 <!--<script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>-->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.1/socket.io.js"></script>
 <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
@@ -41,18 +45,18 @@
             }
             else {
                 token = localStorage.token
-                const res = await $.ajax({
-                    url: target + "/logics/master/getUserGameData",
-                    type: 'get',
-                    headers: {
-                        token: localStorage.token
-                    },
-                    dataType: 'json',
-                })
+                // const res = await $.ajax({
+                //     url: target + "/logics/master/getUserGameData",
+                //     type: 'get',
+                //     headers: {
+                //         token: localStorage.token
+                //     },
+                //     dataType: 'json',
+                // })
 
-                if (!localStorage.userId)
-                    localStorage.setItem("userId", res.data.userId)
-                localStorage.setItem("UserGameData", JSON.stringify(res.data))
+                // if (!localStorage.userId)
+                //     localStorage.setItem("userId", res.data.userId)
+                // localStorage.setItem("UserGameData", JSON.stringify(res.data))
             }
             const socket = io(target, {transports: ['websocket'], query: {token: token}})
             $('#joinRoom').click(() => {
@@ -63,26 +67,12 @@
                 socket.emit('leftRoom', 1)
             })
 
-            $('#profile').click(() => {
-                socket.emit('event', JSON.stringify({
-                    act: 'profile'
-                }))
-            })
-
-            $('#rollDice').on('click', () => {
-                $('#move').html('<option value="">--</option>')
-                socket.emit('event', JSON.stringify({
-                    act: 'rollDice',
-                    data: {}
-                }))
-            })
-
-            $('select').on('change', function () {
-                if (this.value)
+            $('#arrange').on('click', function () {
+                if ($('select').value)
                     socket.emit('event', JSON.stringify({
-                        act: 'move',
+                        act: 'arrange',
                         data: {
-                            marbleNumber: this.value
+                            combination: $('select').value
                         }
                     }))
             })
@@ -95,82 +85,14 @@
                 $('#messages').append($('<li>').text(data.event + JSON.stringify(data.data)))
             })
 
-            // socket.on('profile', function (data) {
-            //     $('#messages').append($('<li>').text(data.event + JSON.stringify(data.data)))
-            // })
-
-
-            var yourTrun = false
-            var color = 'black'
-
-            const diceClick = () => {
-                setTimeout(function () {
-                    if (yourTrun) {
-                        // $('#rollDice').click()
-                    }
-                }, 2000)
-            }
-
             socket.on('gameEvent', function (data) {
-                if (data.event === 'changeTurn') {
-                    yourTrun = false
-                    color = 'black'
-                    $('#rollDice').hide()
-                    $('#move').hide()
+                if (data.event === 'yourPlayerNumber') {
                     $('#messages').append($('<li>').text(data.event + ' ' + JSON.stringify(data.data)))
-                }
-                else if (data.event === 'yourTurn') {
-                    yourTrun = true
-                    color = 'blue'
-                    $('#rollDice').show()
-                    // diceClick()
-                    $('#messages').append($('<li>').text(data.event).css('color', color))
-                }
-                else if (data.event === 'marblesCanMove' && yourTrun) {
-                    console.log('marblesCanMove')
-                    console.log('yourTrun')
-                    $('#rollDice').hide()
-                    $('#move').show()
-                    $('#messages').append($('<li>').text(data.event + ' ' + data.data).css('color', color))
-                    const marblesArray = data.data
-                    // var selectedNumber = Math.floor(Math.random() * marblesArray.length) + 1;
-
-                    // console.log("my array: ", marblesArray);
-                    // var rand = marblesArray[Math.floor(Math.random() * marblesArray.length)];
-                    // console.log("picked number: ", rand);
-                    // setTimeout(function () {
-                    //     console.log("move!");
-                    //     socket.emit('event', JSON.stringify({
-                    //         act: 'move',
-                    //         data: {
-                    //             marbleNumber: rand
-                    //         }
-                    //     }))
-                    // }, 2000)
-
-                    marblesArray.forEach((item, index) => {
-
-                        $('#move').append('<option value="' + item + '">' + item + '</option>')
-
-                    })
-                }
-                else if (data.event === 'yourPlayerNumber') {
-                    $('#messages').append($('<li>').text(data.event + ' ' + JSON.stringify(data.data)).css('color', color))
                     $('#playerNumber').text(data.data)
                 }
                 else
-                    $('#messages').append($('<li>').text(data.event + ' ' + JSON.stringify(data.data)).css('color', color))
+                    $('#messages').append($('<li>').text(data.event + ' ' + JSON.stringify(data.data)))
 
-
-                if (data.event === 'canRollDiceAgain' && yourTrun) {
-                    $('#rollDice').show()
-                    // diceClick()
-                }
-                if (data.event === 'marblesPosition' && yourTrun) {
-                    console.log('--------' + yourTrun + '----------')
-                    $('#rollDice').show()
-                    // diceClick()
-                }
             })
         })
     })

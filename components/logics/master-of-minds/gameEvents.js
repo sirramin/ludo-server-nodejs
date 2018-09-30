@@ -28,8 +28,7 @@ module.exports = (io, socket, gameMeta, marketKey) => {
         await getInitialProperties()
         const result = await checkCombination(combination)
         methods.sendGameEvents(20, 'result', result)
-        const sd = await checkGameEnds(combination)
-
+        await checkGameEnds(combination)
     }
 
     const checkCombination = async (combination) => {
@@ -51,9 +50,19 @@ module.exports = (io, socket, gameMeta, marketKey) => {
         }
     }
 
+    const checkGameEnds = async () => {
+        const p1Finished = await methods.getProp('player1finished')
+        const p2Finished = await methods.getProp('player1finished')
+        if(p1Finished === 'true' && p2Finished === 'true'){
+            methods.sendGameEvents(24, 'gameEnd', {
+                "winner": currentPlayer
+            })
+            await methods.deleteRoom(roomId)
+        }
+    }
+
     const playerFinished = async () => {
         await methods.setProp('player' + findPlayerNumber() + 'finished', true)
-
     }
 
 
@@ -71,9 +80,7 @@ module.exports = (io, socket, gameMeta, marketKey) => {
     }
 
 
-    const checkGameEnds = (marblesPosition, newMarblesPosition) => {
 
-    }
 
     const findUserId = (nextPlayer) => {
         const userObj = _.find(positions, function (o) {

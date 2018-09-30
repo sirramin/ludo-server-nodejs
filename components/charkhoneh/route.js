@@ -29,6 +29,12 @@ module.exports = () => {
             service.response(res, "phoneNumber required", 1)
         }
         const phoneNumber = req.params.phoneNumber
+
+        const argv = process.argv.slice(2)
+        logger.info('argv: ' + argv)
+        if (argv[0] === 'platform-Master' && !schedulerExecuted)
+            require('./coin-scheduler')(req.dbUrl)
+
         service.checkSubscriptionStatus(phoneNumber)
             .then((userInfo) => {
                 service.response(res, "", 2, userInfo)

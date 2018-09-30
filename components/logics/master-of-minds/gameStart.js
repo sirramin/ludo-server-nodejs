@@ -24,15 +24,15 @@ module.exports = (roomId, players, roomPlayersWithNames, methods) => {
         await methods.setMultipleProps(...['positions', JSON.stringify(positions), 'correctCombination', JSON.stringify(correctCombination)])
         methods.sendGameEvents(101, 'positions', positions)
         methods.sendGameEvents(102, 'correctCombination', correctCombination)
-        async.parallel([
-            timerCounter1(),
+        // async.parallel([
+            timerCounter1()
             timerCounter2()
-        ])
+        // ])
     }
 
     const makeCombination = () => {
         const arr = []
-        while (arr.length === 3) {
+        while (arr.length < 3) {
             const randomIndex = _.random(0, 5)
             const randomColor = colors[randomIndex]
             if (arr.indexOf(randomColor) === -1)
@@ -44,11 +44,11 @@ module.exports = (roomId, players, roomPlayersWithNames, methods) => {
     const timerCounter1 = () => {
         const timerInterval = setInterval(async () => {
             remainingTime1 = await methods.incrProp('remainingTime1', -1)
-            logger.info('roomId: ' + roomId + ' remainingTime: ' + remainingTime1)
-            if (remainingTime1 < -1 && positions.length === 1) {
-                clearInterval(timerInterval)
-                await methods.deleteRoom(roomId)
-            }
+            logger.info('roomId: ' + roomId + ' remainingTime2: ' + remainingTime1)
+            // if (remainingTime1 < -1 && positions.length === 1) {
+            //     clearInterval(timerInterval)
+            //     await methods.deleteRoom(roomId)
+            // }
             if (remainingTime1 === 0) {
                 await addStage()
             }
@@ -58,20 +58,20 @@ module.exports = (roomId, players, roomPlayersWithNames, methods) => {
     const timerCounter2 = () => {
         const timerInterval = setInterval(async () => {
             remainingTime2 = await methods.incrProp('remainingTime2', -1)
-            logger.info('roomId: ' + roomId + ' remainingTime: ' + remainingTime2)
-            if (remainingTime2 < -1 || positions.length === 1) {
-                clearInterval(timerInterval)
-                await methods.deleteRoom(roomId)
-            }
-            if (remainingTime2 === 0) {
-                await addStage()
-            }
+            logger.info('roomId: ' + roomId + ' remainingTime2: ' + remainingTime2)
+            // if (remainingTime2 < -1 && positions.length === 1) {
+            //     clearInterval(timerInterval)
+            //     await methods.deleteRoom(roomId)
+            // }
+            // if (remainingTime2 === 0) {
+            //     await addStage()
+            // }
         }, 1000)
     }
 
 
     const addStage = async () => {
-        if (remainingTime1 === 0 && remainingTime2 === 0) {
+        // if (remainingTime1 === 0 && remainingTime2 === 0) {
             await getInitialProperties()
             if (stage <= 30) {
                 await methods.setProp('remainingTime1', maxTime)
@@ -81,11 +81,11 @@ module.exports = (roomId, players, roomPlayersWithNames, methods) => {
             }
             else
                 await gameEnd(true)
-        }
+        // }
     }
 
     const gameEnd = async (draw) => {
-
+        await methods.deleteRoom(roomId)
     }
 
     const getInitialProperties = async () => {

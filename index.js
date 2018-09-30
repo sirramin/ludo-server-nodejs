@@ -25,7 +25,7 @@ const port = 3000
 http.listen(port, () => {
     logger.info('Server running at http://127.0.0.1:' + port + '. Process PID: ' + process.pid)
     const resetHandler = require('./common/reset-handler')(io)
-    setTimeout(() => {
-        resetHandler.findOpenGames()
+    setTimeout(async () => {
+        await resetHandler.findOpenGames()
     }, 3000)
 })

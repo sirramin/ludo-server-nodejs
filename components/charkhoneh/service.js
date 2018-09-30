@@ -10,10 +10,6 @@ module.exports = (dbUrl) => {
         jhoobinBaseUrlProducts = jhoobinConfig.url + jhoobinConfig.packageName + '/purchases/products/',
         leaderboardService = require('../leaderboard/service')(dbUrl, 'mtn')
 
-
-    if (!schedulerExecuted)
-        require('./coin-scheduler')(dbUrl)
-
     const checkSubscriptionStatus = (phoneNumber) => {
         const verificationCode = _.random(10000, 99999)
         return query.findByPhoneNumber(phoneNumber)

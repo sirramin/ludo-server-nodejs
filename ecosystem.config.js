@@ -11,7 +11,7 @@ module.exports = {
           "name": "platform-Slave",
           "script": "index.js",
           "args": ["platform-Slave"],
-          "instances": "3",
+          "instances": "6",
           "combine_logs": true
       }
   ]
