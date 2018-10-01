@@ -1,8 +1,6 @@
 const _ = require('lodash'),
     queryClass = require('./query-class'),
-    userQueryClass = require('../../user/class/query-class'),
-    redisClient = require('../../../common/redis-client'),
-    gameIdentifier = require('../../../common/gameIdentifier')
+    userQueryClass = require('../../user/class/query-class')
 
 const gameDataServiceClass = class {
 

@@ -68,7 +68,7 @@
             })
 
             $('#arrange').on('click', function () {
-                if ($('select').value)
+                if ($('select').val)
                     socket.emit('event', JSON.stringify({
                         act: 'arrange',
                         data: {

@@ -561,6 +561,121 @@ define({ "api": [
   },
   {
     "type": "get",
+    "url": "/moogy/getHintsCount",
+    "title": "get hints count",
+    "name": "getHintsCount",
+    "group": "moogy",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "token",
+            "description": ""
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 2": [
+          {
+            "group": "Success 2",
+            "type": "Number",
+            "optional": false,
+            "field": "hints",
+            "description": ""
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Errors": [
+          {
+            "group": "Errors",
+            "optional": false,
+            "field": "3",
+            "description": "<p>Error getting user hints</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "components/logics/moogy/route.js",
+    "groupTitle": "moogy"
+  },
+  {
+    "type": "post",
+    "url": "/moogy/increaseHint",
+    "title": "increase hints",
+    "name": "increaseHint",
+    "group": "moogy",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "token",
+            "description": ""
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": false,
+            "field": "hints",
+            "description": ""
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 2": [
+          {
+            "group": "Success 2",
+            "type": "Number",
+            "optional": false,
+            "field": "newHints",
+            "description": ""
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Errors": [
+          {
+            "group": "Errors",
+            "optional": false,
+            "field": "1",
+            "description": "<p>hints required</p>"
+          },
+          {
+            "group": "Errors",
+            "optional": false,
+            "field": "3",
+            "description": "<p>error updating hints</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "components/logics/moogy/route.js",
+    "groupTitle": "moogy"
+  },
+  {
+    "type": "get",
     "url": "/otp/check/:phoneNumber",
     "title": "Check User",
     "name": "check",
@@ -920,7 +1035,7 @@ define({ "api": [
     "groupTitle": "otp"
   },
   {
-    "type": "put",
+    "type": "post",
     "url": "/user/changeName",
     "title": "changeName",
     "name": "changeName",
@@ -987,7 +1102,7 @@ define({ "api": [
     "groupTitle": "user"
   },
   {
-    "type": "put",
+    "type": "post",
     "url": "/user/increaseCoin",
     "title": "increase coin",
     "name": "increaseCoin",

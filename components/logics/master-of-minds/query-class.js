@@ -36,24 +36,6 @@ const userGameDataQueryClass = class {
         })
     }
 
-    async getCastleCoin(castleNumber) {
-        const castleData = await this.castleModel.findOne({number: castleNumber})
-        return castleData.coin
-    }
-
-    async addCastleToUserGameData(userId, castleNumber) {
-        const userGameData = await this.userGameDataModel.findOneAndUpdate({userId: userId}, {
-            $set: {selectedCastle: castleNumber},
-            $addToSet: {unlockedCastles: castleNumber}
-        }, {new: true})
-        return userGameData.unlockedCastles
-    }
-
-    async updateSelectedCastle(userId, castleNumber) {
-        const userGameData = await this.userGameDataModel.findOneAndUpdate({userId: userId}, {$set: {selectedCastle: castleNumber}}, {new: true})
-        return userGameData.selectedCastle
-    }
-
     async updateLevels(userId, updateQuery) {
         return await this.userGameDataModel.findOneAndUpdate({userId: userId}, updateQuery, {new: true})
     }

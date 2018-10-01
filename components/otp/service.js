@@ -6,7 +6,8 @@ const rpn = require('request-promise-native'),
 module.exports = (dbUrl) => {
     const query = require('./query')(dbUrl),
         configData = require('./config')[dbUrl],
-        otpHeader = 'Basic ' + base64.encode(configData.otp.username + ':' + configData.otp.password).toString()
+        otpHeader = 'Basic ' + base64.encode(configData.otp.username + ':' + configData.otp.password).toString(),
+    gameService = require('../logics/' + dbUrl + '/service-class')
 
 
     const checkSubscriptionStatus = async (phoneNumber) => {
@@ -80,7 +81,12 @@ module.exports = (dbUrl) => {
             const returnedUser = await query.insertUser(user)
             const returnedUserId = (returnedUser._doc._id).toString()
             const returneduserName = returnedUser._doc.name
-            return await leaderboardService.firstTimeScore(returneduserName, returnedUserId)
+            await leaderboardService.firstTimeScore(returneduserName, returnedUserId)
+
+            if (dbUrl === 'moogy') {
+                const gameServiceObj = new gameService(dbUrl)
+                await gameServiceObj.insertUserGameData(returnedUserId)
+            }
         }
         catch (e) {
             throw {message: 'error adding user', statusCode: 26}
@@ -168,7 +174,7 @@ module.exports = (dbUrl) => {
                 phoneNumber: phoneNumber,
                 market: operator
             }
-            if(operator === 'mtn'){
+            if (operator === 'mtn') {
                 user.charkhonehCancelled = false
                 user.charkhonehHistory = [{
                     "token": "",
