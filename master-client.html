@@ -8,14 +8,19 @@
 <ul id="messages"></ul>
 <button id="connect">connect</button>
 <button id="joinRoom">joinRoom</button>
-<select id="move" multiple>
-    <option value="0">purple</option>
-    <option value="1">blue</option>
-    <option value="2">green</option>
-    <option value="3">red</option>
-    <option value="4">yellow</option>
-    <option value="5">silver</option>
-</select>
+<!--<select id="colors" multiple>-->
+    <!--<option value="0">purple</option>-->
+    <!--<option value="1">blue</option>-->
+    <!--<option value="2">green</option>-->
+    <!--<option value="3">red</option>-->
+    <!--<option value="4">yellow</option>-->
+    <!--<option value="5">silver</option>-->
+<!--</select>-->
+<br><br>
+<input id="input1" type="number" min="0" max="5">
+<input id="input2" type="number" min="0" max="5">
+<input id="input3" type="number" min="0" max="5">
+<br><br>
 <button id="arrange">arrange</button>
 <button id="leftRoom">leftRoom</button>
 <!--<script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>-->
@@ -68,13 +73,20 @@
             })
 
             $('#arrange').on('click', function () {
-                if ($('select').val)
-                    socket.emit('event', JSON.stringify({
-                        act: 'arrange',
-                        data: {
-                            combination: $('select').value
-                        }
-                    }))
+                // const arr = $('#colors').val()
+                const input1 = parseInt($('#input1').val())
+                const input2 = parseInt($('#input2').val())
+                const input3 = parseInt($('#input3').val())
+                let parsedIntArray = [input1, input2, input3]
+                // arr.forEach((item) => {
+                //     parsedIntArray.push(parseInt(item))
+                // })
+                socket.emit('event', JSON.stringify({
+                    act: 'arrange',
+                    data: {
+                        combination: parsedIntArray
+                    }
+                }))
             })
 
             socket.on('message', function (msg) {

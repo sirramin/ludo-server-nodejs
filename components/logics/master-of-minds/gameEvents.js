@@ -23,22 +23,24 @@ module.exports = (io, socket, gameMeta, marketKey) => {
     }
 
     const arrange = async (combination) => {
+        await getInitialProperties()
         await methods.setProp('remainingTime1', maxTime)
         await methods.setProp('remainingTime2', maxTime)
-        await getInitialProperties()
+        stage = await methods.incrProp('stage', 1)
+        methods.sendGameEvents(104, 'stageIncreased', stage)
         const result = await checkCombination(combination)
-        methods.sendGameEvents(20, 'result', result)
+        await methods.sendEventToSpecificSocket(userId, 20, 'result', result)
         await checkGameEnds(combination)
     }
 
-    const checkCombination = async (combination) => {
-        const common = _.intersection(correctCombination, combination)
+    const checkCombination = async (userCombination) => {
+        const common = _.intersection(correctCombination, userCombination)
         let displaced = 0, exact = 0
         common.forEach(async (item, index) => {
-            if (correctCombination.indexOf(item) === index)
-                displaced++
-            else
+            if (correctCombination.indexOf(item) === userCombination.indexOf(item))
                 exact++
+            else
+                displaced++
         })
 
         if (exact === 3)
@@ -73,7 +75,7 @@ module.exports = (io, socket, gameMeta, marketKey) => {
         methods = require('../../realtime/methods')(io, gameMeta, roomId, marketKey)
         roomInfo = await methods.getAllProps()
         if (!marketKey) marketKey = JSON.parse(roomInfo['info']).marketKey
-        correctCombination = parseInt(roomInfo['remainingTime1'])
+        correctCombination = JSON.parse(roomInfo['correctCombination'])
         remainingTime1 = parseInt(roomInfo['remainingTime1'])
         remainingTime2 = parseInt(roomInfo['remainingTime2'])
         positions = JSON.parse(roomInfo['positions'])

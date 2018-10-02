@@ -14,16 +14,15 @@ module.exports = (roomId, players, roomPlayersWithNames, methods) => {
     let freezeTime = [], stage, positions, remainingTime1, remainingTime2
 
     const sendPositions = async () => {
-        await methods.setProp('remainingTime', maxTime)
         positions = roomPlayersWithNames
         players.forEach(async (item, index) => {
             const playerNumber = (index + 1)
             await methods.sendEventToSpecificSocket(item, 202, 'yourPlayerNumber', playerNumber)
         })
         const correctCombination = makeCombination()
-        await methods.setMultipleProps(...['positions', JSON.stringify(positions), 'correctCombination', JSON.stringify(correctCombination)])
+        await methods.setMultipleProps(...['positions', JSON.stringify(positions), 'correctCombination', JSON.stringify(correctCombination), 'remainingTime1', maxTime, 'remainingTime2', maxTime, 'stage', 1])
         methods.sendGameEvents(101, 'positions', positions)
-        methods.sendGameEvents(102, 'correctCombination', correctCombination)
+        methods.sendGameEvents(102, 'correctCombination', correctCombination) // must be commented
         // async.parallel([
             timerCounter1()
             timerCounter2()
@@ -34,8 +33,8 @@ module.exports = (roomId, players, roomPlayersWithNames, methods) => {
         const arr = []
         while (arr.length < 3) {
             const randomIndex = _.random(0, 5)
-            const randomColor = colors[randomIndex]
-            if (arr.indexOf(randomColor) === -1)
+            // const randomColor = colors[randomIndex]
+            if (arr.indexOf(randomIndex) === -1)
                 arr.push(randomIndex)
         }
         return arr
@@ -44,7 +43,7 @@ module.exports = (roomId, players, roomPlayersWithNames, methods) => {
     const timerCounter1 = () => {
         const timerInterval = setInterval(async () => {
             remainingTime1 = await methods.incrProp('remainingTime1', -1)
-            logger.info('roomId: ' + roomId + ' remainingTime2: ' + remainingTime1)
+            logger.info('roomId: ' + roomId + ' remainingTime1: ' + remainingTime1)
             // if (remainingTime1 < -1 && positions.length === 1) {
             //     clearInterval(timerInterval)
             //     await methods.deleteRoom(roomId)
@@ -59,10 +58,10 @@ module.exports = (roomId, players, roomPlayersWithNames, methods) => {
         const timerInterval = setInterval(async () => {
             remainingTime2 = await methods.incrProp('remainingTime2', -1)
             logger.info('roomId: ' + roomId + ' remainingTime2: ' + remainingTime2)
-            // if (remainingTime2 < -1 && positions.length === 1) {
-            //     clearInterval(timerInterval)
-            //     await methods.deleteRoom(roomId)
-            // }
+            if (remainingTime2 < -1 && positions.length === 1) {
+                clearInterval(timerInterval)
+                await methods.deleteRoom(roomId)
+            }
             // if (remainingTime2 === 0) {
             //     await addStage()
             // }
@@ -76,8 +75,8 @@ module.exports = (roomId, players, roomPlayersWithNames, methods) => {
             if (stage <= 30) {
                 await methods.setProp('remainingTime1', maxTime)
                 await methods.setProp('remainingTime2', maxTime)
-                await methods.incrProp('stage', 1)
-                methods.sendGameEvents(104, 'stageIncreased')
+                stage = await methods.incrProp('stage', 1)
+                methods.sendGameEvents(104, 'stageIncreased', stage)
             }
             else
                 await gameEnd(true)
