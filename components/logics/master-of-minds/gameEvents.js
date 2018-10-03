@@ -24,10 +24,9 @@ module.exports = (io, socket, gameMeta, marketKey) => {
 
     const arrange = async (combination) => {
         await getInitialProperties()
-        await methods.setProp('remainingTime1', maxTime)
-        await methods.setProp('remainingTime2', maxTime)
-        stage = await methods.incrProp('stage', 1)
-        methods.sendGameEvents(104, 'stageIncreased', stage)
+        await methods.setProp('slot' + findPlayerNumber() + 'Locked', true)
+        // stage = await methods.incrProp('stage', 1)
+        // methods.sendGameEvents(104, 'stageIncreased', stage)
         const result = await checkCombination(combination)
         await methods.sendEventToSpecificSocket(userId, 20, 'result', result)
         await checkGameEnds(combination)
@@ -55,7 +54,7 @@ module.exports = (io, socket, gameMeta, marketKey) => {
     const checkGameEnds = async () => {
         const p1Finished = await methods.getProp('player1finished')
         const p2Finished = await methods.getProp('player1finished')
-        if(p1Finished === 'true' && p2Finished === 'true'){
+        if (p1Finished === 'true' && p2Finished === 'true') {
             methods.sendGameEvents(24, 'gameEnd', {
                 "winner": currentPlayer
             })
@@ -80,8 +79,6 @@ module.exports = (io, socket, gameMeta, marketKey) => {
         remainingTime2 = parseInt(roomInfo['remainingTime2'])
         positions = JSON.parse(roomInfo['positions'])
     }
-
-
 
 
     const findUserId = (nextPlayer) => {
