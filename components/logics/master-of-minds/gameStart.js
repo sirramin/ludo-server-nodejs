@@ -55,7 +55,7 @@ module.exports = (roomId, players, roomPlayersWithNames, methods) => {
             if (!slot1Locked)
                 remainingTime1 = await methods.incrProp('remainingTime1', -1)
 
-            logger.info('roomId: ' + roomId + ' remainingTime1: ' + remainingTime1)
+            // logger.info('roomId: ' + roomId + ' remainingTime1: ' + remainingTime1)
             if (remainingTime1 < -5) {
                 clearInterval(timerInterval)
                 await methods.deleteRoom(roomId)
@@ -69,7 +69,7 @@ module.exports = (roomId, players, roomPlayersWithNames, methods) => {
             if (!slot2Locked)
                 remainingTime2 = await methods.incrProp('remainingTime2', -1)
 
-            logger.info('roomId: ' + roomId + ' remainingTime2: ' + remainingTime2)
+            // logger.info('roomId: ' + roomId + ' remainingTime2: ' + remainingTime2)
             if (remainingTime2 < -5) {
                 clearInterval(timerInterval)
                 await methods.deleteRoom(roomId)
