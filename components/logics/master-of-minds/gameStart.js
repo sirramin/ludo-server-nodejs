@@ -45,6 +45,10 @@ module.exports = (roomId, players, roomPlayersWithNames, methods) => {
             const slot1Locked = JSON.parse(await methods.getProp('slot1Locked'))
             slot2Locked = JSON.parse(await methods.getProp('slot2Locked'))
 
+            if (remainingTime1 === 0) {
+                await methods.setProp('slot1Locked', true)
+            }
+
             if (slot1Locked && slot2Locked)
                 await addStage()
 
@@ -54,11 +58,9 @@ module.exports = (roomId, players, roomPlayersWithNames, methods) => {
             logger.info('roomId: ' + roomId + ' remainingTime1: ' + remainingTime1)
             if (remainingTime1 < -5) {
                 clearInterval(timerInterval)
-                // await methods.deleteRoom(roomId)
+                await methods.deleteRoom(roomId)
             }
-            if (remainingTime1 === 0) {
-                await methods.setProp('slot1Locked', true)
-            }
+
         }, 1000)
     }
 
@@ -70,7 +72,7 @@ module.exports = (roomId, players, roomPlayersWithNames, methods) => {
             logger.info('roomId: ' + roomId + ' remainingTime2: ' + remainingTime2)
             if (remainingTime2 < -5) {
                 clearInterval(timerInterval)
-                // await methods.deleteRoom(roomId)
+                await methods.deleteRoom(roomId)
             }
             if (remainingTime2 === 0) {
                 await methods.setProp('slot2Locked', true)
@@ -83,12 +85,12 @@ module.exports = (roomId, players, roomPlayersWithNames, methods) => {
     const addStage = async () => {
         await getInitialProperties()
         if (stage <= 30) {
+            await methods.setProp('slot1Locked', false)
+            await methods.setProp('slot2Locked', false)
             await methods.setProp('remainingTime1', maxTime)
             await methods.setProp('remainingTime2', maxTime)
             stage = await methods.incrProp('stage', 1)
             methods.sendGameEvents(104, 'stageIncreased', stage)
-            await methods.setProp('slot1Locked', false)
-            await methods.setProp('slot2Locked', false)
         }
         else
             await gameEnd(true)

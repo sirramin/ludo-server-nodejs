@@ -54,7 +54,7 @@ module.exports = (io, socket, gameMeta, marketKey) => {
     const checkGameEnds = async () => {
         const p1Finished = await methods.getProp('player1finished')
         const p2Finished = await methods.getProp('player1finished')
-        if (p1Finished === 'true' && p2Finished === 'true') {
+        if (p1Finished && p2Finished) {
             methods.sendGameEvents(24, 'gameEnd', {
                 "winner": currentPlayer
             })
