@@ -204,26 +204,28 @@ module.exports = (io, socket, gameMeta) => {
                 const userDataParsed = await getUserData()
                 if (userDataParsed && userDataParsed.hasOwnProperty('dc') && userDataParsed.dc) {
                     const roomData = await redisClient.hmget(roomsPrefix + userCurrentRoom, 'players', 'info')
-                    const currentPlayersParsed = JSON.parse(roomData[0])
-                    const roomState = JSON.parse(roomData[1]).state
-                    if (currentPlayersParsed && currentPlayersParsed.length === 1 && roomState === 'waiting') {
-                        await destroyRoom(userCurrentRoom)
-                    }
-                    else if (currentPlayersParsed && currentPlayersParsed.length > 1) {
-                        await deleteUserRoom(userId)
-                        currentPlayersParsed.splice(currentPlayersParsed.indexOf(userId), 1)
-                        await redisClient.HSET(roomsPrefix + userCurrentRoom, 'players', JSON.stringify(currentPlayersParsed))
-                        await redisClient.ZINCRBY(roomsListPrefix, -1, userCurrentRoom)
-                        io.of('/').adapter.remoteDisconnect(socket.id, true, async (err) => {
-                            logger.info('---------- remoteDisconnect-------------------')
-                            const gameLeft = require('../logics/' + gameMeta.name + '/gameLeft')(io, userId, gameMeta, marketKey, userCurrentRoom)
-                            await gameLeft.handleLeft()
-                            const methods = require('./methods')(io, gameMeta, userCurrentRoom, marketKey)
-                            await methods.addToLeaderboard(userId, false)
-                            if (currentPlayersParsed.length === 1) {
-                                await methods.makeRemainingPlayerWinner(userCurrentRoom)
-                            }
-                        })
+                    if (roomData[0]) {
+                        const currentPlayersParsed = JSON.parse(roomData[0])
+                        const roomState = JSON.parse(roomData[1]).state
+                        if (currentPlayersParsed && currentPlayersParsed.length === 1 && roomState === 'waiting') {
+                            await destroyRoom(userCurrentRoom)
+                        }
+                        else if (currentPlayersParsed && currentPlayersParsed.length > 1) {
+                            await deleteUserRoom(userId)
+                            currentPlayersParsed.splice(currentPlayersParsed.indexOf(userId), 1)
+                            await redisClient.HSET(roomsPrefix + userCurrentRoom, 'players', JSON.stringify(currentPlayersParsed))
+                            await redisClient.ZINCRBY(roomsListPrefix, -1, userCurrentRoom)
+                            io.of('/').adapter.remoteDisconnect(socket.id, true, async (err) => {
+                                logger.info('---------- remoteDisconnect-------------------')
+                                const gameLeft = require('../logics/' + gameMeta.name + '/gameLeft')(io, userId, gameMeta, marketKey, userCurrentRoom)
+                                await gameLeft.handleLeft()
+                                const methods = require('./methods')(io, gameMeta, userCurrentRoom, marketKey)
+                                await methods.addToLeaderboard(userId, false)
+                                if (currentPlayersParsed.length === 1) {
+                                    await methods.makeRemainingPlayerWinner(userCurrentRoom)
+                                }
+                            })
+                        }
                     }
                 }
             }, gameMeta.kickTime)

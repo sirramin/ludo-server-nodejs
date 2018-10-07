@@ -35,12 +35,8 @@ module.exports = (io, userId, gameMeta, marketKey, roomId) => {
     const getInitialProperties = async () => {
         roomInfo = await methods.getAllProps()
         positions = JSON.parse(roomInfo['positions'])
-        currentPlayer = parseInt(roomInfo['currentPlayer'])
         thisPlayerNumber = findThisPlayerNumber()
         thisPlayerIndex = thisPlayerNumber - 1
-        marblesPosition = JSON.parse(roomInfo['marblesPosition'])
-        orbs = JSON.parse(roomInfo['orbs'])
-        hits = JSON.parse(roomInfo['hits'])
     }
 
     const findThisPlayerNumber = () => {

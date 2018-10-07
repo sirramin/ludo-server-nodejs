@@ -20,7 +20,8 @@ module.exports = (roomId, players, roomPlayersWithNames, methods) => {
             await methods.sendEventToSpecificSocket(item, 202, 'yourPlayerNumber', playerNumber)
         })
         const correctCombination = makeCombination()
-        await methods.setMultipleProps(...['positions', JSON.stringify(positions), 'correctCombination', JSON.stringify(correctCombination), 'remainingTime1', maxTime, 'remainingTime2', maxTime, 'stage', 1, 'slot1Locked', false, 'slot2Locked', false])
+        await methods.setMultipleProps(...['positions', JSON.stringify(positions), 'correctCombination', JSON.stringify(correctCombination),
+            'remainingTime1', maxTime, 'remainingTime2', maxTime, 'stage', 1, 'slot1Locked', false, 'slot2Locked', false, 'p1Finished', false, 'p2Finished', false])
         methods.sendGameEvents(101, 'positions', positions)
         methods.sendGameEvents(102, 'correctCombination', correctCombination) // must be commented
         // async.parallel([
