@@ -33,7 +33,10 @@ module.exports = (io, socket, gameMeta, marketKey) => {
         // methods.sendGameEvents(104, 'stageIncreased', stage)
         const result = await checkCombination(combination, playerNumber)
         await methods.sendEventToSpecificSocket(userId, 20, 'result', result)
-        await checkGameEnds(combination)
+
+        // const players = [positions[0].userId, positions[1].userId]
+        // const gameStart = require('./gameStart')(roomId, players, positions, methods)
+        await checkGameEnds()
     }
 
     const checkCombination = async (userCombination, playerNumber) => {
@@ -55,28 +58,8 @@ module.exports = (io, socket, gameMeta, marketKey) => {
         }
     }
 
-    const checkGameEnds = async () => {
-        // const p1Finished = await methods.getProp('player1finished')
-        // const p2Finished = await methods.getProp('player2finished')
-        await getInitialProperties()
-        if (slot1Locked && slot2Locked) {
-            logger.info('p1Finished: ' + p1Finished + ' p2Finished: ' + p2Finished)
-            if (p1Finished && p2Finished)
-                methods.sendGameEvents(24, 'gameEnd', {
-                    "draw": true
-                })
-            if (p1Finished && !p2Finished)
-                methods.sendGameEvents(24, 'gameEnd', {
-                    "winner": 1
-                })
-            if (!p1Finished && p2Finished)
-                methods.sendGameEvents(24, 'gameEnd', {
-                    "draw": 2
-                })
 
-            await methods.deleteRoom(roomId)
-        }
-    }
+
 
     const playerFinished = async (playerNumber) => {
         logger.info('playerNumber: ' + playerNumber)

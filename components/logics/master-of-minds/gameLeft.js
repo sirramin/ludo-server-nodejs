@@ -17,8 +17,6 @@ module.exports = (io, userId, gameMeta, marketKey, roomId) => {
 
     const affectRoomInRedis = async () => {
         positions.splice(thisPlayerIndex, 1)
-        delete marblesPosition[thisPlayerNumber.toString()]
-        delete orbs['player' + thisPlayerNumber.toString()]
         await methods.setMultipleProps(['positions', JSON.stringify(positions), 'orbs', JSON.stringify(orbs), 'marblesPosition', JSON.stringify(marblesPosition)])
         methods.sendGameEvents(6, 'playerLeft', {
             player: thisPlayerNumber,
