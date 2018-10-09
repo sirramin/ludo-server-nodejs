@@ -33,7 +33,7 @@
         const target = 'http://localhost:3000'
         let token
         $('#connect').click(async () => {
-            if (!localStorage.token) {
+            // if (!localStorage.token) {
                 const res = await $.ajax({
                     url: target + "/user/signInAsGuest",
                     type: 'post',
@@ -47,9 +47,9 @@
                 })
                 localStorage.setItem("token", res.data.token)
                 token = res.data.token
-            }
-            else {
-                token = localStorage.token
+            // }
+            // else {
+            //     token = localStorage.token
                 // const res = await $.ajax({
                 //     url: target + "/logics/master/getUserGameData",
                 //     type: 'get',
@@ -62,7 +62,8 @@
                 // if (!localStorage.userId)
                 //     localStorage.setItem("userId", res.data.userId)
                 // localStorage.setItem("UserGameData", JSON.stringify(res.data))
-            }
+            // }
+
             const socket = io(target, {transports: ['websocket'], query: {token: token}})
             $('#joinRoom').click(() => {
                 socket.emit('joinRoom', 1)

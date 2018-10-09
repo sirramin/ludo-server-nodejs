@@ -71,15 +71,6 @@ module.exports = (io, userId, gameMeta, marketKey, roomId) => {
         return userObj.userId
     }
 
-    const registerRecord = async () => {
-        const lastRecord = await methods.getProp('record')
-        const thisPlayerHit = hits[thisPlayerIndex]
-        if (lastRecord && thisPlayerHit <= lastRecord)
-            return
-        else if(thisPlayerHit > 0)
-            return await methods.setProp('record', thisPlayerHit)
-    }
-
     return ({
         handleLeft: handleLeft
     })

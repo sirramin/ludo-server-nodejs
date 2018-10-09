@@ -11,7 +11,8 @@ module.exports = (roomId, players, roomPlayersWithNames, methods) => {
         4: 'yellow',
         5: 'silver'
     }
-    let freezeTime = [], stage, positions, remainingTime1, remainingTime2, slot1Locked, slot2Locked, p1Finished, p2Finished
+    let freezeTime = [], stage, positions, remainingTime1, remainingTime2, slot1Locked, slot2Locked, p1Finished,
+        p2Finished, gameEnds
 
     const sendPositions = async () => {
         positions = roomPlayersWithNames
@@ -21,7 +22,7 @@ module.exports = (roomId, players, roomPlayersWithNames, methods) => {
         })
         const correctCombination = makeCombination()
         await methods.setMultipleProps(...['positions', JSON.stringify(positions), 'correctCombination', JSON.stringify(correctCombination),
-            'remainingTime1', maxTime, 'remainingTime2', maxTime, 'stage', 1, 'slot1Locked', false, 'slot2Locked', false, 'p1Finished', false, 'p2Finished', false])
+            'remainingTime1', maxTime, 'remainingTime2', maxTime, 'stage', 1, 'slot1Locked', false, 'slot2Locked', false, 'p1Finished', false, 'p2Finished', false, 'gameEnds', false])
         methods.sendGameEvents(101, 'positions', positions)
         methods.sendGameEvents(102, 'correctCombination', correctCombination) // must be commented
         // async.parallel([
@@ -43,8 +44,10 @@ module.exports = (roomId, players, roomPlayersWithNames, methods) => {
 
     const timerCounter1 = () => {
         const timerInterval = setInterval(async () => {
-            const slot1Locked = JSON.parse(await methods.getProp('slot1Locked'))
-            slot2Locked = JSON.parse(await methods.getProp('slot2Locked'))
+            await getInitialProperties()
+
+            if (gameEnds)
+                clearInterval(timerInterval)
 
             if (remainingTime1 === 0) {
                 await methods.setProp('slot1Locked', true)
@@ -52,7 +55,7 @@ module.exports = (roomId, players, roomPlayersWithNames, methods) => {
 
             if (slot1Locked && slot2Locked)
                 await checkGameEnds()
-                // await addStage()
+            // await addStage()
 
             if (!slot1Locked)
                 remainingTime1 = await methods.incrProp('remainingTime1', -1)
@@ -68,6 +71,10 @@ module.exports = (roomId, players, roomPlayersWithNames, methods) => {
 
     const timerCounter2 = () => {
         const timerInterval = setInterval(async () => {
+
+            if (gameEnds)
+                clearInterval(timerInterval)
+
             if (!slot2Locked)
                 remainingTime2 = await methods.incrProp('remainingTime2', -1)
 
@@ -84,50 +91,69 @@ module.exports = (roomId, players, roomPlayersWithNames, methods) => {
     }
 
 
+    const checkGameEnds = async () => {
+        await getInitialProperties()
+        if (slot1Locked && slot2Locked) {
+            logger.info('p1Finished: ' + p1Finished + ' p2Finished: ' + p2Finished)
 
+            if (!p1Finished && !p2Finished) {
+                await addStage()
+            }
+            else {
+                await methods.setProp('gameEnds', true)
+                if (p1Finished && p2Finished)
+                    methods.sendGameEvents(24, 'gameEnd', {
+                        "draw": true
+                    })
+                if (p1Finished && !p2Finished)
+                    methods.sendGameEvents(24, 'gameEnd', {
+                        "winner": 1
+                    })
+                if (!p1Finished && p2Finished)
+                    methods.sendGameEvents(24, 'gameEnd', {
+                        "winner": 2
+                    })
+            }
+            if (p1Finished || p1Finished)
+                await methods.deleteRoom(roomId)
+        }
+    }
 
-    // const checkGameEnds = async () => {
-    //     await getInitialProperties()
-    //     if (slot1Locked && slot2Locked) {
-    //         logger.info('p1Finished: ' + p1Finished + ' p2Finished: ' + p2Finished)
-    //         if (p1Finished && p2Finished)
-    //             methods.sendGameEvents(24, 'gameEnd', {
-    //                 "draw": true
-    //             })
-    //         if (p1Finished && !p2Finished)
-    //             methods.sendGameEvents(24, 'gameEnd', {
-    //                 "winner": 1
-    //             })
-    //         if (!p1Finished && p2Finished)
-    //             methods.sendGameEvents(24, 'gameEnd', {
-    //                 "winner": 2
-    //             })
-    //
-    //         if (!p1Finished && !p2Finished) {
-    //             await addStage()
-    //         }
-    //
-    //         if (p1Finished || p1Finished)
-    //             await methods.deleteRoom(roomId)
-    //     }
-    // }
+    const addStage = async () => {
+        // await getInitialProperties()
+        if (stage <= 30) {
+            await methods.setProp('slot1Locked', false)
+            await methods.setProp('slot2Locked', false)
+            await methods.setProp('remainingTime1', maxTime)
+            await methods.setProp('remainingTime2', maxTime)
+            stage = await methods.incrProp('stage', 1)
+            methods.sendGameEvents(104, 'stageIncreased', stage)
+        }
+        else if (stage > 30)
+            await gameEndByStageLimit()
+    }
 
     const gameEndByStageLimit = async () => {
-        await methods.deleteRoom(roomId)
+        await methods.setProp('gameEnds', true)
         methods.sendGameEvents(24, 'gameEnd', {
             "draw": true
         })
+        await methods.deleteRoom(roomId)
     }
 
     const getInitialProperties = async () => {
         const roomInfo = await methods.getAllProps()
         positions = JSON.parse(roomInfo['positions'])
         stage = JSON.parse(roomInfo['stage'])
+        slot1Locked = JSON.parse(roomInfo['slot1Locked'])
+        slot2Locked = JSON.parse(roomInfo['slot2Locked'])
+        p1Finished = JSON.parse(roomInfo['p1Finished'])
+        p2Finished = JSON.parse(roomInfo['p2Finished'])
     }
 
     return {
         sendPositions: sendPositions,
-        // addStage: addStage,
+        addStage: addStage,
         checkGameEnds: checkGameEnds
     }
 }
