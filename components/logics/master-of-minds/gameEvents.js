@@ -12,7 +12,7 @@ module.exports = (io, socket, gameMeta, marketKey) => {
         5: 'silver'
     }
     let freezeTime = [], stage, positions, remainingTime1, remainingTime2, correctCombination
-    let matchMaking, roomId, methods, roomInfo, slot1Locked, slot2Locked, p1Finished, p2Finished
+    let matchMaking, roomId, methods, roomInfo, slot1Locked, slot2Locked, p1Finished, p2Finished, gameEnds
 
     const getAct = async (msg) => {
         const {act, data} = msg
@@ -67,6 +67,7 @@ module.exports = (io, socket, gameMeta, marketKey) => {
                 await addStage()
             }
             else {
+                gameEnds = true
                 await methods.setProp('gameEnds', true)
                 if (p1Finished && p2Finished)
                     methods.sendGameEvents(24, 'gameEnd', {
@@ -81,8 +82,8 @@ module.exports = (io, socket, gameMeta, marketKey) => {
                         "winner": 2
                     })
             }
-            if (p1Finished || p1Finished)
-                await methods.deleteRoom(roomId)
+            // if (p1Finished || p1Finished)
+            //     await methods.deleteRoom(roomId)
         }
     }
 
@@ -101,11 +102,12 @@ module.exports = (io, socket, gameMeta, marketKey) => {
     }
 
     const gameEndByStageLimit = async () => {
+        gameEnds = true
         await methods.setProp('gameEnds', true)
         methods.sendGameEvents(24, 'gameEnd', {
             "draw": true
         })
-        await methods.deleteRoom(roomId)
+        // await methods.deleteRoom(roomId)
     }
 
 
@@ -130,6 +132,7 @@ module.exports = (io, socket, gameMeta, marketKey) => {
         slot2Locked = JSON.parse(roomInfo['slot2Locked'])
         p1Finished = JSON.parse(roomInfo['p1Finished'])
         p2Finished = JSON.parse(roomInfo['p2Finished'])
+        gameEnds = JSON.parse(roomInfo['gameEnds'])
     }
 
     const findPlayerNumber = () => {

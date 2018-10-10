@@ -8,7 +8,6 @@ module.exports = (io, userId, gameMeta, marketKey, roomId) => {
         await getInitialProperties()
         await affectRoomInRedis()
         logger.info(' positions.length: ' + positions.length)
-        await registerRecord()
         if (await isLeftPlayerTurn() && positions.length > 1) {
             logger.info('------changeTurn 1 -----------')
             await changeTurn()

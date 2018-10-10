@@ -44,10 +44,14 @@ module.exports = (roomId, players, roomPlayersWithNames, methods) => {
 
     const timerCounter1 = () => {
         const timerInterval = setInterval(async () => {
-            await getInitialProperties()
+            if (!gameEnds)
+                await getInitialProperties()
 
-            if (gameEnds)
+            if (gameEnds) {
                 clearInterval(timerInterval)
+                if (p1Finished || p1Finished)
+                    await methods.deleteRoom(roomId)
+            }
 
             if (remainingTime1 === 0) {
                 await methods.setProp('slot1Locked', true)
@@ -61,10 +65,10 @@ module.exports = (roomId, players, roomPlayersWithNames, methods) => {
                 remainingTime1 = await methods.incrProp('remainingTime1', -1)
 
             logger.info('roomId: ' + roomId + ' remainingTime1: ' + remainingTime1)
-            if (remainingTime1 < -5) {
-                clearInterval(timerInterval)
-                await methods.deleteRoom(roomId)
-            }
+            // if (remainingTime1 < -5) {
+            //     clearInterval(timerInterval)
+            //     await methods.deleteRoom(roomId)
+            // }
 
         }, 1000)
     }
@@ -75,17 +79,19 @@ module.exports = (roomId, players, roomPlayersWithNames, methods) => {
             if (gameEnds)
                 clearInterval(timerInterval)
 
+            // if (gameEnds === undefined)
+            //     await getInitialProperties()
+
             if (!slot2Locked)
                 remainingTime2 = await methods.incrProp('remainingTime2', -1)
 
             logger.info('roomId: ' + roomId + ' remainingTime2: ' + remainingTime2)
-            if (remainingTime2 < -5) {
-                clearInterval(timerInterval)
-                await methods.deleteRoom(roomId)
-            }
+            // if (remainingTime2 < -5) {
+            //     clearInterval(timerInterval)
+            //     await methods.deleteRoom(roomId)
+            // }
             if (remainingTime2 === 0) {
                 await methods.setProp('slot2Locked', true)
-                // await addStage()
             }
         }, 1000)
     }
@@ -100,6 +106,7 @@ module.exports = (roomId, players, roomPlayersWithNames, methods) => {
                 await addStage()
             }
             else {
+                gameEnds = true
                 await methods.setProp('gameEnds', true)
                 if (p1Finished && p2Finished)
                     methods.sendGameEvents(24, 'gameEnd', {
@@ -114,8 +121,6 @@ module.exports = (roomId, players, roomPlayersWithNames, methods) => {
                         "winner": 2
                     })
             }
-            if (p1Finished || p1Finished)
-                await methods.deleteRoom(roomId)
         }
     }
 
@@ -134,6 +139,7 @@ module.exports = (roomId, players, roomPlayersWithNames, methods) => {
     }
 
     const gameEndByStageLimit = async () => {
+        gameEnds = true
         await methods.setProp('gameEnds', true)
         methods.sendGameEvents(24, 'gameEnd', {
             "draw": true
@@ -149,6 +155,7 @@ module.exports = (roomId, players, roomPlayersWithNames, methods) => {
         slot2Locked = JSON.parse(roomInfo['slot2Locked'])
         p1Finished = JSON.parse(roomInfo['p1Finished'])
         p2Finished = JSON.parse(roomInfo['p2Finished'])
+        gameEnds = JSON.parse(roomInfo['gameEnds'])
     }
 
     return {
