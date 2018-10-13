@@ -149,13 +149,13 @@ module.exports = (roomId, players, roomPlayersWithNames, methods) => {
 
     const getInitialProperties = async () => {
         const roomInfo = await methods.getAllProps()
-        positions = JSON.parse(roomInfo['positions'])
-        stage = JSON.parse(roomInfo['stage'])
-        slot1Locked = JSON.parse(roomInfo['slot1Locked'])
-        slot2Locked = JSON.parse(roomInfo['slot2Locked'])
-        p1Finished = JSON.parse(roomInfo['p1Finished'])
-        p2Finished = JSON.parse(roomInfo['p2Finished'])
-        gameEnds = JSON.parse(roomInfo['gameEnds'])
+            positions = JSON.parse(roomInfo['positions'])
+            stage = JSON.parse(roomInfo['stage'])
+            slot1Locked = JSON.parse(roomInfo['slot1Locked'])
+            slot2Locked = JSON.parse(roomInfo['slot2Locked'])
+            p1Finished = JSON.parse(roomInfo['p1Finished'])
+            p2Finished = JSON.parse(roomInfo['p2Finished'])
+            gameEnds = JSON.parse(roomInfo['gameEnds'])
     }
 
     return {

@@ -5,14 +5,16 @@ module.exports = {
           "script": "index.js",
           "args": ["platform-Master"],
           "instances": "1",
-          "combine_logs": true
+          "combine_logs": true,
+          "exec_mode" : "cluster"
       },
       {
           "name": "platform-Slave",
           "script": "index.js",
           "args": ["platform-Slave"],
           "instances": "6",
-          "combine_logs": true
+          "combine_logs": true,
+          "exec_mode" : "cluster"
       }
   ]
 }
