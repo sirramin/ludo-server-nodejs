@@ -11,30 +11,6 @@ module.exports.handler = async (roomId, methods) => {
     timerCounter(roomId, methods)
 }
 
-const sendCurrentTurn = async (methods) => {
-    await getInitialProperties(methods)
-    await methods.sendEventToSpecificSocket(findUserId(), 201, 'yourTurnAfterRestart', 1)
-}
-
-const timerCounter = (roomId, methods) => {
-    const timerInterval = setInterval(async () => {
-        const remainingTime = await methods.incrProp('remainingTime', -1)
-        if (remainingTime < -1 || positions.length === 1) {
-            clearInterval(timerInterval)
-            methods.deleteRoom(roomId)
-        }
-        // logger.info('restart timer:::  roomId: ' + roomId + ' remainingTime: ' + remainingTime)
-        if (remainingTime === 0) {
-            await getInitialProperties(methods)
-            if (orbs['player' + currentPlayer] === 1 && positions.length > 1)
-                await methods.kickUser(findUserId())
-            else if (positions.length > 1) {
-                await changeTurn(methods)
-            }
-        }
-    }, 1000)
-}
-
 const findUserId = () => {
     const userObj = _.find(positions, function (o) {
         return o.player === currentPlayer
@@ -67,10 +43,7 @@ const changeTurn = async (methods) => {
 
 const getInitialProperties = async (methods) => {
     const roomInfo = await methods.getAllProps()
-    // marblesPosition = JSON.parse(roomInfo['marblesPosition'])
     positions = JSON.parse(roomInfo['positions'])
-    currentPlayer = parseInt(roomInfo['currentPlayer'])
-    orbs = JSON.parse(roomInfo['orbs'])
 }
 
 

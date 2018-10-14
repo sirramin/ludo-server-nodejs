@@ -9,9 +9,11 @@ module.exports = (io) => {
         {gameName: 'master-of-minds', logicRestart: logicRestartMaster}]
 
     const findOpenGames = async () => {
+
         games.forEach(async (item) => {
             const roomsPrefix = item.gameName + ':rooms:',
                 roomsListPrefix = item.gameName + ':rooms:roomsList',
+                userRoomPrefix = item.gameName + ':user_room:market',
                 gameMeta = await gameIdentifier.getGameMeta(item.gameName),
                 args = [roomsListPrefix, gameMeta.roomMin, gameMeta.roomMax],
                 availableRooms = await redisClient.ZRANGEBYSCORE(args)
@@ -29,16 +31,30 @@ module.exports = (io) => {
                     }
                 }
             }
+            await deleteUserRoomsForPlayersWhoHasRoomAreUnDeleted(item.gameName, userRoomPrefix, roomsPrefix)
         })
     }
 
-    const joinPlayersToSocketIORoomAgain = (roomCurrentPlayers, roomId, marketKey) => {
+    const joinPlayersToSocketIORoomAgain = async (roomCurrentPlayers, roomId, marketKey) => {
         roomCurrentPlayers.forEach(async (userId) => {
             const userInfo = JSON.parse(await redisClient.HGET(marketKey, userId))
             io.of('/').adapter.remoteJoin(userInfo.socketId, roomId, (err) => {
                 logger.info('socketId: ' + userInfo.socketId + ' joined again to room: ' + roomId)
             })
         })
+    }
+
+    const deleteUserRoomsForPlayersWhoHasRoomAreUnDeleted = async (gameName, userRoomPrefix, roomsPrefix) => {
+        const user_rooms = await redisClient.HGETALL(userRoomPrefix)
+        if(user_rooms) {
+            const userIds = Object.keys(user_rooms)
+            for (let i = 0; i <= userIds.length; i++) {
+                const userRoomId = user_rooms[userIds[i]]
+                const roomLength = await redisClient.HEXISTS(roomsPrefix + userRoomId, 'positions')
+                if (!roomLength)
+                    await redisClient.HDEL(userRoomPrefix, userIds[i])
+            }
+        }
     }
 
     return {
