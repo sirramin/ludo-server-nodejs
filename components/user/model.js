@@ -3,7 +3,7 @@ module.exports = (dbUrl) => {
     const {mongooseClient} = require('../../common/mongoose-client')(dbUrl)
     const userSchema = new mongooseClient.Schema({
         name: {type: String, required: true},
-        username: {type: String, unique: true},
+        username: {type: String},
         password: String,
         phoneNumber: {type: String, unique: true},
         market: {type: String, required: true},

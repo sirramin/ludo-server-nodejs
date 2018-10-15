@@ -19,8 +19,8 @@ module.exports = {
             "password": "artatel@rk1s4ibxjbxawhulduta"
         },
         "vas": {
-            "smsUrl": "http://31.47.36.133/~gatewayrdn/App/app_user_sendsms.php?number=${number}&serviceName=master&content=${smsVerifyCode}",
-            "validationUrl": "http://31.47.36.133/~gatewayrdn/App/app_user_validation.php?number=${number}&serviceName=master"
+            "smsUrl": "http://31.47.36.133/~gatewayrdn/App/app_user_sendsms.php?number=${number}&serviceName=moogy&content=${smsVerifyCode}",
+            "validationUrl": "http://31.47.36.133/~gatewayrdn/App/app_user_validation.php?number=${number}&serviceName=moogy"
         },
         "artatelOtp": {
             "request": "https://otp.artatel.ir/api/otp/v1/request/moogyPuzzle",
