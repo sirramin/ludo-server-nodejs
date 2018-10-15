@@ -36,7 +36,7 @@ module.exports = (io, socket, gameMeta, marketKey) => {
 
         // const players = [positions[0].userId, positions[1].userId]
         // const gameStart = require('./gameStart')(roomId, players, positions, methods)
-        await checkGameEnds()
+        // await checkGameEnds()
     }
 
     const checkCombination = async (userCombination, playerNumber) => {
@@ -58,57 +58,57 @@ module.exports = (io, socket, gameMeta, marketKey) => {
         }
     }
 
-    const checkGameEnds = async () => {
-        await getInitialProperties()
-        if (slot1Locked && slot2Locked) {
-            logger.info('p1Finished: ' + p1Finished + ' p2Finished: ' + p2Finished)
+    // const checkGameEnds = async () => {
+    //     await getInitialProperties()
+    //     if (slot1Locked && slot2Locked) {
+    //         logger.info('p1Finished: ' + p1Finished + ' p2Finished: ' + p2Finished)
+    //
+    //         if (!p1Finished && !p2Finished) {
+    //             await addStage()
+    //         }
+    //         else {
+    //             gameEnds = true
+    //             await methods.setProp('gameEnds', true)
+    //             if (p1Finished && p2Finished)
+    //                 methods.sendGameEvents(24, 'gameEnd', {
+    //                     "draw": true
+    //                 })
+    //             if (p1Finished && !p2Finished)
+    //                 methods.sendGameEvents(24, 'gameEnd', {
+    //                     "winner": 1
+    //                 })
+    //             if (!p1Finished && p2Finished)
+    //                 methods.sendGameEvents(24, 'gameEnd', {
+    //                     "winner": 2
+    //                 })
+    //         }
+    //         // if (p1Finished || p1Finished)
+    //         //     await methods.deleteRoom(roomId)
+    //     }
+    // }
 
-            if (!p1Finished && !p2Finished) {
-                await addStage()
-            }
-            else {
-                gameEnds = true
-                await methods.setProp('gameEnds', true)
-                if (p1Finished && p2Finished)
-                    methods.sendGameEvents(24, 'gameEnd', {
-                        "draw": true
-                    })
-                if (p1Finished && !p2Finished)
-                    methods.sendGameEvents(24, 'gameEnd', {
-                        "winner": 1
-                    })
-                if (!p1Finished && p2Finished)
-                    methods.sendGameEvents(24, 'gameEnd', {
-                        "winner": 2
-                    })
-            }
-            // if (p1Finished || p1Finished)
-            //     await methods.deleteRoom(roomId)
-        }
-    }
+    // const addStage = async () => {
+    //     await getInitialProperties()
+    //     if (stage <= 30) {
+    //         await methods.setProp('slot1Locked', false)
+    //         await methods.setProp('slot2Locked', false)
+    //         await methods.setProp('remainingTime1', maxTime)
+    //         await methods.setProp('remainingTime2', maxTime)
+    //         stage = await methods.incrProp('stage', 1)
+    //         methods.sendGameEvents(104, 'stageIncreased', stage)
+    //     }
+    //     else if(stage > 30)
+    //         await gameEndByStageLimit()
+    // }
 
-    const addStage = async () => {
-        await getInitialProperties()
-        if (stage <= 30) {
-            await methods.setProp('slot1Locked', false)
-            await methods.setProp('slot2Locked', false)
-            await methods.setProp('remainingTime1', maxTime)
-            await methods.setProp('remainingTime2', maxTime)
-            stage = await methods.incrProp('stage', 1)
-            methods.sendGameEvents(104, 'stageIncreased', stage)
-        }
-        else if(stage > 30)
-            await gameEndByStageLimit()
-    }
-
-    const gameEndByStageLimit = async () => {
-        gameEnds = true
-        await methods.setProp('gameEnds', true)
-        methods.sendGameEvents(24, 'gameEnd', {
-            "draw": true
-        })
-        // await methods.deleteRoom(roomId)
-    }
+    // const gameEndByStageLimit = async () => {
+    //     gameEnds = true
+    //     await methods.setProp('gameEnds', true)
+    //     methods.sendGameEvents(24, 'gameEnd', {
+    //         "draw": true
+    //     })
+    //     // await methods.deleteRoom(roomId)
+    // }
 
 
     const playerFinished = async (playerNumber) => {

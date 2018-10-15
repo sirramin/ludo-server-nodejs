@@ -9,7 +9,7 @@ const userModelClass = class {
         this.mongooseClient = mongooseClientObj.getClient()
         this.userSchema = this.mongooseClient.Schema({
             name: {type: String, required: true},
-            username: {type: String, unique: true},
+            username: {type: String},
             password: String,
             phoneNumber: {type: String, unique: true},
             market: {type: String, required: true},

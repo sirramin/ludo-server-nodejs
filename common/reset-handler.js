@@ -15,8 +15,11 @@ module.exports = (io) => {
                 roomsListPrefix = item.gameName + ':rooms:roomsList',
                 userRoomPrefix = item.gameName + ':user_room:market',
                 gameMeta = await gameIdentifier.getGameMeta(item.gameName),
-                args = [roomsListPrefix, gameMeta.roomMin, gameMeta.roomMax],
-                availableRooms = await redisClient.ZRANGEBYSCORE(args)
+                args = [roomsListPrefix, gameMeta.roomMin, gameMeta.roomMax]
+
+            // await deleteExtraRooms(item.gameName, userRoomPrefix, roomsPrefix)
+
+            const availableRooms = await redisClient.ZRANGEBYSCORE(args)
 
             logger.info('number of paused rooms for game ' + item.gameName + ': ' + availableRooms.length)
             if (availableRooms.length) {
@@ -50,11 +53,15 @@ module.exports = (io) => {
             const userIds = Object.keys(user_rooms)
             for (let i = 0; i <= userIds.length; i++) {
                 const userRoomId = user_rooms[userIds[i]]
-                const roomLength = await redisClient.HEXISTS(roomsPrefix + userRoomId, 'positions')
+                const roomLength = await redisClient.HEXISTS(roomsPrefix + userRoomId, 'players')
                 if (!roomLength)
                     await redisClient.HDEL(userRoomPrefix, userIds[i])
             }
         }
+    }
+
+    const deleteExtraRooms = async (gameName, userRoomPrefix, roomsPrefix) => {
+
     }
 
     return {

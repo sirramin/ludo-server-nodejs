@@ -27,11 +27,10 @@ http.listen(port, () => {
 
     const argv = process.argv.slice(2)
     logger.info('argv: ' + argv)
-    // if (argv[0] === 'platform-Master') {
+    if (argv[0] === 'platform-Master' || process.env.dev) {
         const resetHandler = require('./common/reset-handler')(io)
         setTimeout(async () => {
-
             await resetHandler.findOpenGames()
         }, 3000)
-    // }
+    }
 })
