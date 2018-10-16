@@ -1,5 +1,5 @@
 const _ = require('lodash')
-const async = require('async')
+// const async = require('async')
 
 module.exports = (roomId, players, roomPlayersWithNames, methods) => {
     const maxTime = 25
@@ -25,10 +25,10 @@ module.exports = (roomId, players, roomPlayersWithNames, methods) => {
             'remainingTime1', maxTime, 'remainingTime2', maxTime, 'stage', 1, 'slot1Locked', false, 'slot2Locked', false, 'p1Finished', false, 'p2Finished', false, 'gameEnds', false])
         methods.sendGameEvents(101, 'positions', positions)
         methods.sendGameEvents(102, 'correctCombination', correctCombination) // must be commented
-        async.parallel([
-            timerCounter1(),
-            timerCounter2()
-        ])
+        // async.parallel([
+        timerCounter1()
+        timerCounter2()
+        // ])
     }
 
     const makeCombination = () => {
@@ -65,10 +65,11 @@ module.exports = (roomId, players, roomPlayersWithNames, methods) => {
                 remainingTime1 = await methods.incrProp('remainingTime1', -1)
 
             logger.info('roomId: ' + roomId + ' remainingTime1: ' + remainingTime1)
-            // if (remainingTime1 < -5) {
-            //     clearInterval(timerInterval)
-            //     await methods.deleteRoom(roomId)
-            // }
+
+            if (remainingTime1 < -5) {
+                clearInterval(timerInterval)
+                await methods.deleteRoom(roomId)
+            }
 
         }, 1000)
     }
@@ -129,7 +130,6 @@ module.exports = (roomId, players, roomPlayersWithNames, methods) => {
     const deletePlayersRoomAfterGame = async () => {
         await methods.deleteUserRoom(findUserId(1))
         await methods.deleteUserRoom(findUserId(2))
-
     }
 
     const addStage = async () => {
@@ -153,11 +153,12 @@ module.exports = (roomId, players, roomPlayersWithNames, methods) => {
             "draw": true
         })
         await methods.deleteRoom(roomId)
+        await deletePlayersRoomAfterGame()
     }
 
     const getInitialProperties = async () => {
         const roomInfo = await methods.getAllProps()
-        if (roomInfo) {
+        if (roomInfo.hasOwnProperty('positions')) {
             positions = JSON.parse(roomInfo['positions'])
             stage = JSON.parse(roomInfo['stage'])
             slot1Locked = JSON.parse(roomInfo['slot1Locked'])
@@ -178,6 +179,8 @@ module.exports = (roomId, players, roomPlayersWithNames, methods) => {
     return {
         sendPositions: sendPositions,
         addStage: addStage,
-        checkGameEnds: checkGameEnds
+        checkGameEnds: checkGameEnds,
+        timerCounter1: timerCounter1,
+        timerCounter2: timerCounter2
     }
 }

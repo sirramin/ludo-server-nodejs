@@ -1,32 +1,36 @@
 const _ = require('lodash')
 module.exports = (io, userId, gameMeta, marketKey, roomId) => {
-    const maxTime = 110,
-        methods = require('../../realtime/methods')(io, gameMeta, roomId, marketKey)
-    let roomInfo, positions, currentPlayer, thisPlayerNumber, thisPlayerIndex, marblesPosition, orbs, hits
+    const methods = require('../../realtime/methods')(io, gameMeta, roomId, marketKey)
+    let roomInfo, positions, thisPlayerNumber, thisPlayerIndex
 
     const handleLeft = async () => {
         await getInitialProperties()
-        await affectRoomInRedis()
-        logger.info(' positions.length: ' + positions.length)
-        if (await isLeftPlayerTurn() && positions.length > 1) {
-            logger.info('------changeTurn 1 -----------')
-            await changeTurn()
-        }
+        await notifyOtherUser()
+        // affect to leaderboard
+        await methods.setProp('gameEnds', true)
+        await deletePlayersRoomAfterGame()
+        await methods.deleteRoom(roomId)
     }
 
-    const affectRoomInRedis = async () => {
-        positions.splice(thisPlayerIndex, 1)
-        await methods.setMultipleProps(['positions', JSON.stringify(positions), 'orbs', JSON.stringify(orbs), 'marblesPosition', JSON.stringify(marblesPosition)])
+    const notifyOtherUser = async () => {
         methods.sendGameEvents(6, 'playerLeft', {
-            player: thisPlayerNumber,
-            positions: positions,
-            marblesPosition: marblesPosition,
-            orbs: orbs
+            player: thisPlayerNumber
+        })
+        methods.sendGameEvents(24, 'winner', {
+            player: thisPlayerNumber === 1 ? 2 : 1
         })
     }
 
-    const isLeftPlayerTurn = async () => {
-        return thisPlayerNumber === currentPlayer
+    const deletePlayersRoomAfterGame = async () => {
+        await methods.deleteUserRoom(findUserId(1))
+        await methods.deleteUserRoom(findUserId(2))
+    }
+
+    const findUserId = (playerNumber) => {
+        const userObj = _.find(positions, function (o) {
+            return o.player === playerNumber
+        })
+        return userObj.userId
     }
 
     const getInitialProperties = async () => {
@@ -41,33 +45,6 @@ module.exports = (io, userId, gameMeta, marketKey, roomId) => {
             return o.userId === userId
         })
         return userObj.player
-    }
-
-    const changeTurn = async () => {
-        await methods.setProp('remainingTime', maxTime)
-        await methods.setProp('diceAttempts', 0)
-        const numberOfPlayers = positions.length
-        const nextPlayer = currentPlayer + 1 > numberOfPlayers ? 1 : currentPlayer + 1
-        if (orbs['player' + nextPlayer] > 0) {
-            logger.info('------changeTurn  orb > 0 -----------')
-            await methods.setProp('currentPlayer', nextPlayer)
-            methods.sendGameEvents(104, 'changeTurn', {
-                "player": nextPlayer,
-                "decreaseOrb": false,
-                "timeEnds": false,
-                "orbs": orbs,
-                "kick": true
-            })
-            const playerUserId = findUserIdOfNextPlayer(nextPlayer)
-            await methods.sendEventToSpecificSocket(playerUserId, 201, 'yourTurn', 1)
-        }
-    }
-
-    const findUserIdOfNextPlayer = (nextPlayer) => {
-        const userObj = _.find(positions, function (o) {
-            return o.player === nextPlayer
-        })
-        return userObj.userId
     }
 
     return ({
