@@ -8,8 +8,8 @@ module.exports = (io, userId, gameMeta, marketKey, roomId) => {
         await notifyOtherUser()
         // affect to leaderboard
         await methods.setProp('gameEnds', true)
-        await deletePlayersRoomAfterGame()
-        await methods.deleteRoom(roomId)
+        // await deletePlayersRoomAfterGame()
+        // await methods.deleteRoom(roomId)
     }
 
     const notifyOtherUser = async () => {

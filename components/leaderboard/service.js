@@ -1,6 +1,6 @@
 const Leaderboard = require('leaderboard-promise'),
-    redisClient = require('../../common/redis-client')
-_ = require('lodash')
+    redisClient = require('../../common/redis-client'),
+    _ = require('lodash')
 
 module.exports = (dbUrl, market) => {
     const query = require('./query')(dbUrl),

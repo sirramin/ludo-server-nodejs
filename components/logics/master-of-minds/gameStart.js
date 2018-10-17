@@ -66,7 +66,7 @@ module.exports = (roomId, players, roomPlayersWithNames, methods) => {
 
             logger.info('roomId: ' + roomId + ' remainingTime1: ' + remainingTime1)
 
-            if (remainingTime1 < -5) {
+            if (remainingTime1 < -2) {
                 clearInterval(timerInterval)
                 await methods.deleteRoom(roomId)
             }
@@ -87,7 +87,7 @@ module.exports = (roomId, players, roomPlayersWithNames, methods) => {
                 remainingTime2 = await methods.incrProp('remainingTime2', -1)
 
             logger.info('roomId: ' + roomId + ' remainingTime2: ' + remainingTime2)
-            if (remainingTime2 < -5) {
+            if (remainingTime2 < -2) {
                 clearInterval(timerInterval)
                 await methods.deleteRoom(roomId)
             }
@@ -109,19 +109,27 @@ module.exports = (roomId, players, roomPlayersWithNames, methods) => {
             else {
                 gameEnds = true
                 await methods.setProp('gameEnds', true)
+                let winnerNumner, loserNumber
                 if (p1Finished && p2Finished)
                     methods.sendGameEvents(24, 'gameEnd', {
                         "draw": true
                     })
-                if (p1Finished && !p2Finished)
+                if (p1Finished && !p2Finished) {
+                    winnerNumner = 1
+                    loserNumber = 2
                     methods.sendGameEvents(24, 'gameEnd', {
                         "winner": 1
                     })
-                if (!p1Finished && p2Finished)
+                }
+                if (!p1Finished && p2Finished) {
+                    winnerNumner = 2
+                    loserNumber = 1
                     methods.sendGameEvents(24, 'gameEnd', {
                         "winner": 2
                     })
-
+                }
+                await methods.addToLeaderboard(findUserId(winnerNumner), true)
+                await methods.addToLeaderboard(findUserId(loserNumber), false)
                 await deletePlayersRoomAfterGame()
             }
         }
@@ -158,7 +166,7 @@ module.exports = (roomId, players, roomPlayersWithNames, methods) => {
 
     const getInitialProperties = async () => {
         const roomInfo = await methods.getAllProps()
-        if (roomInfo.hasOwnProperty('positions')) {
+        if (roomInfo && roomInfo.hasOwnProperty('positions')) {
             positions = JSON.parse(roomInfo['positions'])
             stage = JSON.parse(roomInfo['stage'])
             slot1Locked = JSON.parse(roomInfo['slot1Locked'])

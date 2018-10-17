@@ -2,7 +2,8 @@ const gameIdentifier = require('../../common/gameIdentifier').findGameName,
     response = require('../../common/response'),
     auth = require('../../common/authMiddleware'),
     router = require('express').Router(),
-    serviceClass = require('./class/service-class')
+    serviceClass = require('./class/service-class'),
+    jwt = require('../../common/jwt')
 
 
 module.exports = () => {
@@ -74,7 +75,7 @@ module.exports = () => {
      * @apiGroup user
      * @apiHeader {String} gameid
      * @apiParam {String} newName
-     * @apiSuccess (Success 2) {String} Name updated
+     * @apiSuccess (Success 2) {String} newToken
      *
      * @apiError (Errors) 1 new name required
      * @apiError (Errors) 3 error updating name
@@ -90,7 +91,10 @@ module.exports = () => {
         try {
             const updatedUser = await query.updateUser({_id: userId}, {name: newName})
             await leaderboardService.changeName(newName, userId)
-            response(res, 'Name updated to: ' + updatedUser.name, 2)
+            const newToken = await jwt.generateJwt(dbUrl, userId, newName, market, updatedUser.phoneNumber, updatedUser.username)
+            response(res, 'Name updated to: ' + updatedUser.name, 2, {
+                newToken: newToken
+            })
         }
         catch (e) {
             response(res, 'error updating name', 3)

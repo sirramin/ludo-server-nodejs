@@ -91,13 +91,14 @@ module.exports = (io, gameMeta, roomId, marketKey) => {
     // }
 
     const deleteUserRoom = async (userId) => {
-        logger.info('userRoomPrefix: ' + userRoomPrefix)
         return await redisClient.HDEL(userRoomPrefix, userId)
     }
 
     const makeRemainingPlayerWinner = async (roomId) => {
         const players = await getProp('players')
-        const winnerPlayerNumber = (await getProp('positions'))[0].player
+        const positions = await getProp('positions')
+        // if(positions && positions.length) {
+        const winnerPlayerNumber = positions[0].player
         const winnerId = players[0]
         await setProp('winner', winnerId)
         sendGameEvents(24, 'gameEnd', {
@@ -113,13 +114,16 @@ module.exports = (io, gameMeta, roomId, marketKey) => {
         // const roomInfo = await getProp('info')
         // roomInfo.state = 'finished'
         // await setProp('info', JSON.stringify(roomInfo))
-
+        // }
     }
 
     const addToLeaderboard = async (userId, isWinner) => {
+        const roomInfo = await getProp('info')
         const userDataParsed = JSON.parse(await redisClient.HGET(marketKey, userId))
-        const leagueId = (await getProp('info')).leagueId
-        await leaderboardService.addScore(userDataParsed.name, userId, leagueId, isWinner)
+        if (roomInfo && roomInfo.hasOwnProperty('leagueId')) {
+            const leagueId = roomInfo.leagueId
+            await leaderboardService.addScore(userDataParsed.name, userId, leagueId, isWinner)
+        }
     }
 
     const getleaderboardRank = async (userId) => {
