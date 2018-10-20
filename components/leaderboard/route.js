@@ -65,6 +65,20 @@ module.exports = () => {
         }
     })
 
+    router.get('/old/:operator', auth, async (req, res) => {
+        const {name, userId, dbUrl, market} = req.userInfo
+        const service = require('./service')(dbUrl, market)
+        try {
+            const leaders = await service.getLeaderboard(name, userId)
+            // text box
+            response(res, '', 200, {leaders: leaders})
+        }
+        catch (err) {
+            logger.error(err.message)
+            response(res, 'Error getting leaderboard', 31)
+        }
+    })
+
 
     /**
      * @api {post} /gameResult send game result
