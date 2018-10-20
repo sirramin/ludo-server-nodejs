@@ -1,6 +1,8 @@
 module.exports = (dbUrl) => {
     const userModel = require('../user/model')(dbUrl),
-        _ = require('lodash')
+        _ = require('lodash'),
+        gameService = require('../logics/' + dbUrl + '/service-class')
+
 
     const upsertCharkhonehHistory = async (phoneNumber, subscriptionDetails, charkhonehToken) => {
         subscriptionDetails.token = charkhonehToken
@@ -23,6 +25,10 @@ module.exports = (dbUrl) => {
                     charkhonehHistory: subscriptionDetails,
                     coin: defaultCoin
                 })
+                if (dbUrl === 'moogy') {
+                    const gameServiceObj = new gameService(dbUrl)
+                    await gameServiceObj.insertUserGameData(insertedUser._doc._id)
+                }
                 return insertedUser
             }
         }

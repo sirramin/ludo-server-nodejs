@@ -8,7 +8,9 @@ module.exports = (dbUrl) => {
         query = require('./query')(dbUrl),
         jhoobinBaseUrl = jhoobinConfig.url + jhoobinConfig.packageName + '/purchases/subscriptions/' + jhoobinConfig.sku + '/tokens/',
         jhoobinBaseUrlProducts = jhoobinConfig.url + jhoobinConfig.packageName + '/purchases/products/',
-        leaderboardService = require('../leaderboard/service')(dbUrl, 'mtn')
+        leaderboardService = require('../leaderboard/service')(dbUrl, 'mtn'),
+        gameService = require('../logics/' + dbUrl + '/service-class')
+
 
     const checkSubscriptionStatus = (phoneNumber) => {
         const verificationCode = _.random(10000, 99999)
@@ -221,6 +223,12 @@ module.exports = (dbUrl) => {
                     }]
                 }
                 const userData = await query.insertUser(profile)
+
+                if (dbUrl === 'moogy') {
+                    const gameServiceObj = new gameService(dbUrl)
+                    await gameServiceObj.insertUserGameData(userData._doc._id)
+                }
+
                 logger.info("profile intialized by vas, phoneNumber: " + phoneNumber)
                 return {message: '', data: userData}
             }
