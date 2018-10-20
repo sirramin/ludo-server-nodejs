@@ -73,10 +73,13 @@ module.exports = (dbUrl) => {
     const addUser = async (phoneNumber) => {
         const leaderboardService = require('../leaderboard/service')(dbUrl, 'mci')
         try {
+            let defaultCoin
+            dbUrl === 'moogy' ? defaultCoin = 2 : defaultCoin = 1400
             const user = {
                 name: 'user' + _.random(1, 99999),
                 phoneNumber: phoneNumber,
-                market: 'mci'
+                market: 'mci',
+                coin: defaultCoin
             }
             const returnedUser = await query.insertUser(user)
             const returnedUserId = (returnedUser._doc._id).toString()

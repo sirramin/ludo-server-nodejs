@@ -13,12 +13,15 @@ module.exports = (dbUrl) => {
                 return user
             }
             else {
+                let defaultCoin
+                dbUrl === 'moogy' ? defaultCoin = 2 : defaultCoin = 1400
                 const insertedUser = await insertUser({
                     name: 'user' + _.random(10000, 99999),
                     phoneNumber: phoneNumber,
                     market: "mtn",
                     charkhonehCancelled: false,
-                    charkhonehHistory: subscriptionDetails
+                    charkhonehHistory: subscriptionDetails,
+                    coin: defaultCoin
                 })
                 return insertedUser
             }

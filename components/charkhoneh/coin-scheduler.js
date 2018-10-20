@@ -2,6 +2,12 @@ module.exports = (dbUrl) => {
     const schedule = require('node-schedule')
     logger.info('Schedule module start')
     const userModel = require('../user/model')(dbUrl)
+    let dailyCurrency
+    if(dbUrl === 'moogy')
+        dailyCurrency = 10
+    else
+        dailyCurrency = 200
+
     schedulerExecuted = true
     schedule.scheduleJob('0 59 23 * * *', function () {
         logger.log('Coin schedule exceuted at ' + Date())
@@ -10,7 +16,7 @@ module.exports = (dbUrl) => {
                 charkhonehCancelled: false,
                 charkhonehHistory: {$ne: []},
             }, {
-                $inc: {coin: 200}
+                $inc: {coin: dailyCurrency}
             },
             {
                 multi: true
