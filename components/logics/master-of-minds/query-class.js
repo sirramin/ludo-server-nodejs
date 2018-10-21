@@ -7,7 +7,6 @@ const userGameDataQueryClass = class {
         this.dbUrl = dbUrl
         this.userGameDataModelObj = new userGameDataModelClass(dbUrl)
         this.userGameDataModel = this.userGameDataModelObj.getModel()
-        this.castleModel = this.userGameDataModelObj.getCastleModel()
     }
 
     async getUserData(userId) {
