@@ -38,6 +38,10 @@ const userGameDataQueryClass = class {
     async updateLevels(userId, updateQuery) {
         return await this.userGameDataModel.findOneAndUpdate({userId: userId}, updateQuery, {new: true})
     }
+
+    async updatePowerUps(userId, updateQuery) {
+        return await this.userGameDataModel.findOneAndUpdate({userId: userId}, updateQuery)
+    }
 }
 
 module.exports = userGameDataQueryClass

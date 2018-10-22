@@ -7,7 +7,7 @@ const route = require('express').Router(),
     serviceClassObj = new serviceClass('master-of-minds')
 
 
-module.exports = (io) => {
+module.exports = () => {
 
     route.get('/getUserGameData', auth, async (req, res, next) => {
         const {name, userId, dbUrl, market} = req.userInfo
@@ -34,7 +34,7 @@ module.exports = (io) => {
         }
     })
 
-    route.post('/master/updateLevels', auth, async (req, res, next) => {
+    route.post('/updateLevels', auth, async (req, res, next) => {
         const {name, userId, dbUrl, market} = req.userInfo
         if (!req.body.level) {
             return response(res, 'capacityLevel or cphLevel are required', 1)
@@ -49,15 +49,16 @@ module.exports = (io) => {
         }
     })
 
-    route.post('/master/increaseOne', auth, async (req, res, next) => {
+    route.post('/powerup/increaseOne', auth, async (req, res, next) => {
         const {name, userId, dbUrl, market} = req.userInfo
-        if (!req.body.level) {
-            return response(res, 'capacityLevel or cphLevel are required', 1)
+        if (!req.body.powerupCode) {
+            return response(res, 'powerupCode is required', 1)
         }
         try {
+            const powerupCode = parseInt(req.body.powerupCode)
             const serviceObj = new serviceClass(dbUrl)
-            await serviceObj.updateLevels(req.body.level, userId)
-            return response(res, '', 2, 'level increased')
+            await serviceObj.updatePowerUps(powerupCode, userId)
+            return response(res, '', 2, 'powerup increased')
         }
         catch (e) {
             response(res, e.message, e.code)

@@ -4,7 +4,6 @@ const mongooseClientClass = require('../../../common/mongoose-client-class')
 const userGameDataModelClass = class {
 
 
-
     constructor(dbUrl) {
         const defaultPowerUps = {
             worthlessMarble: 4,
