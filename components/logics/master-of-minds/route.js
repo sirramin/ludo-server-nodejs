@@ -15,7 +15,7 @@ module.exports = () => {
             const userData = await userGameDataQueryObj.getUserData(userId)
             const userInfo = userData.userInfo[0]
             response(res, '', 200, {
-                powerups: userData.powerups,
+                powerUps: userData.powerUps,
                 cphLevel: userData.cphLevel,
                 capacityLevel: userData.capacityLevel,
                 capacity: userData.capacity,
@@ -49,32 +49,32 @@ module.exports = () => {
         }
     })
 
-    route.post('/powerup/increaseOne', auth, async (req, res, next) => {
+    route.post('/powerUp/increaseOne', auth, async (req, res, next) => {
         const {name, userId, dbUrl, market} = req.userInfo
-        if (!req.body.powerupCode) {
-            return response(res, 'powerupCode is required', 1)
+        if (!req.body.powerUpCode) {
+            return response(res, 'powerUpCode is required', 1)
         }
         try {
-            const powerupCode = parseInt(req.body.powerupCode)
+            const powerUpCode = parseInt(req.body.powerUpCode)
             const serviceObj = new serviceClass(dbUrl)
-            await serviceObj.updatePowerUps(powerupCode, userId)
-            return response(res, '', 2, 'powerup increased')
+            await serviceObj.updatePowerUps(powerUpCode, userId)
+            return response(res, '', 2, 'powerUp increased')
         }
         catch (e) {
             response(res, e.message, e.code)
         }
     })
 
-    route.post('/powerup/multipleDecrease', auth, async (req, res, next) => {
+    route.post('/powerUp/multipleDecrease', auth, async (req, res, next) => {
         const {name, userId, dbUrl, market} = req.userInfo
-        if (!req.body.powerupArray) {
-            return response(res, 'powerupArray is required', 1)
+        if (!req.body.powerUpArray) {
+            return response(res, 'powerUpArray is required', 1)
         }
         try {
-            const powerupArray = JSON.parse(req.body.powerupArray)
+            const powerUpArray = JSON.parse(req.body.powerUpArray)
             const serviceObj = new serviceClass(dbUrl)
-            await serviceObj.decreasePowerUps(powerupArray, userId)
-            return response(res, '', 2, 'powerups decreased')
+            await serviceObj.decreasePowerUps(powerUpArray, userId)
+            return response(res, '', 2, 'powerUps decreased')
         }
         catch (e) {
             response(res, e.message, e.code)

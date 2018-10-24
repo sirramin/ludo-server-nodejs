@@ -11,7 +11,7 @@ const gameDataServiceClass = class {
         this.dbUrl = dbUrl
         this.query = new queryClass(dbUrl)
         this.userQuery = new userQueryClass(dbUrl)
-        this.powerupEnum = [
+        this.powerUpEnum = [
             {"worthlessMarble": 300},
             {"vibration": 20},
             {"correctColor": 400},
@@ -49,33 +49,33 @@ const gameDataServiceClass = class {
 
     async updatePowerUps(powerUpCode, userId) {
 
-        const powerup = this.powerupEnum[powerUpCode]
-        const powerUpCoin = Object.values(powerup)[0]
-        const powerUpText = Object.keys(powerup)[0]
+        const powerUp = this.powerUpEnum[powerUpCode]
+        const powerUpCoin = Object.values(powerUp)[0]
+        const powerUpText = Object.keys(powerUp)[0]
         const userData = await this.query.getUserData(userId)
         const currentCoin = userData.userInfo[0].coin
         if (currentCoin < powerUpCoin) throw({message: 'You do not have enough coins', code: 3})
 
-        // const currentPower = userData.powerups[powerUp]
+        // const currentPower = userData.powerUps[powerUp]
         // if (!currentPower) throw({message: '', code: 3})
 
         const updatedCoin = await this.userQuery.updateCoin(userId, -powerUpCoin)
 
         let incObject = {}
-        incObject['powerups.' + powerUpText] = 1
+        incObject['powerUps.' + powerUpText] = 1
         return await this.query.updatePowerUps(userId, {$inc: incObject})
 
     }
 
-    async decreasePowerUps(powerupArray, userId) {
+    async decreasePowerUps(powerUpArray, userId) {
         const userData = await this.query.getUserData(userId)
-        powerupArray.forEach(async powerUpCode => {
-            const powerup = this.powerupEnum[powerUpCode]
-            const powerUpText = Object.keys(powerup)[0]
-            const powerQuantity = userData.powerups[powerUpText]
+        powerUpArray.forEach(async powerUpCode => {
+            const powerUp = this.powerUpEnum[powerUpCode]
+            const powerUpText = Object.keys(powerUp)[0]
+            const powerQuantity = userData.powerUps[powerUpText]
             if (powerQuantity < 1) throw({message: 'User has not enough ' + powerUpText, code: 3})
             let incObject = {}
-            incObject['powerups.' + powerUpText] = -1
+            incObject['powerUps.' + powerUpText] = -1
             await this.query.updatePowerUps(userId, {$inc: incObject})
         })
 

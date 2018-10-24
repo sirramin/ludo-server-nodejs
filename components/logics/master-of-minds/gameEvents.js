@@ -19,7 +19,9 @@ module.exports = (io, socket, gameMeta, marketKey) => {
         if (act === 'arrange')
             await arrange(data.combination)
         if (act === 'chat')
-            chat(data.msg)
+            await chat(data.msg)
+        if (act === 'powerUp')
+            await powerUp(data.powerUpCode)
     }
 
     const arrange = async (combination) => {
@@ -37,6 +39,19 @@ module.exports = (io, socket, gameMeta, marketKey) => {
         // const players = [positions[0].userId, positions[1].userId]
         // const gameStart = require('./gameStart')(roomId, players, positions, methods)
         // await checkGameEnds()
+    }
+
+    const powerUp = async (powerUpCode) => {
+        if (powerUpCode === 3)
+            increaseTime()
+        if (powerUpCode === 1)
+            vibration()
+        if (powerUpCode === 5)
+            doNotDecreaseCoin()
+    }
+
+    const increaseTime = async () => {
+
     }
 
     const checkCombination = async (userCombination, playerNumber) => {

@@ -24,7 +24,7 @@ const userGameDataModelClass = class {
             capacityLevel: {type: Number, default: 1},
             capacity: {type: Number, default: 1000},
             coinPerHour: {type: Number, default: 200},
-            powerups: {type: this.mongooseClient.Schema.Types.Mixed, default: defaultPowerUps}
+            powerUps: {type: this.mongooseClient.Schema.Types.Mixed, default: defaultPowerUps}
         })
     }
 
