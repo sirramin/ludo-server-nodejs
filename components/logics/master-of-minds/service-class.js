@@ -6,10 +6,19 @@ const _ = require('lodash'),
 
 const gameDataServiceClass = class {
 
+
     constructor(dbUrl) {
         this.dbUrl = dbUrl
         this.query = new queryClass(dbUrl)
         this.userQuery = new userQueryClass(dbUrl)
+        this.powerupEnum = [
+            {"worthlessMarble": 300},
+            {"vibration": 20},
+            {"correctColor": 400},
+            {"increaseTime": 100},
+            {"correctPosition": 1200},
+            {"doNotDecreaseCoin": 100}
+        ]
     }
 
     async insertUserGameData(userId) {
@@ -39,15 +48,8 @@ const gameDataServiceClass = class {
     }
 
     async updatePowerUps(powerUpCode, userId) {
-        const powerupEnum = [
-            {"worthlessMarble": 300},
-            {"vibration": 20},
-            {"correctColor": 400},
-            {"increaseTime": 100},
-            {"correctPosition": 1200},
-            {"doNotDecreaseCoin": 100}
-        ]
-        const powerup = powerupEnum[powerUpCode]
+
+        const powerup = this.powerupEnum[powerUpCode]
         const powerUpCoin = Object.values(powerup)[0]
         const powerUpText = Object.keys(powerup)[0]
         const userData = await this.query.getUserData(userId)
@@ -62,6 +64,21 @@ const gameDataServiceClass = class {
         let incObject = {}
         incObject['powerups.' + powerUpText] = 1
         return await this.query.updatePowerUps(userId, {$inc: incObject})
+
+    }
+
+    async decreasePowerUps(powerupArray, userId) {
+        const userData = await this.query.getUserData(userId)
+        powerupArray.forEach(async powerUpCode => {
+            const powerup = this.powerupEnum[powerUpCode]
+            const powerUpText = Object.keys(powerup)[0]
+            const powerQuantity = userData.powerups[powerUpText]
+            if (powerQuantity < 1) throw({message: 'User has not enough ' + powerUpText, code: 3})
+            let incObject = {}
+            incObject['powerups.' + powerUpText] = -1
+            await this.query.updatePowerUps(userId, {$inc: incObject})
+        })
+
 
     }
 

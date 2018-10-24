@@ -65,5 +65,21 @@ module.exports = () => {
         }
     })
 
+    route.post('/powerup/multipleDecrease', auth, async (req, res, next) => {
+        const {name, userId, dbUrl, market} = req.userInfo
+        if (!req.body.powerupArray) {
+            return response(res, 'powerupArray is required', 1)
+        }
+        try {
+            const powerupArray = JSON.parse(req.body.powerupArray)
+            const serviceObj = new serviceClass(dbUrl)
+            await serviceObj.decreasePowerUps(powerupArray, userId)
+            return response(res, '', 2, 'powerups decreased')
+        }
+        catch (e) {
+            response(res, e.message, e.code)
+        }
+    })
+
     return route
 }
