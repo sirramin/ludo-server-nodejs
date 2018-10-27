@@ -1,5 +1,6 @@
 const _ = require('lodash')
 // const async = require('async')
+const leaderboardService = require('../../leaderboard/class/service-class')
 
 module.exports = (roomId, players, roomPlayersWithNames, methods) => {
     const maxTime = 25
@@ -101,7 +102,7 @@ module.exports = (roomId, players, roomPlayersWithNames, methods) => {
     const checkGameEnds = async () => {
         await getInitialProperties()
         if (slot1Locked && slot2Locked) {
-            logger.info('p1Finished: ' + p1Finished + ' p2Finished: ' + p2Finished)
+            // logger.info('p1Finished: ' + p1Finished + ' p2Finished: ' + p2Finished)
 
             if (!p1Finished && !p2Finished) {
                 await addStage()
@@ -130,8 +131,18 @@ module.exports = (roomId, players, roomPlayersWithNames, methods) => {
                 }
                 await methods.addToLeaderboard(findUserId(winnerNumner), true)
                 await methods.addToLeaderboard(findUserId(loserNumber), false)
+                await refundCoin(loserNumber)
                 await deletePlayersRoomAfterGame()
             }
+        }
+    }
+
+    const refundCoin = async (loserNumber) => {
+        const hasDoNotDecrease = await methods.getProp('doNotDecreaseCoinPlayer' + loserNumber)
+        if(hasDoNotDecrease) {
+            const query = require('./query')('master-of-minds')
+
+            await query.updateUser({_id: findUserId(loserNumber)}, {$inc: {coin: coin}})
         }
     }
 
