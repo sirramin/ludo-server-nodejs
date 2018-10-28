@@ -9,12 +9,12 @@
 <button id="connect">connect</button>
 <button id="joinRoom">joinRoom</button>
 <!--<select id="colors" multiple>-->
-    <!--<option value="0">purple</option>-->
-    <!--<option value="1">blue</option>-->
-    <!--<option value="2">green</option>-->
-    <!--<option value="3">red</option>-->
-    <!--<option value="4">yellow</option>-->
-    <!--<option value="5">silver</option>-->
+<!--<option value="0">purple</option>-->
+<!--<option value="1">blue</option>-->
+<!--<option value="2">green</option>-->
+<!--<option value="3">red</option>-->
+<!--<option value="4">yellow</option>-->
+<!--<option value="5">silver</option>-->
 <!--</select>-->
 <br><br>
 <input id="input1" type="number" min="0" max="5" value="1">
@@ -23,6 +23,11 @@
 <br><br>
 <button id="arrange">arrange</button>
 <button id="leftRoom">leftRoom</button>
+<br><br>
+<button id="increaseTime">increaseTime</button>
+<button id="vibration">vibration</button>
+<button id="doNotDecreaseCoin">doNotDecreaseCoin</button>
+
 <!--<script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>-->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.1/socket.io.js"></script>
 <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
@@ -71,6 +76,33 @@
 
             $('#leftRoom').click(() => {
                 socket.emit('leftRoom', 1)
+            })
+
+            $('#increaseTime').click(() => {
+                socket.emit('event', JSON.stringify({
+                    act: 'powerUp',
+                    data: {
+                        powerUpCode: 3
+                    }
+                }))
+            })
+
+            $('#vibration').click(() => {
+                socket.emit('event', JSON.stringify({
+                    act: 'powerUp',
+                    data: {
+                        powerUpCode: 1
+                    }
+                }))
+            })
+
+            $('#doNotDecreaseCoin').click(() => {
+                socket.emit('event', JSON.stringify({
+                    act: 'powerUp',
+                    data: {
+                        powerUpCode: 5
+                    }
+                }))
             })
 
             $('#arrange').on('click', function () {

@@ -23,8 +23,8 @@ module.exports = {
             "validationUrl": "http://31.47.36.133/~gatewayrdn/App/app_user_validation.php?number=${number}&serviceName=moogy"
         },
         "artatelOtp": {
-            "request": "https://otp.artatel.ir/api/otp/v1/request/moogyPuzzle",
-            "confirmation": 'https://otp.artatel.ir/api/otp/v1/confirmation/moogyPuzzle'
+            "request": "https://otp.artatel.ir/api/otp/v1/request/moogyPuzzle/",
+            "confirmation": 'https://otp.artatel.ir/api/otp/v1/confirmation/moogyPuzzle/'
         }
     }
 }

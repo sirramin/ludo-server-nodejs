@@ -42,6 +42,8 @@ module.exports = (io, socket, gameMeta, marketKey) => {
     }
 
     const powerUp = async (powerUpCode) => {
+        await getInitialProperties()
+
         if (powerUpCode === 3)
             await increaseTime()
         if (powerUpCode === 1)
@@ -52,10 +54,13 @@ module.exports = (io, socket, gameMeta, marketKey) => {
 
     const increaseTime = async () => {
         const playerNumber = findPlayerNumber()
-        if (playerNumber === 1)
+        if (playerNumber === 1) {
             remainingTime1 = await methods.incrProp('remainingTime1', 10)
-        else
+            logger.info('user ' + playerNumber + ' timer increased to ' + remainingTime1)
+        }
+        else {
             remainingTime2 = await methods.incrProp('remainingTime2', 10)
+        }
 
         logger.info('roomId: ' + roomId + ' remainingTime' + playerNumber + ': ' + remainingTime1)
     }
@@ -124,8 +129,9 @@ module.exports = (io, socket, gameMeta, marketKey) => {
 
     const findOtherPlayerUserId = () => {
         const playerNumber = findPlayerNumber()
+        const otherPlayerNumber = playerNumber === 1 ? 2 : 1
         const userObj = _.find(positions, function (o) {
-            return o.userId === playerNumber === 1 ? 2 : 1
+            return o.player === otherPlayerNumber
         })
         return userObj.userId
     }
