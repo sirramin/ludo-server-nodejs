@@ -131,8 +131,8 @@ module.exports = (roomId, players, roomPlayersWithNames, methods) => {
                 }
                 await methods.addToLeaderboard(findUserId(winnerNumner), true)
                 await methods.addToLeaderboard(findUserId(loserNumber), false)
-                await refundCoin(loserNumber)
                 await deletePlayersRoomAfterGame()
+                await refundCoin(loserNumber)
             }
         }
     }
@@ -141,13 +141,13 @@ module.exports = (roomId, players, roomPlayersWithNames, methods) => {
         const hasDoNotDecrease = await methods.getProp('doNotDecreaseCoinPlayer' + loserNumber)
         if (hasDoNotDecrease) {
             const roomInfo = await methods.getProp('info')
-            const roomInfoParsed = JSON.parse(roomInfo)
-            const marketKey = roomInfoParsed.marketKey
-            const market = marketKey.slice(marketKey.indexOf("users:"), marketKey.length)
+            const leagueId = roomInfo.leagueId
+            const marketKey = roomInfo.marketKey
+            const market = marketKey.slice(marketKey.indexOf("users:") + 6, marketKey.length)
             const serviceObj = new leaderboardService('master-of-minds', market)
             const leagues = await serviceObj.getLeagues()
-            response(res, '', 200, {leagues: leagues})
-            const query = require('./query')('master-of-minds')
+            const coin = leagues[leagueId - 1].entranceCoins
+            const query = require('../../user/query')('master-of-minds')
             await query.updateUser({_id: findUserId(loserNumber)}, {$inc: {coin: coin}})
         }
     }
