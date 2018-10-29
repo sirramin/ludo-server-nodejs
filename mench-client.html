@@ -42,7 +42,7 @@
             else {
                 token = localStorage.token
                 const res = await $.ajax({
-                    url: target + "/logics/menchman/getUserGameData",
+                    url: target + "/menchman/getUserGameData",
                     type: 'get',
                     headers: {
                         token: localStorage.token

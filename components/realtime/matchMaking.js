@@ -296,7 +296,7 @@ module.exports = (io, socket, gameMeta) => {
     const changeSocketIdAndSocketRoom = async () => {
         const userData = await redisClient.HGET(marketKey, userId)
         const userDataParsed = JSON.parse(userData)
-        const roomId = userDataParsed.roomId
+        const roomId = await findUserCurrentRoom()
         const oldSocketId = userDataParsed.socketId
         const newSocketId = socket.id
         userDataParsed.socketId = newSocketId
@@ -306,6 +306,9 @@ module.exports = (io, socket, gameMeta) => {
             if (err)
                 logger.info('err leaving socket' + userId)
             io.of('/').adapter.remoteJoin(newSocketId, roomId, (err) => {
+                if (err)
+                    logger.info('err joining socket' + userId)
+                logger.info('user: ' + userId + ' with socket id: ' + newSocketId + ' joined again to room: ' + roomId)
             })
         })
     }

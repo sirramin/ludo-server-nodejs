@@ -47,7 +47,7 @@ module.exports = (roomId, players, roomPlayersWithNames, methods) => {
     const timerCounter = () => {
         const timerInterval = setInterval(async () => {
             const remainingTime = await methods.incrProp('remainingTime', -1)
-            if (remainingTime < -1 && positions.length === 1) {
+            if ((remainingTime < -1 && positions.length === 1) ||  remainingTime < -10) {
                 clearInterval(timerInterval)
                 methods.deleteRoom(roomId)
             }
