@@ -18,8 +18,8 @@ module.exports = (dbUrl) => {
         charkhonehProducts: [],
         email: String,
         emailCode: Number
-    });
-    userSchema.set('autoIndex', false);
+    }, { phoneNumber: false });
+    // userSchema.set('autoIndex', false);
     if (_.has(connections[dbUrl].models, 'users'))
         return connections[dbUrl].model('users');
     else
