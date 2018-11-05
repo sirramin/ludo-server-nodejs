@@ -155,6 +155,7 @@ module.exports = (io, gameMeta, roomId, marketKey) => {
         deleteRoom: deleteRoom,
         getleaderboardRank: getleaderboardRank,
         getUserData: getUserData,
-        deleteUserRoom: deleteUserRoom
+        deleteUserRoom: deleteUserRoom,
+        givePrize: givePrize
     }
 }

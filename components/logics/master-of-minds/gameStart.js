@@ -129,8 +129,14 @@ module.exports = (roomId, players, roomPlayersWithNames, methods) => {
                         "winner": 2
                     })
                 }
-                await methods.addToLeaderboard(findUserId(winnerNumner), true)
+                const winnerId = findUserId(winnerNumner)
+                await methods.addToLeaderboard(winnerId, true)
                 await methods.addToLeaderboard(findUserId(loserNumber), false)
+
+                const roomInfo = await methods.getProp('info')
+                const leagueId = roomInfo.leagueId
+                await methods.givePrize(winnerId, leagueId)
+
                 await deletePlayersRoomAfterGame()
                 await refundCoin(loserNumber)
             }

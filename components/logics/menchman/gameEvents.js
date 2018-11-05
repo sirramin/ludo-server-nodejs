@@ -208,6 +208,9 @@ module.exports = (io, socket, gameMeta, marketKey) => {
                 methods.sendGameEvents(24, 'gameEnd', {
                     "winner": currentPlayer
                 })
+                const roomInfo = await methods.getProp('info')
+                const leagueId = roomInfo.leagueId
+                await methods.givePrize(userId, leagueId)
                 await methods.deleteRoom(roomId)
             }
 
