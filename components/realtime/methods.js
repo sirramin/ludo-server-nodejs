@@ -97,6 +97,7 @@ module.exports = (io, gameMeta, roomId, marketKey) => {
     const makeRemainingPlayerWinner = async (roomId) => {
         const players = await getProp('players')
         const positions = await getProp('positions')
+        const info = await getProp('info')
         // if(positions && positions.length) {
         const winnerPlayerNumber = positions[0].player
         const winnerId = players[0]
@@ -106,6 +107,7 @@ module.exports = (io, gameMeta, roomId, marketKey) => {
         })
         await deleteUserRoom(winnerId)
         await addToLeaderboard(winnerId, true)
+        await givePrize(winnerId, info.leagueId)
         const winnerSocketId = await getUserSocketIdFromRedis(winnerId)
         io.of('/').adapter.remoteDisconnect(winnerSocketId, true, (err) => {
             logger.info('---------- remoteDisconnect winner-------------------')
@@ -132,6 +134,10 @@ module.exports = (io, gameMeta, roomId, marketKey) => {
 
     const getUserData = async (userId) => {
         return JSON.parse(await redisClient.HGET(marketKey, userId))
+    }
+
+    const givePrize = async (userId, leagueId) => {
+        return await leaderboardService.givePrize(userId, leagueId)
     }
 
     return {

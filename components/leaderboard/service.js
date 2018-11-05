@@ -116,11 +116,23 @@ module.exports = (dbUrl, market) => {
         return await lb.rank(userId) + 1
     }
 
+    const getLeagues = async () => {
+        return await query.getLeagues()
+    }
+
+    const givePrize = async (userId, leagueId) => {
+        const leagues = await getLeagues()
+        const prize = leagues[leagueId - 1].prize
+        await userQuery.updateUser({_id: userId}, {$inc: {coin: prize}})
+    }
+
     return {
         getLeaderboard: getLeaderboard,
         addScore: addScore,
         firstTimeScore: firstTimeScore,
         changeName: changeName,
-        getRank: getRank
+        getRank: getRank,
+        getLeagues: getLeagues,
+        givePrize: givePrize
     }
 }

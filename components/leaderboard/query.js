@@ -6,7 +6,12 @@ module.exports = (dbUrl) => {
         return league.winsBaseScore
     }
 
+    const getLeagues = async () => {
+        return await leagueModel.find().lean().exec()
+    }
+
     return {
-        findLeagueScore: findLeagueScore
+        findLeagueScore: findLeagueScore,
+        getLeagues: getLeagues
     }
 }

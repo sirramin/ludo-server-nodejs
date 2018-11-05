@@ -5,7 +5,7 @@ module.exports = (dbUrl) => {
         name: {type: String, required: true},
         username: {type: String},
         password: String,
-        phoneNumber: {type: String, unique: true},
+        phoneNumber: {type: String},
         market: {type: String, required: true},
         coin: {type: Number, default: 1400},
         win: {type: Number, default: 0},
