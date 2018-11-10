@@ -11,7 +11,7 @@ const userModelClass = class {
             name: {type: String, required: true},
             username: {type: String},
             password: String,
-            phoneNumber: {type: String, unique: true},
+            phoneNumber: {type: String},
             market: {type: String, required: true},
             coin: {type: Number, default: 1400},
             win: {type: Number, default: 0},
@@ -22,7 +22,7 @@ const userModelClass = class {
             charkhonehCancelled: Boolean,
             charkhonehHistory: [],
             charkhonehProducts: [],
-            email: {type: String, unique: true},
+            email: {type: String},
             emailCode: Number
         })
     }

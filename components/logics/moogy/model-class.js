@@ -10,7 +10,7 @@ const userGameDataModelClass = class {
         this.ObjectId = this.mongooseClient.Schema.Types.ObjectId
         this.userGameDataSchema = this.mongooseClient.Schema({
             userId: {type: this.ObjectId},
-            hints: {type: Number, default: 4, unique: true}
+            hints: {type: Number, default: 4}
         })
     }
 
