@@ -8,12 +8,12 @@ const gameIdentifier = require('../../common/gameIdentifier').findGameName,
 
 module.exports = () => {
 
-    router.get('/find/:username', gameIdentifier, async (req, res, next) => {
-        const {username} = req.params
+    router.post('/signup', gameIdentifier, async (req, res, next) => {
+        const {username, password, phoneNumber, market} = req.body
         const service = require('./service')(req.dbUrl, market)
         const isUserExists = await service.checkUserExists(username)
-        if (!isUserExists)
-            response(res, 'user not exist')
+        if (isUserExists)
+            response(res, 'User already registered')
         else {
             const user = await service.registerUser(username, password, phoneNumber, market)
             response(res, '', 2, user)

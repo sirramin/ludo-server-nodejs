@@ -1,4 +1,4 @@
-const router = require('express').Router();
+const router = require('express').Router()
 
 module.exports = (io) => {
     router.use('/otp', require('../components/otp/route')())
@@ -8,5 +8,6 @@ module.exports = (io) => {
     router.use('/menchman', require('../components/logics/menchman/route')(io))
     router.use('/master', require('../components/logics/master-of-minds/route')())
     router.use('/moogy', require('../components/logics/moogy/route')(io))
+    router.use('/friendship', require('../components/friendship/route')(io))
     return router
-};
+}
