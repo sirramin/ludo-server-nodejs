@@ -9,5 +9,6 @@ module.exports = (io) => {
     router.use('/master', require('../components/logics/master-of-minds/route')())
     router.use('/moogy', require('../components/logics/moogy/route')(io))
     router.use('/friendship', require('../components/friendship/route')(io))
+    router.use('/general', require('../components/general/route')(io))
     return router
 }

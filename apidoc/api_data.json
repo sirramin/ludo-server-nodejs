@@ -435,6 +435,73 @@
     "groupTitle": "charkhoneh"
   },
   {
+    "type": "get",
+    "url": "/general/checkUpdate/:playerVersion",
+    "title": "checkUpdate",
+    "name": "checkUpdate",
+    "group": "general",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "gameid",
+            "description": ""
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "playerVersion",
+            "description": ""
+          }
+        ]
+      }
+    },
+    "success": {
+      "examples": [
+        {
+          "title": "(Success 1) {json} Success-Response:",
+          "content": "{\n    \"code\": 1,\n    \"message\": \"player has latest version\"\n    }",
+          "type": "json"
+        },
+        {
+          "title": "(Success 2) {json} Success-Response:",
+          "content": "  {\n\"code\": 2,\n\"message\": \"player has not latest version but still can play\",\n\"data\": {\n    \"marketUrl\": \"https://cafebazaar.ir/app/com.artagamestudio.moogy/?l=fa\"\n    }\n}",
+          "type": "json"
+        },
+        {
+          "title": "(Success 3) {json} Success-Response:",
+          "content": "{\n    \"code\": 3,\n    \"message\": \"force update\",\n    \"data\": {\n        \"marketUrl\": \"https://cafebazaar.ir/app/com.artagamestudio.moogy/?l=fa\"\n        }\n    }",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "fields": {
+        "Errors": [
+          {
+            "group": "Errors",
+            "optional": false,
+            "field": "1",
+            "description": "<p>error checking for update</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "components/general/route.js",
+    "groupTitle": "general"
+  },
+  {
     "type": "post",
     "url": "/gameResult",
     "title": "send game result",
@@ -1073,8 +1140,75 @@
             "group": "Success 2",
             "type": "String",
             "optional": false,
-            "field": "Name",
-            "description": "<p>updated</p>"
+            "field": "newToken",
+            "description": ""
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Errors": [
+          {
+            "group": "Errors",
+            "optional": false,
+            "field": "1",
+            "description": "<p>new name required</p>"
+          },
+          {
+            "group": "Errors",
+            "optional": false,
+            "field": "3",
+            "description": "<p>error updating name</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "components/friendship/route.js",
+    "groupTitle": "user"
+  },
+  {
+    "type": "post",
+    "url": "/user/changeName",
+    "title": "changeName",
+    "name": "changeName",
+    "group": "user",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "gameid",
+            "description": ""
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "newName",
+            "description": ""
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 2": [
+          {
+            "group": "Success 2",
+            "type": "String",
+            "optional": false,
+            "field": "newToken",
+            "description": ""
           }
         ]
       }
@@ -1099,6 +1233,73 @@
     },
     "version": "0.0.0",
     "filename": "components/user/route.js",
+    "groupTitle": "user"
+  },
+  {
+    "type": "post",
+    "url": "/user/increaseCoin",
+    "title": "increase coin",
+    "name": "increaseCoin",
+    "group": "user",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "gameid",
+            "description": ""
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": false,
+            "field": "coin",
+            "description": ""
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 2": [
+          {
+            "group": "Success 2",
+            "type": "Number",
+            "optional": false,
+            "field": "newCoin",
+            "description": ""
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Errors": [
+          {
+            "group": "Errors",
+            "optional": false,
+            "field": "1",
+            "description": "<p>coin required</p>"
+          },
+          {
+            "group": "Errors",
+            "optional": false,
+            "field": "3",
+            "description": "<p>error updating coin</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "components/friendship/route.js",
     "groupTitle": "user"
   },
   {
