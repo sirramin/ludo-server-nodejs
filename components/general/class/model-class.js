@@ -28,10 +28,10 @@ const userModelClass = class {
     }
 
     getModel() {
-        if (_.has(connections[this.dbUrl].models, 'users'))
-            return connections[this.dbUrl].model('users')
+        if (_.has(connections[this.dbUrl].models, 'general'))
+            return connections[this.dbUrl].model('general')
         else
-            return connections[this.dbUrl].model('users', this.userSchema)
+            return connections[this.dbUrl].model('general', this.userSchema)
     }
 }
 

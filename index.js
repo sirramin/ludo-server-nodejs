@@ -16,6 +16,7 @@ global.redisClientAsync = null
 app.use(cors())
 app.use(morgan('combined'))
 app.use('/apidoc8574636', express.static('apidoc'))
+app.use('/static', express.static('static'))
 const bodyParser = require('body-parser')
 app.use(bodyParser.urlencoded({extended: false}))
 app.use(bodyParser.json())

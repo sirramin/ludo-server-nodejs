@@ -5,7 +5,7 @@ services:
     restart: always
     build: .
     ports:
-      - "3000:3000"
+      - "3001:3001"
     depends_on:
       - redis
       - mongo
@@ -20,4 +20,4 @@ services:
     container_name: redis
     image: "redis:alpine"
     ports:
-      - "6378:6379"
+      - "6380:6379"

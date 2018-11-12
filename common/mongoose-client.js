@@ -1,7 +1,9 @@
 module.exports = (dbUrl) => {
-    const mongooseClient = require('mongoose');
-    if (!connections[dbUrl])
-        connections[dbUrl] = mongooseClient.createConnection('mongodb://localhost/' + dbUrl, { useNewUrlParser: true })
+    const mongooseClient = require('mongoose')
+    if (!connections[dbUrl]) {
+        const mongoUrl = process.env.docker ? 'mongodb://mongo/' : 'mongodb://localhost/'
+        connections[dbUrl] = mongooseClient.createConnection(mongoUrl + dbUrl, {useNewUrlParser: true})
+    }
     connections[dbUrl].on('error', console.error.bind(console, 'connection error:'))
     connections[dbUrl].once('open', function () {
         logger.info('mongoose connected to:' + dbUrl)
