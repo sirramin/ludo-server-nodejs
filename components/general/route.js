@@ -34,7 +34,6 @@ module.exports = () => {
         "marketUrl": "https://cafebazaar.ir/app/com.artagamestudio.moogy/?l=fa"
         }
     }
-     *
      * @apiError (Errors) 1 error checking for update
      */
     router.get('/checkUpdate/:playerVersion', gameIdentifier.findGameName, async (req, res, next) => {
@@ -70,7 +69,7 @@ module.exports = () => {
             "clickCounterUrl": "http://platfrom.artagamestudio.com/general/clickCounter/space-looper"
         }
     ]
-}*
+}
      * @apiError (Errors) 1 error getting other games
      */
     router.get('/otherGames/list', gameIdentifier.findGameName, async (req, res, next) => {
@@ -101,7 +100,7 @@ module.exports = () => {
         "link": "https://cafebazaar.ir/app/com.artagamestudio.moogy/?l=fa",
         "clickCounterUrl": "http://localhost:3000/general/clickCounter/space-looper"
         }
-    } *
+    }
      * @apiError (Errors) 1 error getting other games
      */
     router.get('/otherGames/single', gameIdentifier.findGameName, async (req, res, next) => {

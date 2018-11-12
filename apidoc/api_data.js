@@ -470,17 +470,17 @@ define({ "api": [
       "examples": [
         {
           "title": "(Success 1) {json} Success-Response:",
-          "content": "{\n    \"code\": 1,\n    \"message\": \"player has latest version\"\n    }",
+          "content": "{\n    \"code\": 2,\n    \"message\": \"player has latest version\"\n    }",
           "type": "json"
         },
         {
           "title": "(Success 2) {json} Success-Response:",
-          "content": "  {\n\"code\": 2,\n\"message\": \"player has not latest version but still can play\",\n\"data\": {\n    \"marketUrl\": \"https://cafebazaar.ir/app/com.artagamestudio.moogy/?l=fa\"\n    }\n}",
+          "content": " {\n\"code\": 3,\n\"message\": \"player has not latest version but still can play\",\n\"data\": {\n    \"marketUrl\": \"https://cafebazaar.ir/app/com.artagamestudio.moogy/?l=fa\"\n    }\n}",
           "type": "json"
         },
         {
           "title": "(Success 3) {json} Success-Response:",
-          "content": "{\n    \"code\": 3,\n    \"message\": \"force update\",\n    \"data\": {\n        \"marketUrl\": \"https://cafebazaar.ir/app/com.artagamestudio.moogy/?l=fa\"\n        }\n    }",
+          "content": "{\n    \"code\": 4,\n    \"message\": \"force update\",\n    \"data\": {\n        \"marketUrl\": \"https://cafebazaar.ir/app/com.artagamestudio.moogy/?l=fa\"\n        }\n    }",
           "type": "json"
         }
       ]
@@ -493,6 +493,116 @@ define({ "api": [
             "optional": false,
             "field": "1",
             "description": "<p>error checking for update</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "components/general/route.js",
+    "groupTitle": "general"
+  },
+  {
+    "type": "get",
+    "url": "/general/clickCounter/:gameName",
+    "title": "clickCounter",
+    "name": "clickCounter",
+    "group": "general",
+    "error": {
+      "fields": {
+        "Errors": [
+          {
+            "group": "Errors",
+            "optional": false,
+            "field": "1",
+            "description": "<p>error adding count</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "components/general/route.js",
+    "groupTitle": "general"
+  },
+  {
+    "type": "get",
+    "url": "/general/otherGames/list",
+    "title": "otherGames list",
+    "name": "otherGamesList",
+    "group": "general",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "gameid",
+            "description": ""
+          }
+        ]
+      }
+    },
+    "success": {
+      "examples": [
+        {
+          "title": "(Success 1) {json} Success-Response:",
+          "content": "{\n    \"code\": 2,\n    \"message\": \"\",\n    \"data\": [\n        {\n            \"gameId\": \"5baa2436f228252f48b23d8a\",\n            \"name\": \"moogy\",\n            \"imageUrl\": \"http://platfrom.artagamestudio.com/static/img/icons/test.png\",\n            \"banner\": \"http://platfrom.artagamestudio.com/static/img/banners/test.jpg\",\n            \"link\": \"https://cafebazaar.ir/app/com.artagamestudio.moogy/?l=fa\",\n            \"clickCounterUrl\": \"http://platfrom.artagamestudio.com/general/clickCounter/space-looper\"\n        }\n    ]\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "fields": {
+        "Errors": [
+          {
+            "group": "Errors",
+            "optional": false,
+            "field": "1",
+            "description": "<p>error getting other games</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "components/general/route.js",
+    "groupTitle": "general"
+  },
+  {
+    "type": "get",
+    "url": "/general/otherGames/single",
+    "title": "otherGames single",
+    "name": "otherGamesSingle",
+    "group": "general",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "gameid",
+            "description": ""
+          }
+        ]
+      }
+    },
+    "success": {
+      "examples": [
+        {
+          "title": "(Success 1) {json} Success-Response:",
+          "content": "{\n    \"code\": 2,\n    \"message\": \"\",\n    \"data\": {\n        \"gameId\": \"5baa2436f228252f48b23d8a\",\n        \"name\": \"moogy\",\n        \"imageUrl\": \"http://platfrom.artagamestudio.com/static/img/icons/test.png\",\n        \"banner\": \"http://platfrom.artagamestudio.com/static/img/banners/test.jpg\",\n        \"link\": \"https://cafebazaar.ir/app/com.artagamestudio.moogy/?l=fa\",\n        \"clickCounterUrl\": \"http://localhost:3000/general/clickCounter/space-looper\"\n        }\n    }",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "fields": {
+        "Errors": [
+          {
+            "group": "Errors",
+            "optional": false,
+            "field": "1",
+            "description": "<p>error getting other games</p>"
           }
         ]
       }
