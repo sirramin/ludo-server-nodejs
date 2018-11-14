@@ -4,7 +4,8 @@ const app = express()
 const http = require('http').Server(app)
 const io = require('socket.io')(http)
 const redisAdapter = require('socket.io-redis')
-io.adapter(redisAdapter({host: 'localhost', port: 6379}))
+const redisOptions = process.env.REDIS_URL
+io.adapter(redisAdapter(redisOptions))
 const cors = require('cors')
 global.connections = {}
 global.schedulerExecuted = false
@@ -15,14 +16,16 @@ global.redisClientAsync = null
 // app.setMaxListeners(0)
 app.use(cors())
 app.use(morgan('combined'))
-app.use('/apidoc8574636', express.static('apidoc'))
+const basicAuth = require('basic-auth-connect');
+app.use('/apidoc8574636', [basicAuth('admin', '5179241a'), express.static('apidoc')])
 app.use('/static', express.static('static'))
 const bodyParser = require('body-parser')
 app.use(bodyParser.urlencoded({extended: false}))
 app.use(bodyParser.json())
 app.use('/', require('./common/mainRouter')(io))
 require('./components/realtime/realtime')(io)
-const port = 3000
+logger.info('process.env.docker: ' + process.env.docker)
+const port = process.env.docker ? 3001 : 3000
 http.listen(port, () => {
     logger.info('Server running at http://127.0.0.1:' + port + '. Process PID: ' + process.pid)
 

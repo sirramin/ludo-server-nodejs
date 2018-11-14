@@ -5,19 +5,21 @@ services:
     restart: always
     build: .
     ports:
-      - "3001:3001"
+    - "3001:3001"
     depends_on:
-      - redis
-      - mongo
+    - redis
+    - mongo
+    environment:
+    - REDIS_URL=redis://redis
   mongo:
     container_name: mongo
     image: mongo
     volumes:
-      - ./data:/data/db
+    - ./data:/data/db
     ports:
-      - "27018:27017"
+    - "27018:27018"
   redis:
     container_name: redis
-    image: "redis:alpine"
+    image: "redis"
     ports:
-      - "6380:6379"
+    - "6378:6378"

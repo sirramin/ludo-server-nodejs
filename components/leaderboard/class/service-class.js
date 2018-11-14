@@ -14,7 +14,8 @@ const leaderboardClass = class {
         this.marketName = (this.market === 'mtn' || this.market === 'mci') ? this.market : 'market'
         this.leaderboardPath = this.dbUrl + ':leaders:' + this.marketName
         this.usersPath = this.dbUrl + ':users:' + this.marketName
-        this.lb = new Leaderboard(this.leaderboardPath)
+        // this.redisOptions = process.env.docker ? {host: 'redis', port: 6378} : {host: 'localhost', port: 6379}
+        this.lb = new Leaderboard(this.leaderboardPath, null, process.env.REDIS_URL)
     }
 
 

@@ -1,4 +1,4 @@
-const jwt = require('./jwt');
+const jwt = require('./jwt')
 const response = require('./response')
 const isAuthenticated = async (req, res, next) => {
     const token = req.headers['token']

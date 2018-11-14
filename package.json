@@ -4,13 +4,14 @@
   "description": "Arta Game Platform",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon index.js"
+    "start": "node index.js"
   },
   "author": "ramin sarmadi",
   "license": "ISC",
   "dependencies": {
     "async-redis": "^1.1.4",
     "base-64": "^0.1.0",
+    "basic-auth-connect": "^1.0.0",
     "bcryptjs": "^2.4.3",
     "bluebird": "^3.5.2",
     "cors": "^2.8.4",
