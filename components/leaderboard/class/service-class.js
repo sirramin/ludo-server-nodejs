@@ -15,7 +15,7 @@ const leaderboardClass = class {
         this.leaderboardPath = this.dbUrl + ':leaders:' + this.marketName
         this.usersPath = this.dbUrl + ':users:' + this.marketName
         // this.redisOptions = process.env.docker ? {host: 'redis', port: 6378} : {host: 'localhost', port: 6379}
-        this.lb = new Leaderboard(this.leaderboardPath, null, process.env.REDIS_URL)
+        this.lb = new Leaderboard(this.leaderboardPath)
     }
 
 

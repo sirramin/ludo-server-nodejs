@@ -9,7 +9,7 @@ module.exports = (dbUrl, market) => {
         leaderboardPath = dbUrl + ':leaders:' + marketName,
         usersPath = dbUrl + ':users:' + marketName,
         redisOptions = process.env.docker ? {host: 'redis', port: 6378} : {host: 'localhost', port: 6378},
-        lb = new Leaderboard(leaderboardPath, null, redisOptions)
+        lb = new Leaderboard(leaderboardPath)
 
     const getLeaderboard = async (name, userId) => {
         const userInfo = await redisClient.hget(usersPath, userId)

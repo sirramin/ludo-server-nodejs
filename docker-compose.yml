@@ -14,8 +14,9 @@ services:
   mongo:
     container_name: mongo
     image: mongo
-    volumes:
-    - ./data:/data/db
+#    volumes:
+#    - ./data:/data/db
+    command: mongod --port 27018
     ports:
     - "27018:27018"
   redis:
