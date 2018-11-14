@@ -5,7 +5,7 @@ const http = require('http').Server(app)
 const io = require('socket.io')(http)
 const redisAdapter = require('socket.io-redis')
 const redisOptions = process.env.REDIS_URL ? process.env.REDIS_URL : ''
-io.adapter(redisAdapter())
+io.adapter(redisAdapter(redisOptions))
 const cors = require('cors')
 global.connections = {}
 global.schedulerExecuted = false
@@ -18,7 +18,7 @@ app.use(cors())
 app.use(morgan('combined'))
 const basicAuth = require('basic-auth-connect');
 app.use('/docs', [basicAuth('admin', '5179241a'), express.static('apidoc')])
-app.use('/static', express.static('static'))
+// app.use('/static', express.static('static'))
 const bodyParser = require('body-parser')
 app.use(bodyParser.urlencoded({extended: false}))
 app.use(bodyParser.json())

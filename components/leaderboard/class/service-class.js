@@ -1,4 +1,4 @@
-const Leaderboard = require('leaderboard-promise'),
+const Leaderboard = require('../../../custom_modules/leaderboard-promise'),
     redisClient = require('../../../common/redis-client'),
     _ = require('lodash'),
     queryClass = require('./query-class'),
