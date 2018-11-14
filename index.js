@@ -17,7 +17,7 @@ global.redisClientAsync = null
 app.use(cors())
 app.use(morgan('combined'))
 const basicAuth = require('basic-auth-connect');
-app.use('/apidoc8574636', [basicAuth('admin', '5179241a'), express.static('apidoc')])
+app.use('/docs', [basicAuth('admin', '5179241a'), express.static('apidoc')])
 app.use('/static', express.static('static'))
 const bodyParser = require('body-parser')
 app.use(bodyParser.urlencoded({extended: false}))
