@@ -23,7 +23,8 @@ const userModelClass = class {
             charkhonehHistory: [],
             charkhonehProducts: [],
             email: {type: String},
-            emailCode: Number
+            emailCode: Number,
+            friends: []
         })
     }
 
