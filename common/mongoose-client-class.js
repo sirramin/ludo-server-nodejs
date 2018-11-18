@@ -8,7 +8,7 @@ const mongooseClientClass = class {
     }
 
     getClient() {
-        if (!connections[dbUrl4] && dbUrl4 !== undefined) {
+        if (!connections.hasOwnProperty(dbUrl4) && dbUrl4 !== undefined) {
             const mongoUrl = process.env.docker ? 'mongodb://mongo:27018/' : 'mongodb://localhost/'
             connections[dbUrl4] = mongooseClient.createConnection(mongoUrl + dbUrl4, { useNewUrlParser: true })
 

@@ -16,7 +16,11 @@ const userQueryClass = class {
     }
 
     async addToArray(userId, username) {
-        return await this.userModel.update({_id: userId}, { $addToSet: { friends: username } }).lean().exec()
+        return await this.userModel.findOneAndUpdate({_id: userId}, { $addToSet: { friends: username } }).lean().exec()
+    }
+
+    async removeFromArray(userId, username) {
+        return await this.userModel.findOneAndUpdate({_id: userId}, { $pull: { friends: username } }).lean().exec()
     }
 
 }
