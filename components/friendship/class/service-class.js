@@ -15,20 +15,24 @@ const userServiceClass = class {
         return await this.query.searchByUsername(username)
     }
 
-    async addToList(userId, friendId) {
-        const friend = await this.query.searchById(friendId)
+    async addToList(userId, username) {
+        const friend = await this.query.searchByUsername(username)
         if (!friend)
             throw ({message: 'user not exists', statusCode: 4})
         else {
-            await this.query.addToArray(userId, friend.username)
+            await this.query.addToArray(userId, username)
             return friend
         }
     }
 
-    async removeFromList(userId, friendId) {
-        const friend = await this.query.searchById(friendId)
+    async removeFromList(userId, username) {
+        const friend = await this.query.searchByUsername(username)
+        const user = await this.query.searchById(userId)
+
         if (!friend)
             throw ({message: 'user not exists', statusCode: 4})
+        if (!user.hasOwnProperty('friends') || user.friends.indexOf(username) < 0)
+            throw ({message: 'this user is not in your list', statusCode: 5})
         else {
             await this.query.removeFromArray(userId, friend.username)
             return friend

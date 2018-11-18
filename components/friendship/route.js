@@ -22,34 +22,34 @@ module.exports = () => {
     })
 
     router.post('/addToList', auth, async (req, res, next) => {
-        if (!req.body._id) {
-            return service.response(res, "_id required", 1)
+        if (!req.body.username) {
+            return service.response(res, "username required", 1)
         }
         const {userId, dbUrl, market} = req.userInfo
-        const {_id} = req.body
+        const {username} = req.body
         const serviceObj = new serviceClass(dbUrl, market)
         try {
-            const friend = await serviceObj.addToList(userId, _id)
+            const friend = await serviceObj.addToList(userId, username)
             response(res, 'friend with username ' + friend.username +  ' added to list', 2)
         }
         catch (e) {
-            response(res, 'error adding to list', 3)
+            response(res, e.message, e.code)
         }
     })
 
     router.post('/removeFromList', auth, async (req, res, next) => {
-        if (!req.body._id) {
-            return service.response(res, "_id required", 1)
+        if (!req.body.username) {
+            return response(res, "username required", 1)
         }
         const {userId, dbUrl, market} = req.userInfo
-        const {_id} = req.body
+        const {username} = req.body
         const serviceObj = new serviceClass(dbUrl, market)
         try {
-            const friend = await serviceObj.removeFromList(userId, _id)
+            const friend = await serviceObj.removeFromList(userId, username)
             response(res, 'friend with username ' + friend.username +  ' removed from list', 2)
         }
         catch (e) {
-            response(res, 'error removing to list', 3)
+            response(res, e.message, e.code)
         }
     })
 
