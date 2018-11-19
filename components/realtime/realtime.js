@@ -32,6 +32,7 @@ module.exports = (io) => {
             logger.info('socket.id connected:' + socket.id)
             const gameMeta = await gameIdentifier.getGameMeta(socket.userInfo.dbUrl)
             const matchMaking = require('./matchMaking')(io, socket, gameMeta)
+            await addOnlineStatus(socket.userInfo, true)
             //must merge
             const isConnectedBefore = await checkIsConnectedBefore(socket.userInfo, gameMeta)
             if (isConnectedBefore) {
@@ -46,6 +47,7 @@ module.exports = (io) => {
                 await matchMaking.leftRoom()
             })
             socket.on('disconnect', async (reason) => {
+                await addOnlineStatus(socket.userInfo, false)
                 await matchMaking.kickUserFromRoomByDC()
             })
             socket.on('event', async (msg) => {
@@ -61,6 +63,12 @@ module.exports = (io) => {
             })
         })
 
+    const addOnlineStatus = async(userInfo, status) => {
+        const userDataParsed = await getUserInfoFromRedis(userInfo)
+        userDataParsed.online = status
+        const marketKey = getMarketKey(userInfo)
+        await redisClient.hset(marketKey, userInfo.userId, JSON.stringify(userDataParsed))
+    }
 
     const checkIsConnectedBefore = async (userInfo, gameMeta) => {
         const userDataParsed = await getUserInfoFromRedis(userInfo)
@@ -88,7 +96,7 @@ module.exports = (io) => {
         const marketKey = getMarketKey(userInfo)
         const userData = await redisClient.hget(marketKey, userInfo.userId),
             userDataParsed = JSON.parse(userData)
-        return (userDataParsed)
+        return userDataParsed
     }
 
     const getUserRoomFromRedis = async (userInfo, gameMeta) => {
