@@ -15,12 +15,30 @@ const userQueryClass = class {
         return await this.userModel.findOne({_id: userId}).lean().exec()
     }
 
-    async addToArray(userId, username) {
-        return await this.userModel.findOneAndUpdate({_id: userId}, { $addToSet: { friends: username } }).lean().exec()
+    async addToFollowings(userId, username, followingId) {
+        return await this.userModel.findOneAndUpdate({_id: userId}, {
+            $addToSet: {
+                followings: {
+                    username: username,
+                    userId: followingId
+                }
+            }
+        }).lean().exec()
+    }
+
+    async addToOpponentFollowers(myUsername, myUserId, username) {
+        return await this.userModel.findOneAndUpdate({username: username}, {
+            $addToSet: {
+                followers: {
+                    username: myUsername,
+                    userId: myUserId
+                }
+            }
+        }).lean().exec()
     }
 
     async removeFromArray(userId, username) {
-        return await this.userModel.findOneAndUpdate({_id: userId}, { $pull: { friends: username } }).lean().exec()
+        return await this.userModel.findOneAndUpdate({_id: userId}, {$pull: {friends: username}}).lean().exec()
     }
 
 }

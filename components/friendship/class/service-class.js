@@ -1,12 +1,14 @@
-const jwt = require('../../../common/jwt'),
-    _ = require('lodash'),
+const _ = require('lodash'),
     queryClass = require('./query-class')
+و
+redisClient = require('../../../common/redis-client')
 
 
 const userServiceClass = class {
 
     constructor(dbUrl, market) {
         this.dbUrl = dbUrl
+        this.market = market
         this.marketKey = this.dbUrl + ':users:' + 'market'
         this.query = new queryClass(this.dbUrl)
     }
@@ -15,12 +17,13 @@ const userServiceClass = class {
         return await this.query.searchByUsername(username)
     }
 
-    async addToList(userId, username) {
+    async addToList(myUserId, username, myUsername) {
         const friend = await this.query.searchByUsername(username)
         if (!friend)
             throw ({message: 'user not exists', statusCode: 4})
         else {
-            await this.query.addToArray(userId, username)
+            await this.query.addToFollowings(myUserId, username, friend._id)
+            await this.query.addToOpponentFollowers(myUsername, myUserId, username)
             return friend
         }
     }
@@ -39,8 +42,23 @@ const userServiceClass = class {
         }
     }
 
-    async getFriends(userId) {
-        return await this.query.searchById(userId)
+    async getFollowings(userId) {
+        const user = await this.query.searchById(userId)
+        const arrayOfFollowings = user.followings
+        let arrayOfFollowingsWithStatus = []
+        for (let i in arrayOfFollowings) {
+            const status = this.checkFriendOnlineStatus(arrayOfFollowings[i].userId)
+            arrayOfFollowingsWithStatus.push({
+                username: arrayOfFollowings[i],
+                status: status
+            })
+        }
+        return arrayOfFollowingsWithStatus
+    }
+
+    async checkFriendOnlineStatus(userId) {
+        const userData = await redisClient.hget(this.marketKey, userId)
+        return JSON.parse(userData).status
     }
 
 }

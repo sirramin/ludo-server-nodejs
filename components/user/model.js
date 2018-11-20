@@ -18,7 +18,8 @@ module.exports = (dbUrl) => {
         charkhonehProducts: [],
         email: String,
         emailCode: Number,
-        friends: []
+        followings: [],
+        followers: [],
     });
     // userSchema.set('autoIndex', false);
     if (_.has(connections[dbUrl].models, 'users'))

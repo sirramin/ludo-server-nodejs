@@ -25,11 +25,11 @@ module.exports = () => {
         if (!req.body.username) {
             return service.response(res, "username required", 1)
         }
-        const {userId, dbUrl, market} = req.userInfo
+        const {userId, dbUrl, market, name} = req.userInfo
         const {username} = req.body
         const serviceObj = new serviceClass(dbUrl, market)
         try {
-            const friend = await serviceObj.addToList(userId, username)
+            const friend = await serviceObj.addToList(userId, username, name)
             response(res, 'friend with username ' + friend.username +  ' added to list', 2)
         }
         catch (e) {
@@ -53,11 +53,11 @@ module.exports = () => {
         }
     })
 
-    router.get('/friends', auth, async (req, res, next) => {
+    router.get('/followings', auth, async (req, res, next) => {
         const {userId, dbUrl, market} = req.userInfo
         const serviceObj = new serviceClass(dbUrl, market)
         try {
-            const user = await serviceObj.getFriends(userId)
+            const user = await serviceObj.getFollowings(userId)
             response(res, '', 2, user.friends)
         }
         catch (e) {

@@ -24,7 +24,8 @@ const userModelClass = class {
             charkhonehProducts: [],
             email: {type: String},
             emailCode: Number,
-            friends: []
+            followings: [],
+            followers: [],
         })
     }
 
