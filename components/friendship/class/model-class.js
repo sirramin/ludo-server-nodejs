@@ -8,7 +8,7 @@ const userModelClass = class {
         const mongooseClientObj = new mongooseClientClass(dbUrl)
         this.mongooseClient = mongooseClientObj.getClient()
         this.userSchema = this.mongooseClient.Schema({
-            userId: ObjectId,
+            userId: String,
             friends: [],
 
         })

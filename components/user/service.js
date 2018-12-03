@@ -22,7 +22,7 @@ module.exports = (dbUrl, market) => {
     }
 
     const registerGuestUser = async () => {
-        const name = 'guest' + _.random(1, 99999)
+        const name = 'guest' + _.random(1, 99999999)
         try {
             const guest = await query.insertGuestUser(market, name)
             const userId = guest._doc._id.toString()

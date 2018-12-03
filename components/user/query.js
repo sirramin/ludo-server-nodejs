@@ -24,7 +24,8 @@ module.exports = (dbUrl) => {
         // return await user.save()
         return await userModel.create({
             market: market,
-            name: name
+            name: name,
+            username: name
         })
     }
 

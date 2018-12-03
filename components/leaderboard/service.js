@@ -97,6 +97,7 @@ module.exports = (dbUrl, market) => {
     const firstTimeScore = async (name, userId) => {
         const userInfo = {
             "name": name,
+            "username": name,
             "userId": userId,
             "win": 0,
             "lose": 0

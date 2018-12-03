@@ -1,7 +1,6 @@
 const _ = require('lodash'),
-    queryClass = require('./query-class')
-و
-redisClient = require('../../../common/redis-client')
+    queryClass = require('./query-class'),
+    redisClient = require('../../../common/redis-client')
 
 
 const userServiceClass = class {
@@ -22,7 +21,7 @@ const userServiceClass = class {
         if (!friend)
             throw ({message: 'user not exists', statusCode: 4})
         else {
-            await this.query.addToFollowings(myUserId, username, friend._id)
+            await this.query.addToFollowings(myUserId, username, friend._id.toString())
             await this.query.addToOpponentFollowers(myUsername, myUserId, username)
             return friend
         }
@@ -47,10 +46,10 @@ const userServiceClass = class {
         const arrayOfFollowings = user.followings
         let arrayOfFollowingsWithStatus = []
         for (let i in arrayOfFollowings) {
-            const status = this.checkFriendOnlineStatus(arrayOfFollowings[i].userId)
+            const status = await this.checkFriendOnlineStatus(arrayOfFollowings[i].userId)
             arrayOfFollowingsWithStatus.push({
-                username: arrayOfFollowings[i],
-                status: status
+                user: arrayOfFollowings[i],
+                online: status
             })
         }
         return arrayOfFollowingsWithStatus
@@ -58,7 +57,11 @@ const userServiceClass = class {
 
     async checkFriendOnlineStatus(userId) {
         const userData = await redisClient.hget(this.marketKey, userId)
-        return JSON.parse(userData).status
+        if (userData)
+            return JSON.parse(userData).online
+        else
+            return false
+
     }
 
 }

@@ -6,6 +6,7 @@ const generateJwt = async (dbUrl, userId, name, market, phoneNumber, username) =
         dbUrl: dbUrl,
         userId: userId,
         name: name,
+        username: name,
         market: market
     }
     if(phoneNumber){

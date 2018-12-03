@@ -23,7 +23,7 @@ module.exports = () => {
 
     router.post('/addToList', auth, async (req, res, next) => {
         if (!req.body.username) {
-            return service.response(res, "username required", 1)
+            response(res, "username required", 1)
         }
         const {userId, dbUrl, market, name} = req.userInfo
         const {username} = req.body
@@ -57,8 +57,8 @@ module.exports = () => {
         const {userId, dbUrl, market} = req.userInfo
         const serviceObj = new serviceClass(dbUrl, market)
         try {
-            const user = await serviceObj.getFollowings(userId)
-            response(res, '', 2, user.friends)
+            const followings = await serviceObj.getFollowings(userId)
+            response(res, '', 2, followings)
         }
         catch (e) {
             response(res, 'error adding to list', 2)
