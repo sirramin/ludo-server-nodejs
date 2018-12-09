@@ -27,6 +27,6 @@ module.exports = {
                 {'master_coin_pack_3': 42000}
             ]
         },
-        verificationCodeProvider: 'http://31.47.36.133/~gatewayrdn/App/app_user_sendsms.php?number=${number}&serviceName=test&content=${smsVerifyCode}'
+        verificationCodeProvider: 'http://31.47.36.133/~gatewayrdn/App/app_user_sendsms.php?number=${number}&serviceName=moogy&content=${smsVerifyCode}'
     }
 }

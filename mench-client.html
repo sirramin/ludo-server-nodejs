@@ -14,6 +14,12 @@
 </select>
 <button id="leftRoom">leftRoom</button>
 <button id="profile">profile</button>
+<button id="followings">followings</button>
+<br>
+<ul id="following-list">
+
+</ul>
+<button style="display: none" id="invite">invite</button>
 <!--<script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>-->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.1/socket.io.js"></script>
 <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
@@ -57,6 +63,19 @@
             const socket = io(target, {transports: ['websocket'], query: {token: token}})
             $('#joinRoom').click(() => {
                 socket.emit('joinRoom', 1)
+            })
+
+            $('#invite').click(() => {
+                let usernamesArray = []
+                $('.invite').each(index => {
+                    const username = $(this).find('span').text()
+                    const checkbox = $(this).find('input')
+                    if ($(checkbox).is(':checked'))
+                        usernamesArray.push(username)
+                })
+                socket.emit('invite', JSON.stringify({
+                    usernamesArray: 'usernamesArray'
+                }))
             })
 
             $('#leftRoom').click(() => {
@@ -172,6 +191,28 @@
                     // diceClick()
                 }
             })
+        })
+        $('#followings').click(async () => {
+            const token = localStorage.token
+            const followings = await $.ajax({
+                url: target + "/friendship/followings",
+                type: 'GET',
+                headers: {
+                    token: token
+                },
+                dataType: 'json'
+            })
+            $.each(followings.data, (index, value) => {
+                const invite = value.online ? '<input type="checkbox" >' : ''
+                const li = '<li class="invite">' +
+                    '<span>' + value.user.username + '</span>'
+                    + ' - ' +
+                    value.online
+                    + invite
+                    + '</li>'
+                $('#following-list').append(li)
+            })
+            $('#invite').show()
         })
     })
 </script>

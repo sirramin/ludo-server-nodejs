@@ -32,6 +32,7 @@ module.exports = (io) => {
             logger.info('socket.id connected:' + socket.id)
             const gameMeta = await gameIdentifier.getGameMeta(socket.userInfo.dbUrl)
             const matchMaking = require('./matchMaking')(io, socket, gameMeta)
+            const friendly = require('./friendly')(io, socket, gameMeta)
             await addOnlineStatus(socket.userInfo, true)
             //must merge
             const isConnectedBefore = await checkIsConnectedBefore(socket.userInfo, gameMeta)
@@ -42,6 +43,9 @@ module.exports = (io) => {
             }
             socket.on('joinRoom', async (leagueId) => {
                 await matchMaking.findAvailableRooms(leagueId)
+            })
+            socket.on('invite', async (...usernamesArray) => {
+                await friendly.invite(leagueId)
             })
             socket.on('leftRoom', async () => {
                 await matchMaking.leftRoom()

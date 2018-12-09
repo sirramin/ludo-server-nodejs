@@ -56,7 +56,7 @@ const userServiceClass = class {
     }
 
     async checkFriendOnlineStatus(userId) {
-        const userData = await redisClient.hget(this.marketKey, userId)
+        const userData = await redisClient.hget(this.marketKey, userId.toString())
         if (userData)
             return JSON.parse(userData).online
         else
