@@ -98,6 +98,7 @@ module.exports = () => {
             .then((isSubscribed) => {
                 service.response(res, "", 2, isSubscribed)
             }).catch((err) => {
+            logger.error(err)
             service.response(res, 'Error checking status', 3)
         })
     })
@@ -135,7 +136,7 @@ module.exports = () => {
                 coin: user.coin,
                 phoneNumber: user.phoneNumber,
                 userId: user._id,
-                token:  user.token
+                token: user.token
             }
             service.response(res, "", 2, response)
         }).catch((err) => {
@@ -173,7 +174,7 @@ module.exports = () => {
         if (!req.body.productToken) {
             return service.response(res, "productToken required", 2)
         }
-        if(!req.body.productNumber){
+        if (!req.body.productNumber) {
             return service.response(res, "product number required", 3)
         }
         const {phoneNumber, productToken, productNumber} = req.body
@@ -195,5 +196,5 @@ module.exports = () => {
         service.response(res, result.message, 200, result.data)
     })
 
-        return router
+    return router
 }

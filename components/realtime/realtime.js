@@ -45,7 +45,7 @@ module.exports = (io) => {
                 await matchMaking.findAvailableRooms(leagueId)
             })
             socket.on('invite', async (...usernamesArray) => {
-                await friendly.invite(leagueId)
+                await friendly.invite(...usernamesArray)
             })
             socket.on('leftRoom', async () => {
                 await matchMaking.leftRoom()

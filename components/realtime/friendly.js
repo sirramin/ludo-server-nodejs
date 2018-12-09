@@ -9,55 +9,23 @@ module.exports = (io, socket, gameMeta) => {
         roomsPrefix = gameMeta.name + ':rooms:',
         userRoomPrefix = gameMeta.name + ':user_room:' + marketName
 
-    const findAvailableRooms = async (leagueId) => {
-        leagueId = leagueId ? leagueId : 1
-        try {
-            const isPlayerJoinedBefore = await findUserCurrentRoom()
-            if (isPlayerJoinedBefore) {
-                socket.emit('matchEvent', {
-                    code: 1,
-                    event: 'playerAlreadyJoined'
-                })
-                return
-            }
-            const foundedRoom = await asyncLoop(null, leagueId)
-            if (!foundedRoom)
-                await createNewRoom(leagueId)
-            else
-                await joinPlayerToRoom(foundedRoom, leagueId)
-        }
-        catch (e) {
-            logger.error(e.message)
-        }
+    const invite = async (...usernamesArray) => {
+        if (usernamesArray.length > 3)
+            socket.emit('friendly', {
+                code: 1,
+                event: 'inviteError',
+                msg: 'you have invited more than 3 players'
+            })
+        usernamesArray.forEach((val, index) => {
+            socket.emit('friendly', {
+                code: 1,
+                event: 'friendlyMatchRequest'
+            })
+        })
     }
 
     const findUserCurrentRoom = async () => {
         return await redisClient.hget(userRoomPrefix, userId)
-    }
-
-    const asyncLoop = async (i, leagueId) => {
-        i = i || gameMeta.roomMax - 1
-        for (i; i >= 1; i--) {
-            const args = [roomsListPrefix, i, i]
-            const availableRooms = await redisClient.ZRANGEBYSCORE(args)
-            if (availableRooms.length) {
-                return await asyncForeach(availableRooms, i, leagueId)
-            }
-        }
-        return false
-    }
-
-    const asyncForeach = async (availableRooms, i, leagueId) => {
-        for (let j = 1; j <= availableRooms.length; j++) {
-            const roomCurrentInfo = await redisClient.HGET(roomsPrefix + availableRooms[j - 1], 'info')
-            const roomCurrentInfoParsed = JSON.parse(roomCurrentInfo)
-            if (roomCurrentInfoParsed && roomCurrentInfoParsed.state === 'waiting' && roomCurrentInfoParsed.leagueId === leagueId) {
-                return roomCurrentInfoParsed.roomId
-            }
-        }
-        if (i > 1)
-            return await asyncLoop(i - 1, leagueId)
-        return false
     }
 
     const joinPlayerToRoom = async (roomId) => {
@@ -110,17 +78,6 @@ module.exports = (io, socket, gameMeta) => {
             await roomWaitingTimeOver(roomId)
         }, gameMeta.waitingTime)
     }
-
-    // const updateUserRoom_old = async (roomId, anyUserId) => {
-    //     const user_id = anyUserId ? anyUserId : userId
-    //     const userData = await redisClient.HGET(marketKey, user_id)
-    //     const userDataParsed = JSON.parse(userData)
-    //     if (!userDataParsed.roomId)
-    //         userDataParsed.roomId = roomId
-    //     else
-    //         delete userDataParsed.roomId
-    //     await redisClient.hset(marketKey, userDataParsed.userId, JSON.stringify(userDataParsed))
-    // }
 
     const updateUserRoom = async (roomId, anyUserId) => {
         const user_id = anyUserId ? anyUserId : userId

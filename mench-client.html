@@ -67,9 +67,10 @@
 
             $('#invite').click(() => {
                 let usernamesArray = []
-                $('.invite').each(index => {
-                    const username = $(this).find('span').text()
-                    const checkbox = $(this).find('input')
+                $('.invite').each(function () {
+                    console.log($(this))
+                    const username = $(this).children('span').text()
+                    const checkbox = $(this).children('input')
                     if ($(checkbox).is(':checked'))
                         usernamesArray.push(username)
                 })

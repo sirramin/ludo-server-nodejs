@@ -40,7 +40,7 @@ module.exports = (dbUrl) => {
                 return userStatus(user)
             })
             .then((charkhonehToken) => {
-                return checkStatusFromCharkhoneh(phoneNumber, charkhonehToken)
+                return checkStatusFromCharkhonehAfterLogin(phoneNumber, charkhonehToken)
             })
             .then(() => {
                 return {
@@ -76,10 +76,31 @@ module.exports = (dbUrl) => {
         return new Promise((resolve, reject) => {
             rpn(jhoobinVerify)
                 .then((subscriptionDetails) => {
+                    // if (subscriptionDetails.autoRenewing && subscriptionDetails.paymentState && subscriptionDetails.expiryTimeMillis >= currentTime)
+                    //     resolve()
+                    // else
+                        reject({message: 'Subscription is not valid', statusCode: 7})
+                })
+                .catch(err => {
+                    reject({message: 'problem verifying subscription', statusCode: 8})
+                })
+        })
+    }
+
+
+    const checkStatusFromCharkhonehAfterLogin = (phoneNumber, charkhonehToken) => {
+        const jhoobinVerify = {
+            uri: jhoobinBaseUrl + charkhonehToken + '?access_token=' + jhoobinConfig.accessToken,
+            json: true
+        }
+        const currentTime = new Date().getTime()
+        return new Promise((resolve, reject) => {
+            rpn(jhoobinVerify)
+                .then((subscriptionDetails) => {
                     if (subscriptionDetails.autoRenewing && subscriptionDetails.paymentState && subscriptionDetails.expiryTimeMillis >= currentTime)
                         resolve()
                     else
-                        reject({message: 'Subscription is not valid', statusCode: 7})
+                    reject({message: 'Subscription is not valid', statusCode: 7})
                 })
                 .catch(err => {
                     reject({message: 'problem verifying subscription', statusCode: 8})
