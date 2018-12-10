@@ -14,7 +14,7 @@ const userServiceClass = class {
         const minimumSupportedVersion = userServiceClass.convertVersionToDecimal(gameMeta.minimumSupportedVersion)
         const playerVersionDecimal = userServiceClass.convertVersionToDecimal(playerVersion)
 
-        if (playerVersionDecimal === latestVersion)
+        if (playerVersionDecimal >= latestVersion)
             return {message: 'player has latest version', code: 2}
         else if (playerVersionDecimal >= minimumSupportedVersion)
             return {
