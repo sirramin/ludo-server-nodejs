@@ -27,7 +27,7 @@ module.exports = (io) => {
             const monitor = require('socket.io-monitor')
             const {emitter} = monitor.bind(io, {server: false})
             emitter.getState()
-            emitter.on('join', ({id, rooms}) => logger.info('socket id: ' + id +  ' joins room: ' + rooms))
+            emitter.on('join', ({id, rooms}) => logger.info('socket id: ' + id + ' joins room: ' + rooms))
 
             logger.info('socket.id connected:' + socket.id)
             const gameMeta = await gameIdentifier.getGameMeta(socket.userInfo.dbUrl)
@@ -44,8 +44,11 @@ module.exports = (io) => {
             socket.on('joinRoom', async (leagueId) => {
                 await matchMaking.findAvailableRooms(leagueId)
             })
-            socket.on('invite', async (...usernamesArray) => {
-                await friendly.invite(...usernamesArray)
+            socket.on('invite', async (usernamesArray) => {
+                await friendly.invite(usernamesArray)
+            })
+            socket.on('joinFriendly', async (usernamesArray) => {
+                await friendly.invite(usernamesArray)
             })
             socket.on('leftRoom', async () => {
                 await matchMaking.leftRoom()
@@ -67,11 +70,14 @@ module.exports = (io) => {
             })
         })
 
-    const addOnlineStatus = async(userInfo, status) => {
-        const userDataParsed = await getUserInfoFromRedis(userInfo)
-        userDataParsed.online = status
+    const addOnlineStatus = async (userInfo, status) => {
+        // const userDataParsed = await getUserInfoFromRedis(userInfo)
+        // userDataParsed.online = status
         const marketKey = getMarketKey(userInfo)
-        await redisClient.hset(marketKey, userInfo.userId, JSON.stringify(userDataParsed))
+        if (status)
+            await redisClient.sadd(marketKey + ':online', userInfo.userId)
+        else
+            await redisClient.srem(marketKey + ':online', userInfo.userId)
     }
 
     const checkIsConnectedBefore = async (userInfo, gameMeta) => {
@@ -105,7 +111,7 @@ module.exports = (io) => {
 
     const getUserRoomFromRedis = async (userInfo, gameMeta) => {
         const marketName = (userInfo.market === 'mtn' || userInfo.market === 'mci') ? userInfo.market : 'market',
-        userRoomPrefix = gameMeta.name + ':user_room:' + marketName
+            userRoomPrefix = gameMeta.name + ':user_room:' + marketName
         const userRoom = await redisClient.hget(userRoomPrefix, userInfo.userId)
         return userRoom
     }

@@ -1,27 +1,44 @@
-const redisClient = require('../../common/redis-client'),
-    uniqid = require('uniqid')
+const
+    redisClient = require('../../common/redis-client'),
+    uniqid = require('uniqid'),
+    friendlyClass = require('../friendship/class/service-class')
 
 module.exports = (io, socket, gameMeta) => {
-    const userId = socket.userInfo.userId,
+    const
+        userId = socket.userInfo.userId,
         marketName = (socket.userInfo.market === 'mtn' || socket.userInfo.market === 'mci') ? socket.userInfo.market : 'market',
         marketKey = gameMeta.name + ':users:' + marketName,
-        roomsListPrefix = gameMeta.name + ':rooms:roomsList',
-        roomsPrefix = gameMeta.name + ':rooms:',
-        userRoomPrefix = gameMeta.name + ':user_room:' + marketName
+        roomsListPrefix = gameMeta.name + ':friendlyRooms:roomsList',
+        roomsPrefix = gameMeta.name + ':friendlyRooms:',
+        userRoomPrefix = gameMeta.name + ':user_friendly_room:' + marketName
 
-    const invite = async (...usernamesArray) => {
+    const invite = async (usernamesArray) => {
+        if(!await findUserCurrentRoom())
+            await createNewRoom()
+
         if (usernamesArray.length > 3)
             socket.emit('friendly', {
                 code: 1,
                 event: 'inviteError',
                 msg: 'you have invited more than 3 players'
             })
-        usernamesArray.forEach((val, index) => {
-            socket.emit('friendly', {
-                code: 1,
-                event: 'friendlyMatchRequest'
+        usernamesArray.forEach(async (username, index) => {
+            const friendlyClassObject = new friendlyClass(socket.userInfo.dbUrl ,marketName)
+            const friend = await friendlyClassObject.searchByUsername(username)
+            await sendEventToSpecificSocket(friend._id.toString(), 4, 'friendlyMatchRequest', {
+                inviter: userId
             })
         })
+    }
+
+    const sendEventToSpecificSocket = async (userId, code, event, data) => {
+        const userData = await redisClient.hget(marketKey, userId),
+            socketId = JSON.parse(userData).socketId
+        io.to(socketId).emit('friendly', {
+            code: code,
+            event: event,
+            data: data
+        });
     }
 
     const findUserCurrentRoom = async () => {
@@ -55,18 +72,11 @@ module.exports = (io, socket, gameMeta) => {
             gameStart(roomId, 'room fulled')
     }
 
-    const createNewRoom = async (leagueId) => {
+    const createNewRoom = async () => {
         const roomId = uniqid()
         const currentTimeStamp = new Date().getTime()
-        const newRoomInfo = {
-            "roomId": roomId,
-            "state": "waiting",
-            "creationDateTime": currentTimeStamp,
-            "marketKey": marketKey,
-            "leagueId": leagueId
-        }
         const newRoomPlayers = [socket.userInfo.userId]
-        const hmArgs = [roomsPrefix + roomId, 'info', JSON.stringify(newRoomInfo), 'players', JSON.stringify(newRoomPlayers)]
+        const hmArgs = [roomsPrefix + roomId, 'roomId', roomId, 'state', 'waiting', 'creationDateTime', currentTimeStamp, 'marketKey', marketKey, 'players', newRoomPlayers]
         await redisClient.HMSET(hmArgs)
         await redisClient.ZADD(roomsListPrefix, 1, roomId)
         await updateUserRoom(roomId)
@@ -271,10 +281,10 @@ module.exports = (io, socket, gameMeta) => {
     }
 
     return {
-        findAvailableRooms: findAvailableRooms,
         kickUserFromRoomByDC: kickUserFromRoomByDC,
         findUserCurrentRoom: findUserCurrentRoom,
         changeSocketIdAndSocketRoom: changeSocketIdAndSocketRoom,
-        leftRoom: leftRoom
+        leftRoom: leftRoom,
+        invite: invite
     }
 }

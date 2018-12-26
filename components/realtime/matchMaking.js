@@ -1,8 +1,10 @@
-const redisClient = require('../../common/redis-client'),
+const
+    redisClient = require('../../common/redis-client'),
     uniqid = require('uniqid')
 
 module.exports = (io, socket, gameMeta) => {
-    const userId = socket.userInfo.userId,
+    const
+        userId = socket.userInfo.userId,
         marketName = (socket.userInfo.market === 'mtn' || socket.userInfo.market === 'mci') ? socket.userInfo.market : 'market',
         marketKey = gameMeta.name + ':users:' + marketName,
         roomsListPrefix = gameMeta.name + ':rooms:roomsList',

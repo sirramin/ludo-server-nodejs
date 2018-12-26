@@ -74,9 +74,7 @@
                     if ($(checkbox).is(':checked'))
                         usernamesArray.push(username)
                 })
-                socket.emit('invite', JSON.stringify({
-                    usernamesArray: 'usernamesArray'
-                }))
+                socket.emit('invite', usernamesArray)
             })
 
             $('#leftRoom').click(() => {
@@ -119,6 +117,12 @@
             //     $('#messages').append($('<li>').text(data.event + JSON.stringify(data.data)))
             // })
 
+            socket.on('friendly', function (data) {
+                if (data.event === 'friendlyMatchRequest')
+                    if (confirm('you are invited by ' + data.data.inviter)) {
+                        socket.emit('joinFriendly', 1)
+                    }
+            })
 
             var yourTrun = false
             var color = 'black'
