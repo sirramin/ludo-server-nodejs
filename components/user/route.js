@@ -1,9 +1,12 @@
-const gameIdentifier = require('../../common/gameIdentifier').findGameName,
+const
+    gameIdentifier = require('../../common/gameIdentifier').findGameName,
     response = require('../../common/response'),
     auth = require('../../common/authMiddleware'),
     router = require('express').Router(),
     serviceClass = require('./class/service-class'),
     jwt = require('../../common/jwt')
+    rpn = require('request-promise-native'),
+
 
 
 module.exports = () => {
@@ -208,6 +211,13 @@ module.exports = () => {
             timestamp: timestamp
         })
     })
+
+    // router.get('/getIp', async (req, res, next) => {
+    //     const ip = await rpn('http://ifconfig.me')
+    //     return response(res, '', 1, {
+    //         ip: ip
+    //     })
+    // })
 
 
     return router
