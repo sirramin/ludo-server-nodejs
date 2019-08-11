@@ -23,7 +23,7 @@ module.exports = (io) => {
                 next('header token is required!')
             }
         })
-        .on('connection', async (socket) => {
+        .on('connection', async (socket) =>  {
             const monitor = require('socket.io-monitor')
             const {emitter} = monitor.bind(io, {server: false})
             emitter.getState()

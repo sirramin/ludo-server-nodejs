@@ -4,7 +4,7 @@ const app = express()
 const http = require('http').Server(app)
 const io = require('socket.io')(http)
 const redisAdapter = require('socket.io-redis')
-const redisOptions = process.env.REDIS_URL ? process.env.REDIS_URL : ''
+const redisOptions = process.env.REDIS_URL || ''
 io.adapter(redisAdapter(redisOptions))
 const cors = require('cors')
 global.connections = {}

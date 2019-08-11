@@ -1,9 +1,8 @@
-FROM node:8
+FROM node:10.16.0-alpine
 ENV docker=true
-RUN mkdir -p /usr/src/app
-WORKDIR /usr/src/app
-COPY package.json /usr/src/app/
+WORKDIR /home/app
+COPY package.json /home/app
 RUN npm install
-COPY . /usr/src/app
+COPY . /home/app
 EXPOSE 3001
 CMD [ "npm", "start" ]
