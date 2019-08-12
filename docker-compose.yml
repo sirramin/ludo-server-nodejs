@@ -19,7 +19,6 @@ services:
     image: mongo
     volumes:
       - /home/data:/data/db
-#    command: mongod --port 27017
     ports:
       - "27017:27017"
   redis:
