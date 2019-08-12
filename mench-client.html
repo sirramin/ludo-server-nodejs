@@ -28,7 +28,7 @@
     $(function () {
         // const target = 'http://platform.artagamestudio.com'
         const target = 'http://localhost:3001'
-        let token
+        let token = localStorage.token
         $('#connect').click(async () => {
             if (!localStorage.token) {
                 const res = await $.ajax({
@@ -45,21 +45,21 @@
                 localStorage.setItem("token", res.data.token)
                 token = res.data.token
             }
-            else {
-                token = localStorage.token
-                const res = await $.ajax({
-                    url: target + "/menchman/getUserGameData",
-                    type: 'get',
-                    headers: {
-                        token: localStorage.token
-                    },
-                    dataType: 'json',
-                })
-
-                if (!localStorage.userId)
-                    localStorage.setItem("userId", res.data.userId)
-                localStorage.setItem("UserGameData", JSON.stringify(res.data))
-            }
+            // else {
+            //     token = localStorage.token
+            //     const res = await $.ajax({
+            //         url: target + "/menchman/getUserGameData",
+            //         type: 'get',
+            //         headers: {
+            //             token: localStorage.token
+            //         },
+            //         dataType: 'json',
+            //     })
+            //
+            //     if (!localStorage.userId)
+            //         localStorage.setItem("userId", res.data.userId)
+            //     localStorage.setItem("UserGameData", JSON.stringify(res.data))
+            // }
             const socket = io(target, {transports: ['websocket'], query: {token: token}})
             $('#joinRoom').click(() => {
                 socket.emit('joinRoom', 1)

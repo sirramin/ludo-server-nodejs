@@ -4,8 +4,11 @@ const app = express()
 const http = require('http').Server(app)
 const io = require('socket.io')(http)
 const redisAdapter = require('socket.io-redis')
-const redisOptions = process.env.REDIS_URL || ''
-io.adapter(redisAdapter(redisOptions))
+const redisClient = require('./common/redis-client')
+// io.adapter(redisAdapter({
+//   pubClient: redisClient,
+//   subClient: redisClient
+// }))
 const cors = require('cors')
 global.connections = {}
 global.schedulerExecuted = false
@@ -24,17 +27,16 @@ app.use(bodyParser.urlencoded({extended: false}))
 app.use(bodyParser.json())
 app.use('/', require('./common/mainRouter')(io))
 require('./components/realtime/realtime')(io)
-logger.info('process.env.docker: ' + process.env.docker)
-const port = process.env.docker ? 3001 : 3000
+const port = 3001
 http.listen(port, () => {
-    logger.info('Server running at http://127.0.0.1:' + port + '. Process PID: ' + process.pid)
+  logger.info('Server running at http://127.0.0.1:' + port + '. Process PID: ' + process.pid)
 
-    const argv = process.argv.slice(2)
-    logger.info('argv: ' + argv)
-    if (argv[0] === 'platform-Master' || process.env.dev) {
-        const resetHandler = require('./common/reset-handler')(io)
-        setTimeout(async () => {
-            await resetHandler.findOpenGames()
-        }, 3000)
-    }
+  const argv = process.argv.slice(2)
+  logger.info('argv: ' + argv)
+  if (argv[0] === 'platform-Master' || process.env.dev) {
+    const resetHandler = require('./common/reset-handler')(io)
+    setTimeout(async () => {
+      await resetHandler.findOpenGames()
+    }, 2000)
+  }
 })

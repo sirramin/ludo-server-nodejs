@@ -8,25 +8,25 @@ module.exports = (dbUrl, market) => {
         return await query.checkUserExists(username)
     }
 
-    const registerUser = async (username, password, phoneNumber) => {
-        const name = 'user' + _.random(1, 99999)
-        try {
-            const user = await query.insertUser(username, password, phoneNumber, market, name)
-            const userId = guest._doc._id.toString()
-            const token = await jwt.generateJwt(dbUrl, userId, name, market, undefined, username)
-            return {token: token}
-        }
-        catch (err) {
-            return ({message: 'error registering user', statusCode: 2})
-        }
-    }
+    // const registerUser = async (username, password, phoneNumber) => {
+    //     const name = 'user' + _.random(1, 99999)
+    //     try {
+    //         const user = await query.insertUser(username, password, phoneNumber, market, name)
+    //         const userId = guest._doc._id.toString()
+    //         const token = await jwt.generateJwt(dbUrl, userId, name, market, undefined, username)
+    //         return {token: token}
+    //     }
+    //     catch (err) {
+    //         return ({message: 'error registering user', statusCode: 2})
+    //     }
+    // }
 
     const registerGuestUser = async () => {
         const name = 'guest' + _.random(1, 99999999)
         try {
             const guest = await query.insertGuestUser(market, name)
             const userId = guest._doc._id.toString()
-            await addUserToRedis(name, userId)
+            // await addUserToRedis(name, userId)
             const token = await jwt.generateJwt(dbUrl, userId, name, market)
             return {token: token, userId: userId}
         }
@@ -41,8 +41,8 @@ module.exports = (dbUrl, market) => {
     }
 
     return {
-        registerUser: registerUser,
-        registerGuestUser: registerGuestUser,
-        checkUserExists: checkUserExists
+        // registerUser: registerUser,
+        registerGuestUser,
+        checkUserExists
     }
 }

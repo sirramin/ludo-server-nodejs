@@ -1,16 +1,17 @@
-// const redis = require("redis");
-// const redisClient = redis.createClient()
-// const asyncRedis = require("async-redis");
-const redis = require('promise-redis')()
+const Redis = require("ioredis")
+console.log(process.env.REDIS1_host)
+console.log(process.env.REDIS1_port)
 
-if (!redisClientAsync) {
-    // redisClientAsync = process.env.docker ? redis.createClient({host: 'redis', port: 6378}): redis.createClient({host: 'localhost', port: 6379})
-    const redisOptions = process.env.REDIS_URL ? process.env.REDIS_URL : ''
-    redisClientAsync = redis.createClient(redisOptions)
-}
 
-redisClientAsync.on("error", function (err) {
-    logger.log("Error " + err);
-});
+const cluster = new Redis.Cluster([
+  {
+    host: process.env.REDIS1_host,
+    port: parseInt(process.env.REDIS1_port),
+  },
+  {
+    host: process.env.REDIS2_host,
+    port: parseInt(process.env.REDIS2_port),
+  }
+]);
 
-module.exports = redisClientAsync
+module.exports = cluster
