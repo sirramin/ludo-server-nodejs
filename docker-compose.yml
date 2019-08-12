@@ -29,4 +29,4 @@ services:
     container_name: redis-cluster
     image: "grokzen/redis-cluster"
     ports:
-      - "7000:7005"
+      - "7000-7005:7000-7005"
