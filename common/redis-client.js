@@ -1,8 +1,4 @@
 const Redis = require("ioredis")
-console.log(process.env.REDIS1_host)
-console.log(process.env.REDIS1_port)
-
-
 const cluster = new Redis.Cluster([
   {
     host: process.env.REDIS1_host,

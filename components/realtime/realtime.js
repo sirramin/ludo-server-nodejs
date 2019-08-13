@@ -103,21 +103,18 @@ module.exports = (io) => {
 
   const getUserInfoFromRedis = async (userInfo) => {
     const marketKey = getMarketKey(userInfo)
-    const userData = await redisClient.hget(marketKey, userInfo.userId),
-      userDataParsed = JSON.parse(userData)
-    return userDataParsed
+    const userData = await redisClient.hget(marketKey, userInfo.userId)
+    return JSON.parse(userData)
   }
 
   const getUserRoomFromRedis = async (userInfo, gameMeta) => {
     const marketName = (userInfo.market === 'mtn' || userInfo.market === 'mci') ? userInfo.market : 'market',
       userRoomPrefix = gameMeta.name + ':user_room:' + marketName
-    const userRoom = await redisClient.hget(userRoomPrefix, userInfo.userId)
-    return userRoom
+    return await redisClient.hget(userRoomPrefix, userInfo.userId)
   }
 
   const getMarketKey = (userInfo) => {
-    const marketName = (userInfo.market === 'mtn' || userInfo.market === 'mci') ? userInfo.market : 'market',
-      marketKey = userInfo.dbUrl + ':users:' + marketName
-    return marketKey
+    const marketName = (userInfo.market === 'mtn' || userInfo.market === 'mci') ? userInfo.market : 'market'
+    return userInfo.dbUrl + ':users:' + marketName
   }
 }
