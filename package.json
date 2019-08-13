@@ -4,7 +4,8 @@
   "description": "Arta Game Platform",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon --inspect index.js 9222"
+    "dev": "nodemon --inspect index.js 9222",
+    "start": "nodemon index.js"
   },
   "author": "ramin sarmadi",
   "license": "ISC",
