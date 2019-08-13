@@ -19,12 +19,12 @@ module.exports = (io) => {
 
             // await deleteExtraRooms(item.gameName, userRoomPrefix, roomsPrefix)
 
-            const availableRooms = await redisClient.ZRANGEBYSCORE(args)
+            const availableRooms = await redisClient.zrangebyscore(args)
 
             logger.info('number of paused rooms for game ' + item.gameName + ': ' + availableRooms.length)
             if (availableRooms.length) {
                 for (let j = 1; j <= availableRooms.length; j++) {
-                    const roomCurrentInfo = await redisClient.HMGET(roomsPrefix + availableRooms[j - 1], 'info', 'players')
+                    const roomCurrentInfo = await redisClient.hmget(roomsPrefix + availableRooms[j - 1], 'info', 'players')
                     const roomCurrentInfoParsed = JSON.parse(roomCurrentInfo[0])
                     const roomCurrentPlayersParsed = JSON.parse(roomCurrentInfo[1])
                     if (roomCurrentInfoParsed && roomCurrentInfoParsed.state === 'started') { // !!! creationDateTime must be affected
@@ -40,7 +40,7 @@ module.exports = (io) => {
 
     const joinPlayersToSocketIORoomAgain = async (roomCurrentPlayers, roomId, marketKey) => {
         roomCurrentPlayers.forEach(async (userId) => {
-            const userInfo = JSON.parse(await redisClient.HGET(marketKey, userId))
+            const userInfo = JSON.parse(await redisClient.hget(marketKey, userId))
             io.of('/').adapter.remoteJoin(userInfo.socketId, roomId, (err) => {
                 logger.info('socketId: ' + userInfo.socketId + ' joined again to room: ' + roomId)
             })
@@ -48,14 +48,14 @@ module.exports = (io) => {
     }
 
     const deleteUserRoomsForPlayersWhoHasRoomAreUnDeleted = async (gameName, userRoomPrefix, roomsPrefix) => {
-        const user_rooms = await redisClient.HGETALL(userRoomPrefix)
+        const user_rooms = await redisClient.hgetall(userRoomPrefix)
         if(user_rooms) {
             const userIds = Object.keys(user_rooms)
             for (let i = 0; i <= userIds.length; i++) {
                 const userRoomId = user_rooms[userIds[i]]
-                const roomLength = await redisClient.HEXISTS(roomsPrefix + userRoomId, 'players')
+                const roomLength = await redisClient.hexists(roomsPrefix + userRoomId, 'players')
                 if (!roomLength)
-                    await redisClient.HDEL(userRoomPrefix, userIds[i])
+                    await redisClient.hdel(userRoomPrefix, userIds[i])
             }
         }
     }

@@ -26,9 +26,9 @@
 <script>
     // const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYlVybCI6Im1lbmNobWFuIiwidXNlcklkIjoiNWI0MWZkZGY0YTBjYzg2YjQzMDMwODExIiwibmFtZSI6InVzZXI1ODYxNSIsIm1hcmtldCI6Im1jaSIsInVzZXJuYW1lIjoic2lycmFtaW41IiwiaWF0IjoxNTMxMDUxNDg3LCJleHAiOjE1MzE5MTU0ODd9.j9BamCitP6RiOCjJ-5ppvI-Kpqq4EMHRnAlBEFfrzV0"
     $(function () {
-        const target = 'http://platform.artagamestudio.com'
-        // const target = 'http://localhost:3000'
-        let token
+        // const target = 'http://platform.artagamestudio.com'
+        const target = 'http://localhost:3001'
+        let token = localStorage.token
         $('#connect').click(async () => {
             if (!localStorage.token) {
                 const res = await $.ajax({
@@ -45,21 +45,21 @@
                 localStorage.setItem("token", res.data.token)
                 token = res.data.token
             }
-            else {
-                token = localStorage.token
-                const res = await $.ajax({
-                    url: target + "/menchman/getUserGameData",
-                    type: 'get',
-                    headers: {
-                        token: localStorage.token
-                    },
-                    dataType: 'json',
-                })
-
-                if (!localStorage.userId)
-                    localStorage.setItem("userId", res.data.userId)
-                localStorage.setItem("UserGameData", JSON.stringify(res.data))
-            }
+            // else {
+            //     token = localStorage.token
+            //     const res = await $.ajax({
+            //         url: target + "/menchman/getUserGameData",
+            //         type: 'get',
+            //         headers: {
+            //             token: localStorage.token
+            //         },
+            //         dataType: 'json',
+            //     })
+            //
+            //     if (!localStorage.userId)
+            //         localStorage.setItem("userId", res.data.userId)
+            //     localStorage.setItem("UserGameData", JSON.stringify(res.data))
+            // }
             const socket = io(target, {transports: ['websocket'], query: {token: token}})
             $('#joinRoom').click(() => {
                 socket.emit('joinRoom', 1)

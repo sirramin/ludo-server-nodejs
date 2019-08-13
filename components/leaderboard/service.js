@@ -67,7 +67,7 @@ module.exports = (dbUrl, market) => {
             return leaders
         }
         catch (e) {
-            logger.error(e)
+            logger.error('getLeaderboard error: ' + e)
             throw e
         }
     }

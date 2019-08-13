@@ -6,11 +6,15 @@ services:
     build: .
     ports:
       - "3001:3001"
+      - "9222:9222"
     depends_on:
-      - redis
+      - redis-cluster
       - mongo
     environment:
-      - REDIS_URL=redis://redis
+      - REDIS1_host=redis-cluster
+      - REDIS1_port=7000
+      - REDIS2_host=redis-cluster
+      - REDIS2_port=7001
       - MONGO_URL=mongodb://mongo/
     volumes:
       - ./:/home/app
@@ -19,11 +23,10 @@ services:
     image: mongo
     volumes:
       - /home/data:/data/db
-#    command: mongod --port 27017
     ports:
       - "27017:27017"
-  redis:
-    container_name: redis
-    image: "redis"
+  redis-cluster:
+    container_name: redis-cluster
+    image: "grokzen/redis-cluster"
     ports:
-      - "6379:6379"
+      - "7000-7005:7000-7005"

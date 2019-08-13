@@ -56,7 +56,7 @@ const userServiceClass = class {
     }
 
     async checkFriendOnlineStatus(userId) {
-       return await redisClient.SISMEMBER(this.marketKey + ':online', userId)
+       return await redisClient.sismember(this.marketKey + ':online', userId)
     }
 
 }

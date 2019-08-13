@@ -46,7 +46,7 @@ module.exports = (io, socket, gameMeta) => {
     }
 
     const joinPlayerToRoom = async (roomId) => {
-        const roomCurrentData = await redisClient.HMGET(roomsPrefix + roomId, 'info', 'players')
+        const roomCurrentData = await redisClient.hmget(roomsPrefix + roomId, 'info', 'players')
         let currentPlayers = JSON.parse(roomCurrentData[1])
         let roomInfo = JSON.parse(roomCurrentData[0])
         const currentPlayersLength = currentPlayers.length
@@ -59,8 +59,8 @@ module.exports = (io, socket, gameMeta) => {
         currentPlayersLength === gameMeta.roomMax - 1 ? newState = "started" : newState = "waiting"
         roomInfo.state = newState
         currentPlayers.push(userId)
-        await redisClient.HMSET(roomsPrefix + roomId, 'info', JSON.stringify(roomInfo), 'players', JSON.stringify(currentPlayers))
-        await redisClient.ZINCRBY(roomsListPrefix, 1, roomId)
+        await redisClient.hmset(roomsPrefix + roomId, 'info', JSON.stringify(roomInfo), 'players', JSON.stringify(currentPlayers))
+        await redisClient.zincrby(roomsListPrefix, 1, roomId)
         await updateUserRoom(roomId)
         io.of('/').adapter.remoteJoin(socket.id, roomId, (err) => {
         })
@@ -77,8 +77,8 @@ module.exports = (io, socket, gameMeta) => {
         const currentTimeStamp = new Date().getTime()
         const newRoomPlayers = [socket.userInfo.userId]
         const hmArgs = [roomsPrefix + roomId, 'roomId', roomId, 'state', 'waiting', 'creationDateTime', currentTimeStamp, 'marketKey', marketKey, 'players', newRoomPlayers]
-        await redisClient.HMSET(hmArgs)
-        await redisClient.ZADD(roomsListPrefix, 1, roomId)
+        await redisClient.hmset(hmArgs)
+        await redisClient.zadd(roomsListPrefix, 1, roomId)
         await updateUserRoom(roomId)
         socket.join(roomId)
         sendMatchEvents(roomId, 3, 'playerJoined', {
@@ -95,11 +95,11 @@ module.exports = (io, socket, gameMeta) => {
     }
 
     const deleteUserRoom = async (userId) => {
-        return await redisClient.HDEL(userRoomPrefix, userId)
+        return await redisClient.hdel(userRoomPrefix, userId)
     }
 
     const roomWaitingTimeOver = async (roomId) => {
-        const roomCurrentInfo = await redisClient.HMGET(roomsPrefix + roomId, 'info', 'players')
+        const roomCurrentInfo = await redisClient.hmget(roomsPrefix + roomId, 'info', 'players')
         if (roomCurrentInfo) {
             const currentPlayers = JSON.parse(roomCurrentInfo[1]).length
             const roomState = JSON.parse(roomCurrentInfo[0]).state
@@ -117,17 +117,17 @@ module.exports = (io, socket, gameMeta) => {
         sendMatchEvents(roomId, 4, 'gameStarted', {
             roomId: roomId
         })
-        const roomHash = await redisClient.HMGET(roomsPrefix + roomId, 'info', 'players')
+        const roomHash = await redisClient.hmget(roomsPrefix + roomId, 'info', 'players')
         const roomHashParsed = JSON.parse(roomHash[0])
         const roomPlayers = JSON.parse(roomHash[1])
         let roomPlayersWithNames = []
         for (let i = 0; i < roomPlayers.length; i++) {
             const playerNumber = (i + 1)
-            const userData = await redisClient.HGET(marketKey, roomPlayers[i])
+            const userData = await redisClient.hget(marketKey, roomPlayers[i])
             roomPlayersWithNames.push({player: playerNumber, userId: roomPlayers[i], name: JSON.parse(userData).name})
         }
         roomHashParsed.state = 'started'
-        await redisClient.HSET(roomsPrefix + roomId, 'info', JSON.stringify(roomHashParsed))
+        await redisClient.hset(roomsPrefix + roomId, 'info', JSON.stringify(roomHashParsed))
 
         const methods = require('./methods')(io, gameMeta, roomId, marketKey)
         const logicStart = require('../logics/' + gameMeta.name + '/gameStart')(roomId, roomPlayers, roomPlayersWithNames, methods)
@@ -141,8 +141,8 @@ module.exports = (io, socket, gameMeta) => {
         const roomPlayersArray = JSON.parse(roomplayers)
         await asyncLoopRemovePlayersRoomInRedis(roomPlayersArray, roomId)
 
-        await redisClient.DEL(roomsPrefix + roomId)
-        await redisClient.ZREM(roomsListPrefix, roomId)
+        await redisClient.del(roomsPrefix + roomId)
+        await redisClient.zrem(roomsListPrefix, roomId)
         sendMatchEvents(roomId, 5, 'roomDestroyed', {
             roomId: roomId
         })
@@ -180,8 +180,8 @@ module.exports = (io, socket, gameMeta) => {
                         else if (currentPlayersParsed && currentPlayersParsed.length > 1) {
                             await deleteUserRoom(userId)
                             currentPlayersParsed.splice(currentPlayersParsed.indexOf(userId), 1)
-                            await redisClient.HSET(roomsPrefix + userCurrentRoom, 'players', JSON.stringify(currentPlayersParsed))
-                            await redisClient.ZINCRBY(roomsListPrefix, -1, userCurrentRoom)
+                            await redisClient.hset(roomsPrefix + userCurrentRoom, 'players', JSON.stringify(currentPlayersParsed))
+                            await redisClient.zincrby(roomsListPrefix, -1, userCurrentRoom)
                             io.of('/').adapter.remoteDisconnect(socket.id, true, async (err) => {
                                 logger.info('---------- remoteDisconnect-------------------')
                                 const gameLeft = require('../logics/' + gameMeta.name + '/gameLeft')(io, userId, gameMeta, marketKey, userCurrentRoom)
@@ -213,8 +213,8 @@ module.exports = (io, socket, gameMeta) => {
             else if (currentPlayersParsed && currentPlayersParsed.length > 1) {
                 await deleteUserRoom(userId)
                 currentPlayersParsed.splice(currentPlayersParsed.indexOf(userId), 1)
-                await redisClient.HSET(roomsPrefix + userCurrentRoom, 'players', JSON.stringify(currentPlayersParsed))
-                await redisClient.ZINCRBY(roomsListPrefix, -1, userCurrentRoom)
+                await redisClient.hset(roomsPrefix + userCurrentRoom, 'players', JSON.stringify(currentPlayersParsed))
+                await redisClient.zincrby(roomsListPrefix, -1, userCurrentRoom)
                 io.of('/').adapter.remoteDisconnect(socket.id, true, async (err) => {
                     logger.info('---------- remoteDisconnect-------------------')
                     const gameLeft = require('../logics/' + gameMeta.name + '/gameLeft')(io, userId, gameMeta, marketKey, userCurrentRoom)
@@ -261,14 +261,14 @@ module.exports = (io, socket, gameMeta) => {
     }
 
     const changeSocketIdAndSocketRoom = async () => {
-        const userData = await redisClient.HGET(marketKey, userId)
+        const userData = await redisClient.hget(marketKey, userId)
         const userDataParsed = JSON.parse(userData)
         const roomId = await findUserCurrentRoom()
         const oldSocketId = userDataParsed.socketId
         const newSocketId = socket.id
         userDataParsed.socketId = newSocketId
         userDataParsed.dc = false
-        await redisClient.HSET(marketKey, userId, JSON.stringify(userDataParsed))
+        await redisClient.hset(marketKey, userId, JSON.stringify(userDataParsed))
         io.of('/').adapter.remoteLeave(oldSocketId, roomId, (err) => {
             if (err)
                 logger.info('err leaving socket' + userId)

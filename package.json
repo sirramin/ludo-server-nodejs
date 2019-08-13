@@ -4,6 +4,7 @@
   "description": "Arta Game Platform",
   "main": "index.js",
   "scripts": {
+    "dev": "nodemon --inspect index.js 9222",
     "start": "nodemon index.js"
   },
   "author": "ramin sarmadi",
@@ -17,6 +18,7 @@
     "cors": "^2.8.5",
     "express": "^4.16.4",
     "express-session": "^1.15.6",
+    "ioredis": "^4.14.0",
     "jsonwebtoken": "^8.3.0",
     "leaderboard-promise": "^1.1.0",
     "lodash": "^4.17.11",
