@@ -24,9 +24,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.1/socket.io.js"></script>
 <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
 <script>
-    // const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYlVybCI6Im1lbmNobWFuIiwidXNlcklkIjoiNWI0MWZkZGY0YTBjYzg2YjQzMDMwODExIiwibmFtZSI6InVzZXI1ODYxNSIsIm1hcmtldCI6Im1jaSIsInVzZXJuYW1lIjoic2lycmFtaW41IiwiaWF0IjoxNTMxMDUxNDg3LCJleHAiOjE1MzE5MTU0ODd9.j9BamCitP6RiOCjJ-5ppvI-Kpqq4EMHRnAlBEFfrzV0"
     $(function () {
-        // const target = 'http://platform.artagamestudio.com'
         const target = 'http://localhost:3001'
         let token = localStorage.token
         $('#connect').click(async () => {
@@ -36,9 +34,6 @@
                     type: 'post',
                     data: {
                         market: 'cafeBazaar'
-                    },
-                    headers: {
-                        gameid: '5b39d163afff3d2cf7833f6e', //menchman game
                     },
                     dataType: 'json',
                 })

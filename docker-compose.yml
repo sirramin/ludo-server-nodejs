@@ -15,7 +15,7 @@ services:
       - REDIS1_port=7000
       - REDIS2_host=redis-cluster
       - REDIS2_port=7001
-      - MONGO_URL=mongodb://mongo/
+      - MONGO_URL=mongodb://mongo
     volumes:
       - ./:/home/app
   mongo:
