@@ -1,8 +1,8 @@
 const _ = require('lodash')
+const maxTime = 110
 
-module.exports = (io, socket, gameMeta, marketKey) => {
-    const maxTime = 110,
-        userId = socket.userInfo.userId
+module.exports = (socket) => {
+    const userId = socket.userInfo.userId
     let matchMaking, roomId, methods, roomInfo, positions, marblesPosition, currentPlayer, orbs, currentPlayerMarbles,
         diceAttempts, remainingTime, playerCastleNumber, hits, beats
 
@@ -41,9 +41,9 @@ module.exports = (io, socket, gameMeta, marketKey) => {
 
     const getInitialProperties = async () => {
         //must be optimised and remove matchmaking
-        matchMaking = require('../../realtime/matchMaking')(io, socket, gameMeta, marketKey)
+        matchMaking = require('../realtime/matchMaking')(io, socket, gameMeta, marketKey)
         roomId = await matchMaking.findUserCurrentRoom()
-        methods = require('../../realtime/methods')(io, gameMeta, roomId, marketKey)
+        methods = require('../realtime/methods')(io, gameMeta, roomId, marketKey)
         roomInfo = await methods.getAllProps()
         if (!marketKey) marketKey = JSON.parse(roomInfo['info']).marketKey
         currentPlayer = parseInt(roomInfo['currentPlayer'])

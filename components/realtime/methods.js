@@ -1,6 +1,6 @@
 const redisClient = require('../../common/redis-client')
 
-module.exports = (io, gameMeta, roomId, marketKey) => {
+module.exports = (io, roomId) => {
     const roomPrefix = gameMeta.name + ':rooms:' + roomId,
         roomsListPrefix = gameMeta.name + ':rooms:roomsList',
         market = marketKey.substr(marketKey.indexOf('users:') + 6, marketKey.length),
@@ -69,7 +69,7 @@ module.exports = (io, gameMeta, roomId, marketKey) => {
             await redisClient.zincrby(roomsListPrefix, -1, roomId)
             await sendEventToSpecificSocket(userId, 203, 'youWillBeKicked', 1)
             io.of('/').adapter.remoteDisconnect(socketId, true, async (err) => {
-                const gameLeft = require('../logics/' + gameMeta.name + '/gameLeft')(io, userId, gameMeta, marketKey, roomId)
+                const gameLeft = require('../logics/' + gameMeta.name + '/gameLeft')(userId, roomId)
                 await gameLeft.handleLeft()
                 logger.info('---------- remoteDisconnect kick-------------------')
                 await addToLeaderboard(userId, false)

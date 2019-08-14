@@ -1,15 +1,12 @@
-const
-    redisClient = require('../../common/redis-client'),
-    uniqid = require('uniqid')
+const redisClient = require('../../common/redis-client')
+const uniqid = require('uniqid')
 
 module.exports = (io, socket, gameMeta) => {
     const
         userId = socket.userInfo.userId,
-        marketName = (socket.userInfo.market === 'mtn' || socket.userInfo.market === 'mci') ? socket.userInfo.market : 'market',
-        marketKey = gameMeta.name + ':users:' + marketName,
-        roomsListPrefix = gameMeta.name + ':rooms:roomsList',
-        roomsPrefix = gameMeta.name + ':rooms:',
-        userRoomPrefix = gameMeta.name + ':user_room:' + marketName
+        roomsListPrefix = 'rooms:roomsList',
+        roomsPrefix = 'rooms:',
+        userRoomPrefix = 'user_room:'
 
     const findAvailableRooms = async (leagueId) => {
         leagueId = leagueId ? leagueId : 1
@@ -96,7 +93,6 @@ module.exports = (io, socket, gameMeta) => {
             "roomId": roomId,
             "state": "waiting",
             "creationDateTime": currentTimeStamp,
-            "marketKey": marketKey,
             "leagueId": leagueId
         }
         const newRoomPlayers = [socket.userInfo.userId]
@@ -112,17 +108,6 @@ module.exports = (io, socket, gameMeta) => {
             await roomWaitingTimeOver(roomId)
         }, gameMeta.waitingTime)
     }
-
-    // const updateUserRoom_old = async (roomId, anyUserId) => {
-    //     const user_id = anyUserId ? anyUserId : userId
-    //     const userData = await redisClient.hget(marketKey, user_id)
-    //     const userDataParsed = JSON.parse(userData)
-    //     if (!userDataParsed.roomId)
-    //         userDataParsed.roomId = roomId
-    //     else
-    //         delete userDataParsed.roomId
-    //     await redisClient.hset(marketKey, userDataParsed.userId, JSON.stringify(userDataParsed))
-    // }
 
     const updateUserRoom = async (roomId, anyUserId) => {
         const user_id = anyUserId ? anyUserId : userId
@@ -147,7 +132,7 @@ module.exports = (io, socket, gameMeta) => {
 
     const gameStart = async (roomId, reason) => {
         io.of('/').adapter.allRooms((err, rooms) => {
-            logger.info('all socket io rooms: ' + rooms) // an array containing all rooms (accross every node)
+            logger.info('all socket io rooms: ' + rooms) // an array containing all rooms (across every node)
         })
         sendMatchEvents(roomId, 4, 'gameStarted', {
             roomId: roomId

@@ -1,7 +1,6 @@
 const _ = require('lodash')
-const {mongooseClient} = require('../../common/mongoose-client')
-
-module.exports = () => {
+module.exports = (dbUrl) => {
+    const {mongooseClient} = require('../../common/mongoose-client')(dbUrl)
     const userSchema = new mongooseClient.Schema({
         name: {type: String, required: true},
         username: {type: String},
