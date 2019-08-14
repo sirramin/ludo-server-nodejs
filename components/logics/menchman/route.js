@@ -7,7 +7,7 @@ const route = require('express').Router(),
     serviceClassObj = new serviceClass('menchman')
 
 
-module.exports = (io) => {
+module.exports = () => {
 
     // route.post('/5b39d163afff3d2cf7833f6e/start', async (req, res, next) => {
     //     const roomId = req.body.roomId
