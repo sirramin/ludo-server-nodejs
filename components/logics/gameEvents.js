@@ -43,7 +43,7 @@ module.exports = (socket) => {
         //must be optimised and remove matchmaking
         matchMaking = require('../realtime/matchMaking')(io, socket, gameMeta, marketKey)
         roomId = await matchMaking.findUserCurrentRoom()
-        methods = require('../realtime/methods')(io, gameMeta, roomId, marketKey)
+        methods = require('../redisHelper/room')(io, gameMeta, roomId, marketKey)
         roomInfo = await methods.getAllProps()
         if (!marketKey) marketKey = JSON.parse(roomInfo['info']).marketKey
         currentPlayer = parseInt(roomInfo['currentPlayer'])

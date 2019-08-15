@@ -1,34 +1,13 @@
-const jwt = require('../../common/jwt')
-const redisHelper = require('../redisHelper/redis')
+const redisHelper = require('../redisHelper/user')
+const matchMaking = require('./matchMaking')
+// const friendly = require('./friendly')(io, socket, gameMeta)
+const logicEvents = require('../logics/gameEvents')
+const ioMiddleware = require('ioMiddleware')
 
-module.exports = () => {
   io
-    .use(async (socket, next) => {
-      if (socket.handshake.query && socket.handshake.query.token) {
-        try {
-          const userInfo = await jwt.verifyJwt(socket.handshake.query.token)
-          socket.userInfo = userInfo
-          socket.emit('message', userInfo)
-          socket.emit('message', 'socket id: ' + socket.id)
-          await redisHelper.addSocketIdToRedis(userInfo, socket.id)
-          next()
-        } catch (err) {
-          // socket.emit('message', 'Unauthorized')
-          next('Unauthorized')
-        }
-      } else {
-        next('header token is required!')
-      }
-    })
+    .use(ioMiddleware)
     .on('connection', async (socket) => {
-      const monitor = require('socket.io-monitor')
-      const {emitter} = monitor.bind(io, {server: false})
-      emitter.getState()
-      emitter.on('join', ({id, rooms}) => logger.info('socket id: ' + id + ' joins room: ' + rooms))
-
       logger.info('socket.id connected:' + socket.id)
-      const matchMaking = require('./matchMaking')(socket)
-      // const friendly = require('./friendly')(io, socket, gameMeta)
       await redisHelper.addOnlineStatus(socket.userInfo, true)
       //must merge
       const isConnectedBefore = await redisHelper.checkIsConnectedBefore(socket.userInfo)
@@ -38,14 +17,14 @@ module.exports = () => {
         // if (hasRoomBefore) matchMaking.returnUserToGame(hasRoomBefore)      //hasRoomBefore = roomId
       }
       socket.on('joinRoom', async (leagueId) => {
-        await matchMaking.findAvailableRooms(leagueId)
+        await matchMaking.findAvailableRooms(leagueId, socket)
       })
-      socket.on('invite', async (usernamesArray) => {
-        await friendly.invite(usernamesArray)
-      })
-      socket.on('joinFriendly', async (usernamesArray) => {
-        await friendly.invite(usernamesArray)
-      })
+      // socket.on('invite', async (usernamesArray) => {
+      //   await friendly.invite(usernamesArray)
+      // })
+      // socket.on('joinFriendly', async (usernamesArray) => {
+      //   await friendly.invite(usernamesArray)
+      // })
       socket.on('leftRoom', async () => {
         await matchMaking.leftRoom()
       })
@@ -55,12 +34,10 @@ module.exports = () => {
       })
       socket.on('event', async (msg) => {
         const eventData = JSON.parse(msg)
-        const logicEvents = require('../logics/gameEvents')(socket)
         logicEvents.getAct(eventData)
       })
       socket.on('message', (message) => {
-        const messageData = JSON.parse(msg)
+        const messageData = JSON.parse(message)
         logger.info(messageData)
       })
     })
-}

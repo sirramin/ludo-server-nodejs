@@ -29,7 +29,7 @@ module.exports = (io) => {
                     const roomCurrentPlayersParsed = JSON.parse(roomCurrentInfo[1])
                     if (roomCurrentInfoParsed && roomCurrentInfoParsed.state === 'started') { // !!! creationDateTime must be affected
                         await joinPlayersToSocketIORoomAgain(roomCurrentPlayersParsed, roomCurrentInfoParsed.roomId, roomCurrentInfoParsed.marketKey)
-                        const methods = require('../components/realtime/methods')(io, gameMeta, roomCurrentInfoParsed.roomId, roomCurrentInfoParsed.marketKey)
+                        const methods = require('../components/redisHelper/room')(io, gameMeta, roomCurrentInfoParsed.roomId, roomCurrentInfoParsed.marketKey)
                         item.logicRestart.handler(roomCurrentInfoParsed.roomId, methods)
                     }
                 }

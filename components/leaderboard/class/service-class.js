@@ -1,8 +1,8 @@
 const Leaderboard = require('../../../custom_modules/leaderboard-promise'),
     redisClient = require('../../../common/redis-client'),
     _ = require('lodash'),
-    queryClass = require('./query-class'),
-    userQueryClass = require('../../user/class/query-class')
+    queryClass = require('./query-class')
+    // userQueryClass = require('../../user/query')
 
 const leaderboardClass = class {
 
@@ -10,7 +10,7 @@ const leaderboardClass = class {
         this.dbUrl = dbUrl
         this.market = market
         this.query = new queryClass(dbUrl)
-        this.userQuery = new userQueryClass(dbUrl)
+        // this.userQuery = new userQueryClass(dbUrl)
         this.marketName = (this.market === 'mtn' || this.market === 'mci') ? this.market : 'market'
         this.leaderboardPath = this.dbUrl + ':leaders:' + this.marketName
         this.usersPath = this.dbUrl + ':users:' + this.marketName
@@ -98,7 +98,7 @@ const leaderboardClass = class {
         if (isWinner)
             await this.lb.incr(userId, leagueScore)
         const newScore = await this.lb.score(userId)
-        await this.userQuery.updateScoreInMongo(userId, userInfo.win, userInfo.lose, newScore)
+        // await this.userQuery.updateScoreInMongo(userId, userInfo.win, userInfo.lose, newScore)
         return await redisClient.hmset(this.usersPath, userId, JSON.stringify(userInfo))
     }
 

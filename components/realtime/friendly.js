@@ -129,7 +129,7 @@ module.exports = (io, socket, gameMeta) => {
         roomHashParsed.state = 'started'
         await redisClient.hset(roomsPrefix + roomId, 'info', JSON.stringify(roomHashParsed))
 
-        const methods = require('./methods')(io, gameMeta, roomId, marketKey)
+        const methods = require('../redisHelper/room')(io, gameMeta, roomId, marketKey)
         const logicStart = require('../logics/' + gameMeta.name + '/gameStart')(roomId, roomPlayers, roomPlayersWithNames, methods)
         await logicStart.sendPositions()
         // const webHookCaller = require('./webHookCaller')(gameMeta, roomId, roomPlayers, roomPlayersWithNames, marketKey)
@@ -186,7 +186,7 @@ module.exports = (io, socket, gameMeta) => {
                                 logger.info('---------- remoteDisconnect-------------------')
                                 const gameLeft = require('../logics/' + gameMeta.name + '/gameLeft')(io, userId, gameMeta, marketKey, userCurrentRoom)
                                 await gameLeft.handleLeft()
-                                const methods = require('./methods')(io, gameMeta, userCurrentRoom, marketKey)
+                                const methods = require('../redisHelper/room')(io, gameMeta, userCurrentRoom, marketKey)
                                 await methods.addToLeaderboard(userId, false)
                                 if (currentPlayersParsed.length === 1) {
                                     await methods.makeRemainingPlayerWinner(userCurrentRoom)
@@ -219,7 +219,7 @@ module.exports = (io, socket, gameMeta) => {
                     logger.info('---------- remoteDisconnect-------------------')
                     const gameLeft = require('../logics/' + gameMeta.name + '/gameLeft')(io, userId, gameMeta, marketKey, userCurrentRoom)
                     await gameLeft.handleLeft()
-                    const methods = require('./methods')(io, gameMeta, userCurrentRoom, marketKey)
+                    const methods = require('../redisHelper/room')(io, gameMeta, userCurrentRoom, marketKey)
                     await methods.addToLeaderboard(userId, false)
                     if (currentPlayersParsed.length === 1) {
                         await methods.makeRemainingPlayerWinner(userCurrentRoom)

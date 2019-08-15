@@ -1,6 +1,6 @@
 const jwt = require('../../common/jwt')
 const _ = require('lodash')
-const redisHelper = require('../redisHelper/redis')
+const redisHelper = require('../redisHelper/user')
 
 exports.registerGuestUser = async () => {
   const username = 'guest' + _.random(11111111, 99999999)

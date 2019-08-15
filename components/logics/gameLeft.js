@@ -1,7 +1,7 @@
 const _ = require('lodash')
 module.exports = (io, userId, gameMeta, marketKey, roomId) => {
     const maxTime = 11,
-        methods = require('../realtime/methods')(io, gameMeta, roomId, marketKey)
+        methods = require('../redisHelper/room')(io, gameMeta, roomId, marketKey)
     let roomInfo, positions, currentPlayer, thisPlayerNumber, thisPlayerIndex, marblesPosition, orbs, hits
 
     const handleLeft = async () => {
