@@ -1,30 +1,19 @@
 const _ = require('lodash')
-const {mongooseClient} = require('../../common/mongoose-client')
+const mongooseClient = require('../../common/mongoose-client')
 
-module.exports = () => {
-    const userSchema = new mongooseClient.Schema({
-        name: {type: String, required: true},
-        username: {type: String},
-        password: String,
-        phoneNumber: {type: String},
-        market: {type: String, required: true},
-        coin: {type: Number, default: 1400},
-        win: {type: Number, default: 0},
-        lose: {type: Number, default: 0},
-        score: {type: Number, default: 0},
-        registerDate: {type: Date, default: new Date()},
-        verificationCode: String,
-        charkhonehCancelled: Boolean,
-        charkhonehHistory: [],
-        charkhonehProducts: [],
-        email: String,
-        emailCode: Number,
-        followings: [],
-        followers: [],
-    });
-    // userSchema.set('autoIndex', false);
-    if (_.has(connections[dbUrl].models, 'users'))
-        return connections[dbUrl].model('users');
-    else
-        return connections[dbUrl].model('users', userSchema);
-}
+const userSchema = new mongooseClient.Schema({
+  username: {type: String},
+  password: String,
+  phoneNumber: {type: String},
+  coin: {type: Number, default: 1400},
+  win: {type: Number, default: 0},
+  lose: {type: Number, default: 0},
+  score: {type: Number, default: 0},
+  registerDate: {type: Date, default: new Date()},
+  verificationCode: String,
+  email: String,
+  emailCode: Number,
+  followings: [],
+  followers: [],
+});
+module.exports = mongooseClient.model('users', userSchema);

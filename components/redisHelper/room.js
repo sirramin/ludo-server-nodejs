@@ -2,35 +2,31 @@ const redisClient = require('../../common/redis-client')
 const {gameMeta, redis: redisConfig} = require('../../common/config')
 
 module.exports = (roomId) => {
-  const roomsListPrefix = 'rooms:roomsList'
-  const roomsPrefix = 'rooms:'
-  const userRoomPrefix = 'user_room:'
-  const leaderboardService = require('../leaderboard/service')
 
   const setProp = async (field, value) => {
-    await redisClient.hset(roomsPrefix, field, value)
+    await redisClient.hset(redisConfig.prefixes.rooms, field, value)
   }
 
   const setMultipleProps = async (...args) => {
-    await redisClient.hmset(roomsPrefix, ...args)
+    await redisClient.hmset(redisConfig.prefixes.rooms, ...args)
   }
 
   const getProp = async (field) => {
-    const value = await redisClient.hget(roomsPrefix, field)
+    const value = await redisClient.hget(redisConfig.prefixes.rooms, field)
     return JSON.parse(value)
   }
 
   const incrProp = async (field, number) => {
-    return await redisClient.hincrby(roomsPrefix, field, number)
+    return await redisClient.hincrby(redisConfig.prefixes.rooms, field, number)
   }
 
   const getAllProps = async () => {
-    return await redisClient.hgetall(roomsPrefix)
+    return await redisClient.hgetall(redisConfig.prefixes.rooms)
   }
 
   const deleteRoom = async (roomId) => {
-    await redisClient.del(roomsPrefix)
-    await redisClient.zrem(roomsListPrefix, roomId)
+    await redisClient.del(redisConfig.prefixes.rooms)
+    await redisClient.zrem(redisConfig.prefixes.roomsList, roomId)
   }
 
   const kickUser = async (userId) => {
@@ -39,8 +35,8 @@ module.exports = (roomId) => {
     if (currentPlayers.length > 1) {
       await deleteUserRoom(userId)
       currentPlayers.splice(currentPlayers.indexOf(userId), 1)
-      await redisClient.hset(roomsPrefix, 'players', JSON.stringify(currentPlayers))
-      await redisClient.zincrby(roomsListPrefix, -1, roomId)
+      await redisClient.hset(redisConfig.prefixes.rooms, 'players', JSON.stringify(currentPlayers))
+      await redisClient.zincrby(redisConfig.prefixes.roomsList, -1, roomId)
       await sendEventToSpecificSocket(userId, 203, 'youWillBeKicked', 1)
       io.of('/').adapter.remoteDisconnect(socketId, true, async (err) => {
         const gameLeft = require('../logics/' + gameMeta.name + '/gameLeft')(userId, roomId)
@@ -55,62 +51,20 @@ module.exports = (roomId) => {
   }
 
   const getUserSocketIdFromRedis = async (userId) => {
-    const userDataParsed = JSON.parse(await redisClient.hget(marketKey, userId))
+    const userDataParsed = JSON.parse(await redisClient.hget(redisConfig.prefixes.users, userId))
     return userDataParsed.socketId
   }
 
   const deleteUserRoom = async (userId) => {
-    return await redisClient.hdel(userRoomPrefix, userId)
-  }
-
-  const makeRemainingPlayerWinner = async (roomId) => {
-    const players = await getProp('players')
-    const positions = await getProp('positions')
-    const info = await getProp('info')
-    // if(positions && positions.length) {
-    const winnerPlayerNumber = positions[0].player
-    const winnerId = players[0]
-    await setProp('winner', winnerId)
-    sendGameEvents(24, 'gameEnd', {
-      "winner": winnerPlayerNumber
-    })
-    await deleteUserRoom(winnerId)
-    await addToLeaderboard(winnerId, true)
-    await givePrize(winnerId, info.leagueId)
-    const winnerSocketId = await getUserSocketIdFromRedis(winnerId)
-    io.of('/').adapter.remoteDisconnect(winnerSocketId, true, (err) => {
-      logger.info('---------- remoteDisconnect winner-------------------')
-    })
-    await deleteRoom(roomId)
-    // const roomInfo = await getProp('info')
-    // roomInfo.state = 'finished'
-    // await setProp('info', JSON.stringify(roomInfo))
-    // }
-  }
-
-  const addToLeaderboard = async (userId, isWinner) => {
-    const roomInfo = await getProp('info')
-    const userDataParsed = JSON.parse(await redisClient.hget(marketKey, userId))
-    if (roomInfo && roomInfo.hasOwnProperty('leagueId')) {
-      const leagueId = roomInfo.leagueId
-      await leaderboardService.addScore(userDataParsed.name, userId, leagueId, isWinner)
-    }
-  }
-
-  const getleaderboardRank = async (userId) => {
-    return await leaderboardService.getRank(userId)
+    return await redisClient.hdel(redisConfig.prefixes.userRoom, userId)
   }
 
   const getUserData = async (userId) => {
-    return JSON.parse(await redisClient.hget(marketKey, userId))
-  }
-
-  const givePrize = async (userId, leagueId) => {
-    return await leaderboardService.givePrize(userId, leagueId)
+    return JSON.parse(await redisClient.hget(redisConfig.prefixes.users, userId))
   }
 
   const findUserCurrentRoom = async () => {
-    return await redisClient.hget(userRoomPrefix, userId)
+    return await redisClient.hget(redisConfig.prefixes.userRoom, userId)
   }
 
   const getRoomPlayers = async (roomId) => {
@@ -131,6 +85,56 @@ module.exports = (roomId) => {
     return roomPlayersWithNames
   }
 
+  const destroyRoom = async (roomId) => {
+    const roomplayers = await redisClient.hget(redisConfig.prefixes.rooms + roomId, 'players')
+    const roomPlayersArray = JSON.parse(roomplayers)
+    await asyncLoopRemovePlayersRoomInRedis(roomPlayersArray, roomId)
+
+    await redisClient.del(redisConfig.prefixes.rooms + roomId)
+    await redisClient.zrem(redisConfig.prefixes.roomsList, roomId)
+    sendMatchEvents(roomId, 5, 'roomDestroyed', {
+      roomId: roomId
+    })
+    io.of('/').in(roomId).clients((error, clients) => {
+      if (error) logger.error(error)
+      if (clients.length) {
+        clients.forEach(client => io.of('/').adapter.remoteLeave(client, roomId));
+      }
+    })
+    logger.info(roomId + ' destroyed')
+  }
+
+  const asyncLoopRemovePlayersRoomInRedis = async (roomPlayersArray, roomId) => {
+    for (let i = 0; i < roomPlayersArray.length; i++) {
+      await deleteUserRoom(roomPlayersArray[i])
+      // await updateUserRoom('', roomPlayersArray[i])
+    }
+  }
+
+  const createNewRoom = async (leagueId, socket) => {
+    const roomId = uniqid()
+    const currentTimeStamp = new Date().getTime()
+    const newRoomInfo = {
+      "roomId": roomId,
+      "state": "waiting",
+      "creationDateTime": currentTimeStamp,
+      "leagueId": leagueId
+    }
+    const newRoomPlayers = [socket.userInfo.userId]
+    const hmArgs = [redisConfig.prefixes.rooms + roomId, 'info', JSON.stringify(newRoomInfo), 'players', JSON.stringify(newRoomPlayers)]
+    await redisClient.hmset(hmArgs)
+    await redisClient.zadd(redisConfig.prefixes.roomsList, 1, roomId)
+    await updateUserRoom(roomId)
+    socket.join(roomId)
+    sendMatchEvents(roomId, 3, 'playerJoined', {
+      roomId: roomId
+    })
+    setTimeout(async () => {
+      await roomWaitingTimeOver(roomId)
+    }, gameMeta.waitingTime)
+  }
+
+
   return {
     sendGameEvents,
     sendEventToSpecificSocket,
@@ -140,15 +144,14 @@ module.exports = (roomId) => {
     getAllProps,
     kickUser,
     incrProp,
-    makeRemainingPlayerWinner,
     broadcast,
-    addToLeaderboard,
     deleteRoom,
-    getleaderboardRank,
     getUserData,
     deleteUserRoom,
-    givePrize,
     getRoomPlayers,
-    getRoomPlayersWithNames
+    getRoomPlayersWithNames,
+    createNewRoom,
+    findUserCurrentRoom,
+    destroyRoom
   }
 }

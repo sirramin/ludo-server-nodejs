@@ -5,13 +5,12 @@ const http = require('http').Server(app)
 global.io = require('socket.io')(http)
 const redisAdapter = require('socket.io-redis')
 const redisClient = require('./common/redis-client')
-io.adapter(redisAdapter({
-  pubClient: redisClient,
-  subClient: redisClient
-}))
+// io.adapter(redisAdapter({
+//   pubClient: redisClient,
+//   subClient: redisClient
+// }))
+io.adapter(redisAdapter(redisClient))
 const cors = require('cors')
-global.connections = {}
-global.schedulerExecuted = false
 global.logger = require('./common/logger')
 // global.redisClient = null
 // global.redisClientAsync = null

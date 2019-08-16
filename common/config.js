@@ -4,7 +4,7 @@ const config = {
       roomsList: 'rooms:roomsList',
       rooms: 'rooms:',
       userRoom: 'user_room',
-      users: 'users'
+      users: 'users:'
     }
   },
   gameMeta: {

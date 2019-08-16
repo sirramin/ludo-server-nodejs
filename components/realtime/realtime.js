@@ -2,7 +2,7 @@ const redisHelper = require('../redisHelper/user')
 const matchMaking = require('./matchMaking')
 // const friendly = require('./friendly')(io, socket, gameMeta)
 const logicEvents = require('../logics/gameEvents')
-const ioMiddleware = require('ioMiddleware')
+const ioMiddleware = require('./ioMiddleware')
 
   io
     .use(ioMiddleware)
@@ -34,7 +34,7 @@ const ioMiddleware = require('ioMiddleware')
       })
       socket.on('event', async (msg) => {
         const eventData = JSON.parse(msg)
-        logicEvents.getAct(eventData)
+        await logicEvents.getAct(eventData)
       })
       socket.on('message', (message) => {
         const messageData = JSON.parse(message)
