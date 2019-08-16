@@ -63,9 +63,7 @@ module.exports = (roomId) => {
     return JSON.parse(await redisClient.hget(redisConfig.prefixes.users, userId))
   }
 
-  const findUserCurrentRoom = async () => {
-    return await redisClient.hget(redisConfig.prefixes.userRoom, userId)
-  }
+
 
   const getRoomPlayers = async (roomId) => {
     const roomHash = await redisClient.hmget(redisConfig.prefixes.rooms + roomId, 'info', 'players')

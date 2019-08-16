@@ -1,15 +1,5 @@
 const redisClient = require('../../common/redis-client')
-const {gameMeta, redis: redisConfig} = require('../../common/config')
-
-
-const _getUserInfoFromRedis = async (userInfo) => {
-  const userData = await redisClient.hget(marketKey, userInfo.userId)
-  return JSON.parse(userData)
-}
-
-const _getUserRoomFromRedis = async (userInfo) => {
-  return await redisClient.hget(userRoomPrefix, userInfo.userId)
-}
+const {redis: redisConfig} = require('../../common/config')
 
 const redisHelper = {
 
@@ -17,48 +7,31 @@ const redisHelper = {
     await redisClient.hset(redisConfig.prefixes.users + userId, 'username', username)
   },
 
-  async addOnlineStatus(userInfo, status) {
+  async addOnlineStatus(userId, status) {
     if (status)
-      await redisClient.sadd('online', userInfo.userId)
+      await redisClient.sadd('online', userId)
     else
-      await redisClient.srem('online', userInfo.userId)
+      await redisClient.srem('online', userId)
   },
 
-  async checkIsConnectedBefore(userInfo) {
-    const userDataParsed = await _getUserInfoFromRedis(userInfo)
-    const userRoom = await _getUserRoomFromRedis(userInfo, gameMeta)
-    if (userDataParsed && userDataParsed.hasOwnProperty('dc') || userRoom)
-      return userDataParsed.socketId
-    else return false
-  },
-
-  async addSocketIdToRedis(userInfo, socketId) {
-    let userDataParsed = await getUserInfoFromRedis(userInfo)
-    userDataParsed.socketId = socketId
-    await redisClient.hset(marketKey, userInfo.userId, JSON.stringify(userDataParsed))
+  async addSocketIdToRedis(userId, socketId) {
+    await redisClient.hset(redisConfig.prefixes.users + userId, 'socketId', socketId)
   },
 
   async removeUserSocketIdFromRedis(userId) {
-    const userDataParsed = await redisHelper.getUserData(userId)
-    if (userDataParsed)
-      delete userDataParsed['socketId']
-    await setUserData(userDataParsed)
+    await redisClient.hdel(redisConfig.prefixes.users + userId, 'socketId')
   },
 
-  async getUserData(userId) {
-    const userData = await redisClient.hget(redisConfig.prefixes.users, userId)
-    return JSON.parse(userData)
+  async addDisconnectStatusToUser(userId) {
+    await redisClient.hset(redisConfig.prefixes.users + userId, 'dc', true)
   },
 
-  async setUserData(userDataParsed) {
-    await redisClient.hset(redisConfig.prefixes.users, userId, JSON.stringify(userDataParsed))
+  async changeSocketId(userId, socketId) {
+    await redisClient.hset(redisConfig.prefixes.users + userId, 'socketId', socketId)
   },
 
-  async addDisconnectStatusToUser() {
-    const userDataParsed = await getUserData()
-    if (userDataParsed)
-      userDataParsed['dc'] = true
-    await setUserData(userDataParsed)
+  async findUserCurrentRoom(userId) {
+    return await redisClient.hget(redisConfig.prefixes.users + userId, 'roomId')
   }
 
 }

@@ -10,7 +10,7 @@ const gameLeft = require('../logics/gameLeft')
 const findAvailableRooms = async (leagueId, socket) => {
   leagueId = leagueId ? leagueId : 1
   try {
-    const isPlayerJoinedBefore = await redisHelperRoom.findUserCurrentRoom()
+    const isPlayerJoinedBefore = await redisHelperUser.findUserCurrentRoom(socket.userId)
     if (isPlayerJoinedBefore) {
       socket.emit('matchEvent', {
         code: 1,
@@ -92,29 +92,8 @@ const leftRoom = async (socket) => {
   }
 }
 
-const changeSocketIdAndSocketRoom = async () => {
-  const userData = await redisClient.hget(marketKey, userId)
-  const userDataParsed = JSON.parse(userData)
-  const roomId = await findUserCurrentRoom()
-  const oldSocketId = userDataParsed.socketId
-  const newSocketId = socket.id
-  userDataParsed.socketId = newSocketId
-  userDataParsed.dc = false
-  await redisClient.hset(marketKey, userId, JSON.stringify(userDataParsed))
-  io.of('/').adapter.remoteLeave(oldSocketId, roomId, (err) => {
-    if (err)
-      logger.info('err leaving socket' + userId)
-    io.of('/').adapter.remoteJoin(newSocketId, roomId, (err) => {
-      if (err)
-        logger.info('err joining socket' + userId)
-      logger.info('user: ' + userId + ' with socket id: ' + newSocketId + ' joined again to room: ' + roomId)
-    })
-  })
-}
-
 module.exports = {
   findAvailableRooms,
   kickUserFromRoomByDC,
-  changeSocketIdAndSocketRoom,
   leftRoom
 }

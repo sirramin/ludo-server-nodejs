@@ -33,6 +33,14 @@ const broadcast = async (socket, msg) => {
     })
 }
 
+const leaveRoom = (socketId, roomId) => {
+    io.of('/').adapter.remoteLeave(socketId, roomId)
+}
+
+const joinRoom = (socketId, roomId) => {
+    io.of('/').adapter.remoteJoin(socketId, roomId)
+}
+
 
 module.exports = {
     sendMatchEvents,
