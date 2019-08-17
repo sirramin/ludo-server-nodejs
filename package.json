@@ -4,13 +4,14 @@
   "description": "Arta Game Platform",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon --inspect index.js 9222",
+    "remote debug": "nodemon --inspect index.js 9222",
     "start": "nodemon index.js",
     "debug": "node index.js"
   },
   "author": "ramin sarmadi",
   "license": "ISC",
   "dependencies": {
+    "@hapi/boom": "^7.4.3",
     "async-redis": "^1.1.4",
     "base-64": "^0.1.0",
     "basic-auth-connect": "^1.0.0",

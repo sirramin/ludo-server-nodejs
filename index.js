@@ -25,7 +25,13 @@ const bodyParser = require('body-parser')
 app.use(bodyParser.urlencoded({extended: false}))
 app.use(bodyParser.json())
 app.use('/', require('./common/mainRouter')())
+app.use(function (error, req, res, next) {
+  res.json(error.output.payload)
+
+});
+
 require('./components/realtime/realtime')
+
 const port = 3001
 http.listen(port, () => {
   logger.info('Server running at http://127.0.0.1:' + port + '. Process PID: ' + process.pid)
