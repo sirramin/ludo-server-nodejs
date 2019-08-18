@@ -4,7 +4,5 @@ const errorHandler = (err, req, res, next) => {
   } else {
     res.status(500).json({error: 'internal server error'})
   }
-  return
-  // next(err)
 }
 module.exports = errorHandler

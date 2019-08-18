@@ -1,5 +1,5 @@
-const jwt = require('../../common/jwt')
-const redisHelper = require('../redisHelper/user')
+const jwt = require('../common/jwt')
+const redisHelper = require('../components/redisHelper/user')
 
 const auth = async (socket, next) => {
   if (socket.handshake.query && socket.handshake.query.token) {

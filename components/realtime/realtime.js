@@ -2,7 +2,7 @@ const redisHelperUser = require('../redisHelper/user')
 const matchMaking = require('./matchMaking')
 // const friendly = require('./friendly')(io, socket, gameMeta)
 const logicEvents = require('../logics/gameEvents')
-const ioMiddleware = require('./ioMiddleware')
+const ioMiddleware = require('../../middleware/ioMiddleware')
 
   io
     .use(ioMiddleware)
