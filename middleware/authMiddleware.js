@@ -1,5 +1,5 @@
-const jwt = require('./jwt')
-const response = require('./response')
+const jwt = require('../common/jwt')
+const response = require('../common/response')
 const isAuthenticated = async (req, res, next) => {
     const token = req.headers['token']
     if (!token) {

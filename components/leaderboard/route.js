@@ -1,4 +1,4 @@
-const auth = require('../../common/authMiddleware')
+const auth = require('../../middleware/authMiddleware')
 const response = require('../../common/response')
 const router = require('express').Router()
 const serviceClass = require('./class/service-class')

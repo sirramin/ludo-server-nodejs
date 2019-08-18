@@ -1,7 +1,7 @@
 const
   gameIdentifier = require('../../common/gameIdentifier').findGameName,
   response = require('../../common/response'),
-  auth = require('../../common/authMiddleware'),
+  auth = require('../../middleware/authMiddleware'),
   router = require('express').Router(),
   serviceClass = require('./class/service-class'),
   jwt = require('../../common/jwt')

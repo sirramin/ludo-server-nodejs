@@ -1,10 +1,13 @@
 const express = require('express')
+require('express-async-errors')
 const morgan = require('morgan')
 const app = express()
 const http = require('http').Server(app)
 global.io = require('socket.io')(http)
 const redisAdapter = require('socket.io-redis')
 const redisClient = require('./common/redis-client')
+const errorMiddleware = require('./middleware/errorMiddleware')
+
 // io.adapter(redisAdapter({
 //   pubClient: redisClient,
 //   subClient: redisClient
@@ -16,6 +19,7 @@ global.logger = require('./common/logger')
 // global.redisClientAsync = null
 // require('./common/memwatch')
 // app.setMaxListeners(0)
+
 app.use(cors())
 app.use(morgan('combined'))
 const basicAuth = require('basic-auth-connect');
@@ -24,11 +28,8 @@ app.use('/docs', [basicAuth('admin', '5179241a'), express.static('apidoc')])
 const bodyParser = require('body-parser')
 app.use(bodyParser.urlencoded({extended: false}))
 app.use(bodyParser.json())
-app.use('/', require('./common/mainRouter')())
-app.use(function (error, req, res, next) {
-  res.json(error.output.payload)
-
-});
+app.use('/', require('./common/mainRouter'))
+app.use(errorMiddleware)
 
 require('./components/realtime/realtime')
 
