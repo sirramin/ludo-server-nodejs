@@ -3,6 +3,7 @@ const {gameMeta, redis: redisConfig} = require('../../common/config')
 const logicStart = require('../logics/gameStart')
 const socketHelper = require('../realtime/socketHelper')
 const redisHelperRoom = require('../redisHelper/room')
+const redisHelperUser = require("../redisHelper/user")
 
 const loopOverAllRooms = async (i, leagueId) => {
   i = i || gameMeta.roomMax - 1
@@ -30,42 +31,31 @@ const loopOverAvailableRooms = async (availableRooms, i, leagueId) => {
 }
 
 const joinPlayerToRoom = async (roomId, socket) => {
-  redisHelperRoom.addPlayerTooRoom(roomId, socket.userId)
+  if (redisHelperRoom.checkRoomIsFull) {
+    socket.emit('matchEvent', 'roomIsFull')
+    return
+  }
+  if (redisHelperRoom.checkRoomStarted) {
+    socket.emit('matchEvent', 'roomStartedBefore')
+    return
+  }
+  await redisHelperRoom.addPlayerTooRoom(roomId, socket.userId)
   await redisClient.zincrby(redisConfig.prefixes.roomsList, 1, roomId)
-  await updateUserRoom(roomId, socket.userId)
+  await redisHelperUser.updateUserRoom(roomId, socket.userId)
   socketHelper.joinRoom(socket.id, roomId)
   socketHelper.sendMatchMakingEvents(roomId, 'بازیکن جدیدی عضو اتاق شد')
-  if (currentPlayersLength === gameMeta.roomMax - 1) {
+  if (redisHelperRoom.checkRoomIsReady) {
     redisHelperRoom.changeRoomState(roomId, 'started')
     gameStart(roomId)
   }
 }
 
-const checkRoomIsReady = async (roomId) {
-  // TODO
-  // if (currentPlayersLength === gameMeta.roomMax) {
-  //   socket.emit('matchEvent', 'roomIsFull')
-  // }
-}
-
-const updateUserRoom = async (roomId, userId) => {
-  return await redisClient.hset(redisConfig.prefixes.users + userId, 'room', roomId)
-}
-
-const deleteUserRoom = async (userId) => {
-  return await redisClient.hdel(redisConfig.prefixes.userRoom, userId)
-}
-
 const roomWaitingTimeOver = async (roomId) => {
-  const roomCurrentInfo = await redisClient.hmget(redisConfig.prefixes.rooms + roomId, 'info', 'players')
-  if (roomCurrentInfo) {
-    const currentPlayers = JSON.parse(roomCurrentInfo[1]).length
-    const roomState = JSON.parse(roomCurrentInfo[0]).state
-    if (currentPlayers >= gameMeta.roomMin && roomState !== 'started')
+    if (redisHelperRoom.checkRoomHasMinimumPlayers(roomId) && !redisHelperRoom.checkRoomStarted(roomId)){
       gameStart(roomId, 'time over')
-    else if (roomState !== 'started')
+    } else if (!redisHelperRoom.checkRoomStarted(roomId)){
       destroyRoom(roomId)
-  }
+    }
 }
 
 const gameStart = async (roomId) => {

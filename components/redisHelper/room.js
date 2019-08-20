@@ -1,34 +1,35 @@
 const redisClient = require('../../common/redis-client')
 const {roomWaitingTimeOver, joinPlayerToRoom} = require("../matchMaking/matchMakingHelper")
 const {gameMeta, redis: redisConfig} = require('../../common/config')
+const exp = {}
 
-const setProp = async (field, value) => {
+exp.setProp = async (field, value) => {
   await redisClient.hset(redisConfig.prefixes.rooms, field, value)
 }
 
-const setMultipleProps = async (...args) => {
+exp.setMultipleProps = async (...args) => {
   await redisClient.hmset(redisConfig.prefixes.rooms, ...args)
 }
 
-const getProp = async (field) => {
+exp.getProp = async (field) => {
   const value = await redisClient.hget(redisConfig.prefixes.rooms, field)
   return JSON.parse(value)
 }
 
-const incrProp = async (field, number) => {
+exp.incrProp = async (field, number) => {
   return await redisClient.hincrby(redisConfig.prefixes.rooms, field, number)
 }
 
-const getAllProps = async () => {
+exp.getAllProps = async () => {
   return await redisClient.hgetall(redisConfig.prefixes.rooms)
 }
 
-const deleteRoom = async (roomId) => {
+exp.deleteRoom = async (roomId) => {
   await redisClient.del(redisConfig.prefixes.rooms)
   await redisClient.zrem(redisConfig.prefixes.roomsList, roomId)
 }
 
-const kickUser = async (userId) => {
+exp.kickUser = async (userId) => {
   const currentPlayers = await getProp('players')
   const socketId = await getUserSocketIdFromRedis(userId)
   if (currentPlayers.length > 1) {
@@ -49,27 +50,20 @@ const kickUser = async (userId) => {
   }
 }
 
-const getUserSocketIdFromRedis = async (userId) => {
+exp.getUserSocketIdFromRedis = async (userId) => {
   const userDataParsed = JSON.parse(await redisClient.hget(redisConfig.prefixes.users, userId))
   return userDataParsed.socketId
 }
 
-const deleteUserRoom = async (userId) => {
+exp.deleteUserRoom = async (userId) => {
   return await redisClient.hdel(redisConfig.prefixes.userRoom, userId)
 }
 
-const getUserData = async (userId) => {
+exp.getUserData = async (userId) => {
   return JSON.parse(await redisClient.hget(redisConfig.prefixes.users, userId))
 }
 
-const getRoomPlayers = async (roomId) => {
-  const roomHash = await redisClient.hmget(redisConfig.prefixes.rooms + roomId, 'info', 'players')
-  const roomHashParsed = JSON.parse(roomHash[0])
-  const roomPlayers = JSON.parse(roomHash[1])
-  return roomPlayers
-}
-
-const getRoomPlayersWithNames = async (roomId) => {
+exp.getRoomPlayersWithNames = async (roomId) => {
   const roomPlayers = await getRoomPlayers(roomId)
   let roomPlayersWithNames = []
   for (let i = 0; i < roomPlayers.length; i++) {
@@ -80,7 +74,7 @@ const getRoomPlayersWithNames = async (roomId) => {
   return roomPlayersWithNames
 }
 
-const destroyRoom = async (roomId) => {
+exp.destroyRoom = async (roomId) => {
   const roomplayers = await redisClient.hget(redisConfig.prefixes.rooms + roomId, 'players')
   const roomPlayersArray = JSON.parse(roomplayers)
   await asyncLoopRemovePlayersRoomInRedis(roomPlayersArray, roomId)
@@ -99,14 +93,14 @@ const destroyRoom = async (roomId) => {
   logger.info(roomId + ' destroyed')
 }
 
-const asyncLoopRemovePlayersRoomInRedis = async (roomPlayersArray, roomId) => {
+exp.asyncLoopRemovePlayersRoomInRedis = async (roomPlayersArray, roomId) => {
   for (let i = 0; i < roomPlayersArray.length; i++) {
     await deleteUserRoom(roomPlayersArray[i])
     // await updateUserRoom('', roomPlayersArray[i])
   }
 }
 
-const createNewRoom = async (leagueId, socket) => {
+exp.createNewRoom = async (leagueId, socket) => {
   const roomId = uniqid()
   const currentTimeStamp = new Date().getTime()
   const hmArgs = [redisConfig.prefixes.rooms + roomId,
@@ -121,38 +115,40 @@ const createNewRoom = async (leagueId, socket) => {
   }, gameMeta.waitingTime)
 }
 
-const addPlayerTooRoom = async (roomId, userId) => {
+exp.addPlayerTooRoom = async (roomId, userId) => {
   await redisClient.sadd(redisConfig.prefixes.roomPlayers + roomId, userId)
 }
 
-const removePlayerFromRoom = async (roomId, userId) => {
+exp.numberOfPlayersInRoom = async (roomId) => {
+  return await redisClient.scard(redisConfig.prefixes.roomPlayers + roomId)
+}
+
+exp.removePlayerFromRoom = async (roomId, userId) => {
   await redisClient.sadd(redisConfig.prefixes.roomPlayers + roomId, userId)
 }
 
-const changeRoomState = async (roomId, state) => {
+exp.changeRoomState = async (roomId, state) => {
   await redisClient.hset(redisConfig.prefixes.rooms + roomId, 'state', state)
 }
 
-
-module.exports = {
-  sendGameEvents,
-  sendEventToSpecificSocket,
-  setProp,
-  setMultipleProps,
-  getProp,
-  getAllProps,
-  kickUser,
-  incrProp,
-  broadcast,
-  deleteRoom,
-  getUserData,
-  deleteUserRoom,
-  getRoomPlayers,
-  getRoomPlayersWithNames,
-  createNewRoom,
-  findUserCurrentRoom,
-  destroyRoom,
-  changeRoomState,
-  addPlayerTooRoom,
-  removePlayerFromRoom
+exp.checkRoomStarted = async (roomId) => {
+  const state = await redisClient.hget(redisConfig.prefixes.rooms + roomId, 'state')
+  return state === 'started'
 }
+
+exp.checkRoomIsFull = async (roomId) => {
+  const numberOfRoomPlayers = await exp.numberOfPlayersInRoom(roomId)
+   return numberOfRoomPlayers === gameMeta.roomMax
+}
+
+exp.checkRoomIsReady = async (roomId) => {
+  const numberOfRoomPlayers = await exp.numberOfPlayersInRoom(roomId)
+  return numberOfRoomPlayers === gameMeta.roomMax - 1
+}
+
+exp.checkRoomHasMinimumPlayers = async (roomId) => {
+  const numberOfRoomPlayers = await exp.numberOfPlayersInRoom(roomId)
+  return numberOfRoomPlayers >= gameMeta.roomMin
+}
+
+module.exports = exp
