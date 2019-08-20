@@ -41,7 +41,7 @@ module.exports = (socket) => {
 
     const getInitialProperties = async () => {
         //must be optimised and remove matchmaking
-        matchMaking = require('../realtime/matchMaking')(io, socket, gameMeta, marketKey)
+        matchMaking = require('../matchMaking/matchMaking')(io, socket, gameMeta, marketKey)
         roomId = await matchMaking.findUserCurrentRoom()
         methods = require('../redisHelper/room')(io, gameMeta, roomId, marketKey)
         roomInfo = await methods.getAllProps()

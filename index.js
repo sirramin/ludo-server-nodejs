@@ -31,7 +31,7 @@ app.use(bodyParser.json())
 app.use('/', require('./common/mainRouter'))
 app.use(errorMiddleware)
 
-require('./components/realtime/realtime')
+require('./components/realtime/socket')
 
 const port = 3001
 http.listen(port, () => {

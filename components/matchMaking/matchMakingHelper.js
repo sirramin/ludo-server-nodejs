@@ -1,20 +1,22 @@
 const redisClient = require('../../common/redis-client')
 const {gameMeta, redis: redisConfig} = require('../../common/config')
 const logicStart = require('../logics/gameStart')
+const socketHelper = require('../realtime/socketHelper')
+const redisHelperRoom = require('../redisHelper/room')
 
-const asyncLoop = async (i, leagueId) => {
+const loopOverAllRooms = async (i, leagueId) => {
   i = i || gameMeta.roomMax - 1
   for (i; i >= 1; i--) {
     const args = [redisConfig.prefixes.roomsList, i, i]
     const availableRooms = await redisClient.zrangebyscore(args)
     if (availableRooms.length) {
-      return await asyncForeach(availableRooms, i, leagueId)
+      return await loopOverAvailableRooms(availableRooms, i, leagueId)
     }
   }
   return false
 }
 
-const asyncForeach = async (availableRooms, i, leagueId) => {
+const loopOverAvailableRooms = async (availableRooms, i, leagueId) => {
   for (let j = 1; j <= availableRooms.length; j++) {
     const roomCurrentInfo = await redisClient.hget(redisConfig.prefixes.rooms + availableRooms[j - 1], 'info')
     const roomCurrentInfoParsed = JSON.parse(roomCurrentInfo)
@@ -23,40 +25,31 @@ const asyncForeach = async (availableRooms, i, leagueId) => {
     }
   }
   if (i > 1)
-    return await asyncLoop(i - 1, leagueId)
+    return await loopOverAllRooms(i - 1, leagueId)
   return false
 }
 
 const joinPlayerToRoom = async (roomId, socket) => {
-  const roomCurrentData = await redisClient.hmget(redisConfig.prefixes.rooms + roomId, 'info', 'players')
-  let currentPlayers = JSON.parse(roomCurrentData[1])
-  let roomInfo = JSON.parse(roomCurrentData[0])
-  const currentPlayersLength = currentPlayers.length
-  let newState
-  if (currentPlayersLength === gameMeta.roomMax)
-    socket.emit('matchEvent', {
-      code: 2,
-      event: 'roomIsFull'
-    })
-  currentPlayersLength === gameMeta.roomMax - 1 ? newState = "started" : newState = "waiting"
-  roomInfo.state = newState
-  currentPlayers.push(userId)
-  await redisClient.hmset(redisConfig.prefixes.rooms + roomId, 'info', JSON.stringify(roomInfo), 'players', JSON.stringify(currentPlayers))
+  redisHelperRoom.addPlayerTooRoom(roomId, socket.userId)
   await redisClient.zincrby(redisConfig.prefixes.roomsList, 1, roomId)
-  await updateUserRoom(roomId)
-  io.of('/').adapter.remoteJoin(socket.id, roomId, (err) => {
-  })
-
-  sendMatchEvents(roomId, 3, 'playerJoined', {
-    roomId: roomId
-  })
-  if (newState === "started")
-    gameStart(roomId, 'room fulled')
+  await updateUserRoom(roomId, socket.userId)
+  socketHelper.joinRoom(socket.id, roomId)
+  socketHelper.sendMatchMakingEvents(roomId, 'بازیکن جدیدی عضو اتاق شد')
+  if (currentPlayersLength === gameMeta.roomMax - 1) {
+    redisHelperRoom.changeRoomState(roomId, 'started')
+    gameStart(roomId)
+  }
 }
 
-const updateUserRoom = async (roomId, anyUserId) => {
-  const user_id = anyUserId ? anyUserId : userId
-  return await redisClient.hset(redisConfig.prefixes.userRoom, user_id, roomId)
+const checkRoomIsReady = async (roomId) {
+  // TODO
+  // if (currentPlayersLength === gameMeta.roomMax) {
+  //   socket.emit('matchEvent', 'roomIsFull')
+  // }
+}
+
+const updateUserRoom = async (roomId, userId) => {
+  return await redisClient.hset(redisConfig.prefixes.users + userId, 'room', roomId)
 }
 
 const deleteUserRoom = async (userId) => {
@@ -115,8 +108,8 @@ const makeRemainingPlayerWinner = async (roomId) => {
 }
 
 module.exports = {
-  asyncLoop,
-  asyncForeach,
+  loopOverAllRooms,
+  loopOverAvailableRooms,
   joinPlayerToRoom,
   roomWaitingTimeOver,
   makeRemainingPlayerWinner

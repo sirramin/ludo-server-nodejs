@@ -1,7 +1,7 @@
 const
     redisClient = require('../../common/redis-client'),
     uniqid = require('uniqid'),
-    friendlyClass = require('../friendship/class/service-class')
+    friendlyClass = require('./class/service-class')
 
 module.exports = (io, socket, gameMeta) => {
     const

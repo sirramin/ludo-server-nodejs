@@ -3,6 +3,7 @@ const config = {
     prefixes: {
       roomsList: 'rooms:roomsList',
       rooms: 'rooms:',
+      roomPlayers: 'roomPlayers:',
       users: 'users:'
     }
   },

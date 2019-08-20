@@ -1,14 +1,10 @@
 
-const sendMatchEvents = (roomId, code, event, data) => {
-    io.to(roomId).emit('matchEvent', {
-        code: code,
-        event: event,
-        data: data
-    })
+const sendMatchMakingEvents = (roomId, data) => {
+    io.to(roomId).emit('matchMaking', data)
 }
 
 const sendGameEvents = (code, event, data) => {
-    io.to(roomId).emit('gameEvent', {
+    io.to(roomId).emit(event, {
         code: code,
         event: event,
         data: data
@@ -33,15 +29,19 @@ const broadcast = async (socket, msg) => {
     })
 }
 
-const leaveRoom = (socketId, roomId) => {
-    io.of('/').adapter.remoteLeave(socketId, roomId)
-}
-
 const joinRoom = (socketId, roomId) => {
     io.of('/').adapter.remoteJoin(socketId, roomId)
 }
 
+const leaveRoom = (socketId, roomId) => {
+    io.of('/').adapter.remoteLeave(socketId, roomId)
+}
 
 module.exports = {
-    sendMatchEvents,
+    sendMatchMakingEvents,
+    sendGameEvents,
+    sendEventToSpecificSocket,
+    broadcast,
+    joinRoom,
+    leaveRoom
 }
