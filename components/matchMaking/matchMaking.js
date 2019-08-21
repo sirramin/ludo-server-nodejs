@@ -8,21 +8,18 @@ const gameLeft = require('../logics/gameLeft')
 
 const findAvailableRooms = async (leagueId, socket) => {
   leagueId = leagueId ? leagueId : 1
-  try {
-    const isPlayerJoinedBefore = await redisHelperUser.findUserCurrentRoom(socket.userId)
-    if (isPlayerJoinedBefore) {
-      socket.emit('matchEvent', 'playerAlreadyJoined')
-      return
-    }
-    const foundedRoom = await matchMakingHelper.loopOverAllRooms(null, leagueId)
-    if (!foundedRoom) {
-      await redisHelperRoom.createNewRoom(leagueId, socket)
-    } else {
-      await matchMakingHelper.joinPlayerToRoom(foundedRoom, leagueId, socket)
-    }
-  } catch (e) {
-    logger.error(e.message)
+  const isPlayerJoinedBefore = await redisHelperUser.findUserCurrentRoom(socket.userId)
+  if (isPlayerJoinedBefore) {
+    socket.emit('matchEvent', 'playerAlreadyJoined')
+    return
   }
+  const foundedRoom = await matchMakingHelper.loopOverAllRooms(null, leagueId)
+  let roomId
+  if (!foundedRoom) {
+    roomId = await redisHelperRoom.createNewRoom(leagueId, socket)
+  }
+  await matchMakingHelper.joinPlayerToRoom(roomId, socket)
+
 }
 
 const kickUserFromRoomByDC = async (socket) => {

@@ -1,5 +1,6 @@
 const redisClient = require('../../common/redis-client')
-const {roomWaitingTimeOver, joinPlayerToRoom} = require("../matchMaking/matchMakingHelper")
+const uniqid = require("uniqid")
+const {roomWaitingTimeOver} = require("../matchMaking/matchMakingHelper")
 const {gameMeta, redis: redisConfig} = require('../../common/config')
 const exp = {}
 
@@ -109,10 +110,10 @@ exp.createNewRoom = async (leagueId, socket) => {
     'leagueId', leagueId
   ]
   await redisClient.hmset(hmArgs)
-  joinPlayerToRoom(roomId, socket)
   setTimeout(async () => {
-    await roomWaitingTimeOver(roomId)
+    roomWaitingTimeOver(roomId)
   }, gameMeta.waitingTime)
+  return roomId
 }
 
 exp.addPlayerTooRoom = async (roomId, userId) => {
@@ -121,6 +122,10 @@ exp.addPlayerTooRoom = async (roomId, userId) => {
 
 exp.numberOfPlayersInRoom = async (roomId) => {
   return await redisClient.scard(redisConfig.prefixes.roomPlayers + roomId)
+}
+
+exp.getRoomPlayers = async (roomId) => {
+  return await redisClient.smembers(redisConfig.prefixes.roomPlayers + roomId)
 }
 
 exp.removePlayerFromRoom = async (roomId, userId) => {
@@ -138,7 +143,7 @@ exp.checkRoomStarted = async (roomId) => {
 
 exp.checkRoomIsFull = async (roomId) => {
   const numberOfRoomPlayers = await exp.numberOfPlayersInRoom(roomId)
-   return numberOfRoomPlayers === gameMeta.roomMax
+  return numberOfRoomPlayers === gameMeta.roomMax
 }
 
 exp.checkRoomIsReady = async (roomId) => {
