@@ -20,6 +20,7 @@ const init = async (roomId) => {
 }
 
 const sendPositions = async (roomId) => {
+  return
   const players = redisHelperRoom.getRoomPlayers(roomId)
   await redisHelperRoom.setProp('remainingTime', maxTime)
   await redisHelperRoom.setProp('diceAttempts', 0)

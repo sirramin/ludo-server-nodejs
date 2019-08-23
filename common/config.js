@@ -1,7 +1,7 @@
 const config = {
   redis: {
     prefixes: {
-      roomsList: 'rooms:roomsList', // sorted set
+      roomsList: 'roomsList', // sorted set
       rooms: 'rooms:', // hash
       roomPlayers: 'roomPlayers:', // set
       users: 'users:'

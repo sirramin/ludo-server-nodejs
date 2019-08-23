@@ -4,8 +4,8 @@ const {roomWaitingTimeOver} = require("../matchMaking/matchMakingHelper")
 const {gameMeta, redis: redisConfig} = require('../../common/config')
 const exp = {}
 
-exp.setProp = async (field, value) => {
-  await redisClient.hset(redisConfig.prefixes.rooms, field, value)
+exp.setProp = async (roomId, field, value) => {
+  await redisClient.hset(redisConfig.prefixes.rooms + roomId, field, value)
 }
 
 exp.setMultipleProps = async (...args) => {

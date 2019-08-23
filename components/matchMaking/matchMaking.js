@@ -19,7 +19,6 @@ const findAvailableRooms = async (leagueId, socket) => {
     roomId = await redisHelperRoom.createNewRoom(leagueId, socket)
   }
   await matchMakingHelper.joinPlayerToRoom(roomId, socket)
-
 }
 
 const kickUserFromRoomByDC = async (socket) => {

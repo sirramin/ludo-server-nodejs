@@ -18,11 +18,10 @@ const loopOverAllRooms = async (i, leagueId) => {
 }
 
 const loopOverAvailableRooms = async (availableRooms, i, leagueId) => {
-  for (let j = 1; j <= availableRooms.length; j++) {
-    const roomCurrentInfo = await redisClient.hget(redisConfig.prefixes.rooms + availableRooms[j - 1], 'info')
-    const roomCurrentInfoParsed = JSON.parse(roomCurrentInfo)
-    if (roomCurrentInfoParsed && roomCurrentInfoParsed.state === 'waiting' && roomCurrentInfoParsed.leagueId === leagueId) {
-      return roomCurrentInfoParsed.roomId
+  for (const roomId of availableRooms) {
+    const roomCurrentInfo = await redisClient.hmget(redisConfig.prefixes.rooms + roomId, 'state', 'leagueId')
+    if (roomCurrentInfo && roomCurrentInfo.length && roomCurrentInfo[0] === 'waiting' && roomCurrentInfo[1] === leagueId) {
+      return roomId
     }
   }
   if (i > 1)
@@ -31,11 +30,11 @@ const loopOverAvailableRooms = async (availableRooms, i, leagueId) => {
 }
 
 const joinPlayerToRoom = async (roomId, socket) => {
-  if (redisHelperRoom.checkRoomIsFull) {
+  if (await redisHelperRoom.checkRoomIsFull(roomId)) {
     socket.emit('matchEvent', 'roomIsFull')
     return
   }
-  if (redisHelperRoom.checkRoomStarted) {
+  if (await redisHelperRoom.checkRoomStarted(roomId)) {
     socket.emit('matchEvent', 'roomStartedBefore')
     return
   }
