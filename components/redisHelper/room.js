@@ -1,5 +1,6 @@
 const redisClient = require('../../common/redis-client')
 const uniqid = require("uniqid")
+const socketHelper = require("../realtime/socketHelper")
 const {roomWaitingTimeOver} = require("../matchMaking/matchMakingHelper")
 const {gameMeta, redis: redisConfig} = require('../../common/config')
 const exp = {}
@@ -76,15 +77,10 @@ exp.getRoomPlayersWithNames = async (roomId) => {
 }
 
 exp.destroyRoom = async (roomId) => {
-  const roomplayers = await redisClient.hget(redisConfig.prefixes.rooms + roomId, 'players')
-  const roomPlayersArray = JSON.parse(roomplayers)
-  await asyncLoopRemovePlayersRoomInRedis(roomPlayersArray, roomId)
-
+  await redisClient.del(redisConfig.prefixes.roomPlayers + roomId) // delete room players
   await redisClient.del(redisConfig.prefixes.rooms + roomId)
   await redisClient.zrem(redisConfig.prefixes.roomsList, roomId)
-  sendMatchEvents(roomId, 5, 'roomDestroyed', {
-    roomId: roomId
-  })
+  socketHelper.sendMatchMakingEvents(roomId, 'اتاق بسته شد')
   io.of('/').in(roomId).clients((error, clients) => {
     if (error) logger.error(error)
     if (clients.length) {

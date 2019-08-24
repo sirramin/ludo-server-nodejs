@@ -53,14 +53,14 @@ const roomWaitingTimeOver = (roomId) => {
     if (redisHelperRoom.checkRoomHasMinimumPlayers(roomId)) {
       start(roomId, 'time over')
     } else {
-     redisHelperRoom.destroyRoom(roomId)
+      redisHelperRoom.destroyRoom(roomId)
     }
   }
 }
 
-const start =  (roomId) => {
+const start = (roomId) => {
   redisHelperRoom.changeRoomState(roomId, 'started')
-   logicStart(roomId)
+  logicStart(roomId)
 }
 
 module.exports = {

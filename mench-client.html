@@ -17,9 +17,7 @@
 <button id="profile">profile</button>
 <button id="followings">followings</button>
 <br>
-<ul id="following-list">
-
-</ul>
+<ul id="following-list"></ul>
 <button style="display: none" id="invite">invite</button>
 <!--<script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>-->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.1/socket.io.js"></script>
@@ -105,8 +103,8 @@
         $('#messages').append($('<li>').text(JSON.stringify(msg)))
       })
 
-      socket.on('matchEvent', function (data) {
-        $('#messages').append($('<li>').text(data.event + JSON.stringify(data.data)))
+      socket.on('matchMaking', function (data) {
+        $('#messages').append($('<li>').text(data.event + data))
       })
 
       // socket.on('profile', function (data) {
