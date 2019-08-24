@@ -20,7 +20,7 @@ const loopOverAllRooms = async (i, leagueId) => {
 const loopOverAvailableRooms = async (availableRooms, i, leagueId) => {
   for (const roomId of availableRooms) {
     const roomCurrentInfo = await redisClient.hmget(redisConfig.prefixes.rooms + roomId, 'state', 'leagueId')
-    if (roomCurrentInfo && roomCurrentInfo.length && roomCurrentInfo[0] === 'waiting' && roomCurrentInfo[1] === leagueId) {
+    if (roomCurrentInfo && roomCurrentInfo.length && roomCurrentInfo[0] === 'waiting' && parseInt(roomCurrentInfo[1]) === leagueId) {
       return roomId
     }
   }
@@ -43,24 +43,24 @@ const joinPlayerToRoom = async (roomId, socket) => {
   await redisHelperUser.updateUserRoom(roomId, socket.userId)
   socketHelper.joinRoom(socket.id, roomId)
   socketHelper.sendMatchMakingEvents(roomId, 'بازیکن جدیدی عضو اتاق شد')
-  if (redisHelperRoom.checkRoomIsReady) {
-    gameStart(roomId)
+  if (await redisHelperRoom.checkRoomIsReady(roomId)) {
+    start(roomId)
   }
 }
 
 const roomWaitingTimeOver = (roomId) => {
   if (!redisHelperRoom.checkRoomStarted(roomId)) {
     if (redisHelperRoom.checkRoomHasMinimumPlayers(roomId)) {
-      gameStart(roomId, 'time over')
+      start(roomId, 'time over')
     } else {
      redisHelperRoom.destroyRoom(roomId)
     }
   }
 }
 
-const gameStart = async (roomId) => {
+const start =  (roomId) => {
   redisHelperRoom.changeRoomState(roomId, 'started')
-  await logicStart(roomId)
+   logicStart(roomId)
 }
 
 module.exports = {

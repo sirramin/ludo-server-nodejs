@@ -110,7 +110,7 @@ exp.createNewRoom = async (leagueId, socket) => {
     'leagueId', leagueId
   ]
   await redisClient.hmset(hmArgs)
-  setTimeout(async () => {
+  setTimeout( () => {
     roomWaitingTimeOver(roomId)
   }, gameMeta.waitingTime)
   return roomId

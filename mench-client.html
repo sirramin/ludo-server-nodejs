@@ -6,6 +6,7 @@
 <body>
 <h1><span>you are player: </span><span id="playerNumber"></span></h1>
 <ul id="messages"></ul>
+<button id="clearToken">clearToken</button>
 <button id="connect">connect</button>
 <button id="joinRoom">joinRoom</button>
 <button id="rollDice">rollDice</button>
@@ -209,6 +210,9 @@
         $('#following-list').append(li)
       })
       $('#invite').show()
+    })
+    $('#clearToken').click( () => {
+      localStorage.clear()
     })
   })
 </script>

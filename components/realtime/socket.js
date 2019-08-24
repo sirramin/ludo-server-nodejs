@@ -20,7 +20,7 @@ const ioMiddleware = require('../../middleware/ioMiddleware')
       })
       socket.on('disconnect', async (reason) => {
         await redisHelperUser.addOnlineStatus(socket.userInfo, false)
-        await matchMaking.kickUserFromRoomByDC()
+        // await matchMaking.kickUserFromRoomByDC()
       })
       socket.on('event', async (msg) => {
         const eventData = JSON.parse(msg)

@@ -13,9 +13,8 @@ const findAvailableRooms = async (leagueId, socket) => {
     socket.emit('matchEvent', 'playerAlreadyJoined')
     return
   }
-  const foundedRoom = await matchMakingHelper.loopOverAllRooms(null, leagueId)
-  let roomId
-  if (!foundedRoom) {
+  let roomId = await matchMakingHelper.loopOverAllRooms(null, leagueId)
+  if (!roomId) {
     roomId = await redisHelperRoom.createNewRoom(leagueId, socket)
   }
   await matchMakingHelper.joinPlayerToRoom(roomId, socket)

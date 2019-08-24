@@ -11,7 +11,7 @@ const config = {
     roomMin: 2,
     roomMax: 4,
     waitingTime: 60000,
-    kickTime: 30
+    kickTime: 30000
   }
 }
 
