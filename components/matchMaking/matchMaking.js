@@ -1,6 +1,5 @@
 const redisClient = require('../../common/redis-client')
 const {gameMeta, redis: redisConfig} = require('../../common/config')
-const matchMakingHelper = require('./matchMakingHelper')
 const redisHelperRoom = require('../redisHelper/room')
 const redisHelperUser = require('../redisHelper/user')
 const redisHelperLeaderboard = require('../redisHelper/leaderboard')
@@ -13,11 +12,11 @@ const findAvailableRooms = async (leagueId, socket) => {
     socket.emit('matchEvent', 'playerAlreadyJoined')
     return
   }
-  let roomId = await matchMakingHelper.loopOverAllRooms(null, leagueId)
-  if (!roomId) {
-    roomId = await redisHelperRoom.createNewRoom(leagueId, socket)
-  }
-  await matchMakingHelper.joinPlayerToRoom(roomId, socket)
+  let roomId = await redisHelperRoom.loopOverAllRooms(null, leagueId)
+  // if (!roomId) {
+    roomId = await redisHelperRoom.createNewRoom(leagueId)
+  // }
+  await redisHelperRoom.joinPlayerToRoom(roomId, socket)
 }
 
 const kickUserFromRoomByDC = async (socket) => {

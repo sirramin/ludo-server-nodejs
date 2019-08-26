@@ -103,8 +103,12 @@
         $('#messages').append($('<li>').text(JSON.stringify(msg)))
       })
 
-      socket.on('matchMaking', function (data) {
-        $('#messages').append($('<li>').text(data.event + data))
+      socket.on('string', function (data) {
+        $('#messages').append($('<li>').text(data))
+      })
+
+      socket.on('json', function (data) {
+        $('#messages').append($('<li>').text(JSON.stringify(data)))
       })
 
       // socket.on('profile', function (data) {
