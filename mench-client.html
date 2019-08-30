@@ -26,6 +26,7 @@
   $(function () {
     const target = 'http://localhost:3001'
     let {token} = localStorage
+    $('#messages').append($('<li>').text(JSON.stringify('token: ' + token)))
     $('#connect').click(async () => {
       if (!token) {
         const {token: singInToken} = await $.ajax({
@@ -39,7 +40,6 @@
         localStorage.setItem("token", singInToken)
         token = singInToken
       }
-      $('#messages').append($('<li>').text(JSON.stringify('token: ' + token)))
       const socket = io(target, {transports: ['websocket'], query: {token}})
       $('#joinRoom').click(() => {
         socket.emit('joinRoom', 1)

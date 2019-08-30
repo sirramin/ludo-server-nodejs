@@ -2,8 +2,9 @@ const redisClient = require('../../common/redis-client')
 const uuidv4 = require('uuid/v4');
 const socketHelper = require("../realtime/socketHelper")
 const {gameMeta, redis: redisConfig} = require('../../common/config')
-const logicStart = require('../logics/gameStart')
 const redisHelperUser = require('./user')
+const startHelper = require('./start')
+
 const exp = {}
 
 exp.setProp = async (roomId, field, value) => {
@@ -104,17 +105,18 @@ _checkRoomStarted = async (roomId) => {
   return state === 'started'
 }
 
-exp.checkRoomHasMinimumPlayers = async (roomId) => {
+_checkRoomHasMinimumPlayers = async (roomId) => {
   const numberOfRoomPlayers = await exp.numberOfPlayersInRoom(roomId)
   return numberOfRoomPlayers >= gameMeta.roomMin
 }
 
-_roomWaitingTimeOver = (roomId) => {
-  if (!_checkRoomStarted(roomId)) {
-    if (exp.checkRoomHasMinimumPlayers(roomId)) {
-      exp.start(roomId)
+_roomWaitingTimeOver = async (roomId) => {
+  if (! await _checkRoomStarted(roomId)) {
+    if (await _checkRoomHasMinimumPlayers(roomId)) {
+      exp.changeRoomState(roomId)
+      startHelper(roomId)
     } else {
-      _destroyRoom(roomId)
+     await _destroyRoom(roomId)
     }
   }
 }
@@ -139,10 +141,6 @@ exp.addPlayerTooRoom = async (roomId, userId) => {
 
 exp.numberOfPlayersInRoom = async (roomId) => {
   return await redisClient.scard(redisConfig.prefixes.roomPlayers + roomId)
-}
-
-exp.getRoomPlayers = async (roomId) => {
-  return await redisClient.smembers(redisConfig.prefixes.roomPlayers + roomId)
 }
 
 exp.removePlayerFromRoom = async (roomId, userId) => {
@@ -202,14 +200,11 @@ exp.joinPlayerToRoom = async (roomId, socket) => {
   socketHelper.joinRoom(socket.id, roomId)
   socketHelper.sendString(roomId, 'بازیکن جدیدی عضو اتاق شد')
   if (await exp.checkRoomIsReady(roomId)) {
-    exp.start(roomId)
+    exp.changeRoomState(roomId)
+    startHelper(roomId)
   }
 }
 
-exp.start = async (roomId) => {
-  exp.changeRoomState(roomId, 'started')
-  logicStart(roomId)
-}
 
 
 module.exports = exp
