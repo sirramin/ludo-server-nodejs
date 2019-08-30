@@ -13,9 +13,9 @@ const findAvailableRooms = async (leagueId, socket) => {
     return
   }
   let roomId = await redisHelperRoom.loopOverAllRooms(null, leagueId)
-  // if (!roomId) {
+  if (!roomId) {
     roomId = await redisHelperRoom.createNewRoom(leagueId)
-  // }
+  }
   await redisHelperRoom.joinPlayerToRoom(roomId, socket)
 }
 
@@ -23,7 +23,7 @@ const kickUserFromRoomByDC = async (socket) => {
   const userId = socket.userInfo.userId
   await redisHelperUser.removeUserSocketIdFromRedis()
   await redisHelperUser.addDisconnectStatusToUser()
-  const userCurrentRoom = await redisHelperRoom.findUserCurrentRoom()
+  const userCurrentRoom = await redisHelperUser.findUserCurrentRoom(socket.userId)
   if (userCurrentRoom) {
     setTimeout(async () => {
       const userDataParsed = await redisHelperUser.getUserData(userId)

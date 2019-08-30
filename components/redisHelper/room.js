@@ -84,7 +84,7 @@ exp.asyncLoopRemovePlayersRoomInRedis = async (roomPlayersArray, roomId) => {
   }
 }
 
-exp.createNewRoom = async (leagueId, socket) => {
+exp.createNewRoom = async (leagueId) => {
   const roomId = uuidv4()
   const currentTimeStamp = new Date().getTime()
   const hmArgs = [redisConfig.prefixes.rooms + roomId,
@@ -99,10 +99,20 @@ exp.createNewRoom = async (leagueId, socket) => {
   return roomId
 }
 
+_checkRoomStarted = async (roomId) => {
+  const state = await redisClient.hget(redisConfig.prefixes.rooms + roomId, 'state')
+  return state === 'started'
+}
+
+exp.checkRoomHasMinimumPlayers = async (roomId) => {
+  const numberOfRoomPlayers = await exp.numberOfPlayersInRoom(roomId)
+  return numberOfRoomPlayers >= gameMeta.roomMin
+}
+
 _roomWaitingTimeOver = (roomId) => {
-  if (!exp.checkRoomStarted(roomId)) {
+  if (!_checkRoomStarted(roomId)) {
     if (exp.checkRoomHasMinimumPlayers(roomId)) {
-      matchMakingHelper.start(roomId, 'time over')
+      exp.start(roomId)
     } else {
       _destroyRoom(roomId)
     }
@@ -110,10 +120,10 @@ _roomWaitingTimeOver = (roomId) => {
 }
 
 const _destroyRoom = async (roomId) => {
-  await redisClient.del(redisConfig.prefixes.roomPlayers + roomId) // delete room players
+  await redisClient.del(redisConfig.prefixes.roomPlayers + roomId)
   await redisClient.del(redisConfig.prefixes.rooms + roomId)
   await redisClient.zrem(redisConfig.prefixes.roomsList, roomId)
-  socketHelper.sendMatchMakingEvents(roomId, 'اتاق بسته شد')
+  socketHelper.sendString(roomId, 'اتاق بسته شد')
   io.of('/').in(roomId).clients((error, clients) => {
     if (error) logger.error(error)
     if (clients.length) {
@@ -143,11 +153,6 @@ exp.changeRoomState = async (roomId, state) => {
   await redisClient.hset(redisConfig.prefixes.rooms + roomId, 'state', state)
 }
 
-exp.checkRoomStarted = async (roomId) => {
-  const state = await redisClient.hget(redisConfig.prefixes.rooms + roomId, 'state')
-  return state === 'started'
-}
-
 exp.checkRoomIsFull = async (roomId) => {
   const numberOfRoomPlayers = await exp.numberOfPlayersInRoom(roomId)
   return numberOfRoomPlayers === gameMeta.roomMax
@@ -156,11 +161,6 @@ exp.checkRoomIsFull = async (roomId) => {
 exp.checkRoomIsReady = async (roomId) => {
   const numberOfRoomPlayers = await exp.numberOfPlayersInRoom(roomId)
   return numberOfRoomPlayers === gameMeta.roomMax - 1
-}
-
-exp.checkRoomHasMinimumPlayers = async (roomId) => {
-  const numberOfRoomPlayers = await exp.numberOfPlayersInRoom(roomId)
-  return numberOfRoomPlayers >= gameMeta.roomMin
 }
 
 exp.loopOverAllRooms = async (i, leagueId) => {
@@ -192,7 +192,7 @@ exp.joinPlayerToRoom = async (roomId, socket) => {
     socket.emit('string', 'roomIsFull')
     return
   }
-  if (await exp.checkRoomStarted(roomId)) {
+  if (await _checkRoomStarted(roomId)) {
     socket.emit('string', 'roomStartedBefore')
     return
   }
@@ -202,12 +202,12 @@ exp.joinPlayerToRoom = async (roomId, socket) => {
   socketHelper.joinRoom(socket.id, roomId)
   socketHelper.sendString(roomId, 'بازیکن جدیدی عضو اتاق شد')
   if (await exp.checkRoomIsReady(roomId)) {
-    await start(roomId)
+    exp.start(roomId)
   }
 }
 
 exp.start = async (roomId) => {
-  await exp.changeRoomState(roomId, 'started')
+  exp.changeRoomState(roomId, 'started')
   logicStart(roomId)
 }
 

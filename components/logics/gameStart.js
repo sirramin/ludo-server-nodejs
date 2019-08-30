@@ -1,5 +1,6 @@
 const _ = require('lodash')
 const redisHelperRoom = require('../redisHelper/room')
+const socketHelper = require("../realtime/socketHelper")
 
 const maxTime = 11
 let positions = []
@@ -20,7 +21,6 @@ const init = async (roomId) => {
 }
 
 const sendPositions = async (roomId) => {
-  return
   const players = redisHelperRoom.getRoomPlayers(roomId)
   await redisHelperRoom.setProp('remainingTime', maxTime)
   await redisHelperRoom.setProp('diceAttempts', 0)
@@ -28,7 +28,7 @@ const sendPositions = async (roomId) => {
     const playerNumber = (index + 1)
     // positions.push({player: playerNumber, userId: item.userId, name: item.name})
     marblesPosition[playerNumber] = [0, 0, 0, 0]
-    redisHelperRoom.sendEventToSpecificSocket(item, 202, 'yourPlayerNumber', playerNumber)
+    socketHelper.sendEventToSpecificSocket(item, 202, 'yourPlayerNumber', playerNumber)
   })
   positions = redisHelperRoom.getRoomPlayersWithNames(roomId)
   await redisHelperRoom.setMultipleProps(...['positions', JSON.stringify(positions), 'marblesPosition', JSON.stringify(marblesPosition), 'orbs', JSON.stringify(orbs), 'hits', JSON.stringify(hits), 'beats', JSON.stringify(beats)])

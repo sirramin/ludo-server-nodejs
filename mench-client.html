@@ -39,21 +39,7 @@
         localStorage.setItem("token", singInToken)
         token = singInToken
       }
-      // else {
-      //     token = localStorage.token
-      //     const res = await $.ajax({
-      //         url: target + "/menchman/getUserGameData",
-      //         type: 'get',
-      //         headers: {
-      //             token: localStorage.token
-      //         },
-      //         dataType: 'json',
-      //     })
-      //
-      //     if (!localStorage.userId)
-      //         localStorage.setItem("userId", res.data.userId)
-      //     localStorage.setItem("UserGameData", JSON.stringify(res.data))
-      // }
+      $('#messages').append($('<li>').text(JSON.stringify('token: ' + token)))
       const socket = io(target, {transports: ['websocket'], query: {token}})
       $('#joinRoom').click(() => {
         socket.emit('joinRoom', 1)
