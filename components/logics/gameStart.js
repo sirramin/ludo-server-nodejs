@@ -1,5 +1,6 @@
 const _ = require('lodash')
-const {getRoomPlayers} = require('../redisHelper/players')
+const {getRoomPlayersCount} = require('../redisHelper/players')
+const {updateRemainingTime, updateDiceAttempts} = require('../redisHelper/logic')
 const socketHelper = require("../realtime/socketHelper")
 
 const maxTime = 11
@@ -11,7 +12,7 @@ let hits = []
 let beats = []
 
 const init = async (roomId) => {
-  const players = await getRoomPlayers(roomId)
+  const players = await getRoomPlayersCount(roomId)
   for (let i = 1; i <= players.length; i++) {
     orbs['player' + i] = 3
     hits[i - 1] = 0
@@ -21,9 +22,9 @@ const init = async (roomId) => {
 }
 
 const sendPositions = async (roomId) => {
-  const players = getRoomPlayers(roomId)
-  await redisHelperRoom.setProp('remainingTime', maxTime)
-  await redisHelperRoom.setProp('diceAttempts', 0)
+  const players = await getRoomPlayers(roomId)
+  updateRemainingTime(roomId, maxTime)
+  updateDiceAttempts(roomId, 0)
   players.forEach((item, index) => {
     const playerNumber = (index + 1)
     // positions.push({player: playerNumber, userId: item.userId, name: item.name})

@@ -1,9 +1,5 @@
-const redisClient = require('../../common/redis-client')
-const {gameMeta, redis: redisConfig} = require('../../common/config')
 const {loopOverAllRooms, createNewRoom, joinPlayerToRoom} = require('../redisHelper/room')
 const redisHelperUser = require('../redisHelper/user')
-const redisHelperLeaderboard = require('../redisHelper/leaderboard')
-const gameLeft = require('../logics/gameLeft')
 
 const findAvailableRooms = async (leagueId, socket) => {
   leagueId = leagueId ? leagueId : 1
