@@ -1,7 +1,7 @@
 const _ = require('lodash')
-const {getRoomPlayersCount} = require('../redisHelper/players')
+const {getRoomPlayersCount, getRoomPlayers, getRoomPlayersWithNames} = require('../redisHelper/players')
 const {updateRemainingTime, updateDiceAttempts} = require('../redisHelper/logic')
-const socketHelper = require("../realtime/socketHelper")
+const {sendEventToSpecificSocket, sendJson} = require('../realtime/socketHelper')
 
 const maxTime = 11
 let positions = []
@@ -25,15 +25,20 @@ const sendPositions = async (roomId) => {
   const players = await getRoomPlayers(roomId)
   updateRemainingTime(roomId, maxTime)
   updateDiceAttempts(roomId, 0)
-  players.forEach((item, index) => {
-    const playerNumber = (index + 1)
+  for(const [index, player]  of  players) {
+    const playerNumber = index + 1
     // positions.push({player: playerNumber, userId: item.userId, name: item.name})
     marblesPosition[playerNumber] = [0, 0, 0, 0]
-    socketHelper.sendEventToSpecificSocket(item, 202, 'yourPlayerNumber', playerNumber)
+    sendEventToSpecificSocket(item, 202, 'yourPlayerNumber', playerNumber)
+  }
+  positions = await getRoomPlayersWithNames(roomId)
+  sendJson(roomId, {
+    positions,
+    marblesPosition,
+    orbs,
+    hits,
+    beats
   })
-  positions = redisHelperRoom.getRoomPlayersWithNames(roomId)
-  await redisHelperRoom.setMultipleProps(...['positions', JSON.stringify(positions), 'marblesPosition', JSON.stringify(marblesPosition), 'orbs', JSON.stringify(orbs), 'hits', JSON.stringify(hits), 'beats', JSON.stringify(beats)])
-  redisHelperRoom.sendGameEvents(101, 'positions', positions)
   await firstTurn(roomId)
 }
 

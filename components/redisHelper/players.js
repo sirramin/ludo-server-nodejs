@@ -3,12 +3,12 @@ const {redis: redisConfig} = require('../../common/config')
 const {getUsername} = require('./user')
 const exp = {}
 
-const getRoomPlayers = async (roomId) => {
+const _getRoomPlayers = async (roomId) => {
   return await redisClient.smembers(redisConfig.prefixes.roomPlayers + roomId)
 }
 
 exp.getRoomPlayersWithNames = async (roomId) => {
-  const roomPlayers = await getRoomPlayers(roomId)
+  const roomPlayers = await _getRoomPlayers(roomId)
   let roomPlayersWithNames = []
   for (let i = 0; i < roomPlayers.length; i++) {
     const playerNumber = (i + 1)
