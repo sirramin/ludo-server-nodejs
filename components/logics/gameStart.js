@@ -25,11 +25,11 @@ const sendPositions = async (roomId) => {
   const players = await getRoomPlayers(roomId)
   updateRemainingTime(roomId, maxTime)
   updateDiceAttempts(roomId, 0)
-  for(const [index, player]  of  players) {
+  for (const [index, player]  of  players) {
     const playerNumber = index + 1
     // positions.push({player: playerNumber, userId: item.userId, name: item.name})
     marblesPosition[playerNumber] = [0, 0, 0, 0]
-    sendEventToSpecificSocket(item, 202, 'yourPlayerNumber', playerNumber)
+    sendEventToSpecificSocket(player.userId, 'yourPlayerNumber', playerNumber)
   }
   positions = await getRoomPlayersWithNames(roomId)
   sendJson(roomId, {

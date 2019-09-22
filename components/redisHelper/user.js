@@ -53,6 +53,9 @@ const redisHelper = {
     return await redisClient.get(redisConfig.prefixes.users + userId, 'username')
   },
 
+  async getSocketId(userId) {
+    return await redisClient.get(redisConfig.prefixes.users + userId, 'username')
+  },
 
 }
 

@@ -1,3 +1,5 @@
+const {getUsername} = require('../redisHelper/user')
+
 const exp = {}
 
 exp.sendString = (roomId, string) => {
