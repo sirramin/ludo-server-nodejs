@@ -1,4 +1,4 @@
-const {getUsername} = require('../redisHelper/user')
+const {getSocketId} = require('../redisHelper/user')
 
 const exp = {}
 
@@ -18,14 +18,14 @@ exp.sendGameEvents = (code, event, data) => {
   })
 }
 
-exp.sendEventToSpecificSocket = async (userId, code, event, data) => {
-  const userData = await redisClient.hget(marketKey, userId),
-    socketId = JSON.parse(userData).socketId
-  io.to(socketId).emit('gameEvent', {
-    code: code,
-    event: event,
-    data: data
-  });
+exp.sendStringToSpecificPlayer = async (userId, string) => {
+  const socketId = getSocketId(userId)
+  io.to(socketId).emit('string', string);
+}
+
+exp.sendJsonToSpecificPlayer = async (userId, json) => {
+  const socketId = getSocketId(userId)
+  io.to(socketId).emit('json', json);
 }
 
 exp.broadcast = async (socket, msg) => {
@@ -44,7 +44,7 @@ exp.leaveRoom = (socketId, roomId) => {
   io.of('/').adapter.remoteLeave(socketId, roomId)
 }
 
-exp.loger = () => {
+exp.logger = () => {
   console.log(3333333333333)
 }
 

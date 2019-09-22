@@ -1,10 +1,10 @@
 const redisClient = require('../../common/redis-client')
-const {redis: redisConfig} = require('../../common/config')
+const {redis: {prefixes: {users}}} = require('../../common/config')
 
 const redisHelper = {
 
   async addGuestToRedis(username, userId) {
-    await redisClient.hset(redisConfig.prefixes.users + userId, 'username', username)
+    await redisClient.hset(users + userId, 'username', username)
   },
 
   async addOnlineStatus(userId, status) {
@@ -15,31 +15,31 @@ const redisHelper = {
   },
 
   async addSocketIdToRedis(userId, socketId) {
-    await redisClient.hset(redisConfig.prefixes.users + userId, 'socketId', socketId)
+    await redisClient.hset(users + userId, 'socketId', socketId)
   },
 
   async removeUserSocketIdFromRedis(userId) {
-    await redisClient.hdel(redisConfig.prefixes.users + userId, 'socketId')
+    await redisClient.hdel(users + userId, 'socketId')
   },
 
   async addDisconnectStatusToUser(userId) {
-    await redisClient.hset(redisConfig.prefixes.users + userId, 'dc', true)
+    await redisClient.hset(users + userId, 'dc', true)
   },
 
   async changeSocketId(userId, socketId) {
-    await redisClient.hset(redisConfig.prefixes.users + userId, 'socketId', socketId)
+    await redisClient.hset(users + userId, 'socketId', socketId)
   },
 
   async findUserCurrentRoom(userId) {
-    return await redisClient.hget(redisConfig.prefixes.users + userId, 'roomId')
+    return await redisClient.hget(users + userId, 'roomId')
   },
 
   async updateUserRoom(roomId, userId) {
-    return await redisClient.hset(redisConfig.prefixes.users + userId, 'room', roomId)
+    return await redisClient.hset(users + userId, 'room', roomId)
   },
 
   async deleteUserRoom(userId) {
-    return await redisClient.hdel(redisConfig.prefixes.users + userId, 'room')
+    return await redisClient.hdel(users + userId, 'room')
   },
 
   async LoopRemovePlayersRoomInRedis(roomPlayersArray, roomId) {
@@ -50,11 +50,11 @@ const redisHelper = {
   },
 
   async getUsername(userId) {
-    return await redisClient.get(redisConfig.prefixes.users + userId, 'username')
+    return await redisClient.hget(users + userId, 'username')
   },
 
   async getSocketId(userId) {
-    return await redisClient.get(redisConfig.prefixes.users + userId, 'username')
+    return await redisClient.hget(users + userId, 'socketId')
   },
 
 }
