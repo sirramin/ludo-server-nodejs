@@ -24,7 +24,7 @@ exp.sendStringToSpecificPlayer = async (userId, string) => {
 }
 
 exp.sendJsonToSpecificPlayer = async (userId, json) => {
-  const socketId = getSocketId(userId)
+  const socketId = await getSocketId(userId)
   io.to(socketId).emit('json', json);
 }
 

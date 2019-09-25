@@ -1,6 +1,6 @@
 const _ = require('lodash')
 const {getRoomPlayersCount, getRoomPlayers, getRoomPlayersWithNames} = require('../redisHelper/players')
-const {updateRemainingTime, updateDiceAttempts} = require('../redisHelper/logic')
+const {updateRemainingTime, updateDiceAttempts, updateCurrentPlayer} = require('../redisHelper/logic')
 const {sendJsonToSpecificPlayer, sendJson} = require('../realtime/socketHelper')
 
 const maxTime = 11
@@ -25,11 +25,10 @@ const sendPositions = async (roomId) => {
   const players = await getRoomPlayers(roomId)
   updateRemainingTime(roomId, maxTime)
   updateDiceAttempts(roomId, 0)
-  for (const [index, player]  of  players) {
+  for (const [index, userId]  of  players.entries()) {
     const playerNumber = index + 1
-    // positions.push({player: playerNumber, userId: item.userId, name: item.name})
     marblesPosition[playerNumber] = [0, 0, 0, 0]
-    sendJsonToSpecificPlayer(player.userId, {'yourPlayerNumber': playerNumber})
+    sendJsonToSpecificPlayer(userId, {'yourPlayerNumber': playerNumber})
   }
   positions = await getRoomPlayersWithNames(roomId)
   sendJson(roomId, {
@@ -47,9 +46,10 @@ const firstTurn = async (roomId) => {
   const rand = Math.floor(Math.random() * playersCount)
   const firstTurn = positions[rand].player
   currentPlayer = firstTurn
-  await redisHelperRoom.setProp('currentPlayer', currentPlayer)
+  await updateCurrentPlayer('currentPlayer', currentPlayer)
   //must be optimised
   const playerUserId = findUserId()
+  sendJsonToSpecificPlayer(userId, {'yourTurn': 1})
   await redisHelperRoom.sendEventToSpecificSocket(playerUserId, 201, 'yourTurn', 1)
   // await redisHelperRoom.sendEventToSpecificSocket(playerUserId, 202, 'yourPlayerNumber', rand + 1)
   redisHelperRoom.sendGameEvents(102, 'firstTurn', firstTurn)

@@ -9,4 +9,9 @@ exp.updateRemainingTime = async (roomId, time) => {
 exp.updateDiceAttempts = async (roomId, attempt) => {
   await redisClient.hset(redisConfig.prefixes.rooms + roomId, 'diceAttempts', attempt)
 }
+
+exp.updateCurrentPlayer = async (roomId, currentPlayer) => {
+  await redisClient.hset(redisConfig.prefixes.rooms + roomId, 'currentPlayer', currentPlayer)
+}
+
 module.exports = exp
