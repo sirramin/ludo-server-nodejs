@@ -16,12 +16,17 @@
 <button id="leftRoom">leftRoom</button>
 <button id="profile">profile</button>
 <button id="followings">followings</button>
+<button id="binary">binary</button>
 <br>
 <ul id="following-list"></ul>
 <button style="display: none" id="invite">invite</button>
 <!--<script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>-->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.1/socket.io.js"></script>
 <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+
+<script src="./flatBuffers/flatbuffers.js"></script>
+<script src="./flatBuffers/schemas/test_generated.js"></script>
+
 <script>
   $(function () {
     const target = 'http://localhost:3001'
@@ -32,9 +37,6 @@
         const {token: singInToken} = await $.ajax({
           url: target + "/user/signInAsGuest",
           type: 'post',
-          data: {
-            market: 'cafeBazaar'
-          },
           dataType: 'json',
         })
         localStorage.setItem("token", singInToken)
@@ -179,7 +181,6 @@
       })
     })
 
-
     $('#followings').click(async () => {
       const token = localStorage.token
       const followings = await $.ajax({
@@ -204,6 +205,19 @@
     })
     $('#clearToken').click(() => {
       localStorage.clear()
+    })
+
+    $('#binary').click(async() => {
+      const byets = await $.ajax({
+        url: target + "/user/testFlatBuffer",
+        type: 'post',
+        data: {
+          market: 'cafeBazaar'
+        },
+      })
+      const buf = new flatbuffers.ByteBuffer(byets);
+      const ReposList = window.ReposList.getRootAsReposList(buf);
+      console.log(ReposList.name())
     })
   })
 </script>
