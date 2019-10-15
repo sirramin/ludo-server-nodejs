@@ -1,0 +1,6 @@
+table signInAsGuest {
+    token : string;
+    userId : string;
+}
+
+root_type signInAsGuest;
