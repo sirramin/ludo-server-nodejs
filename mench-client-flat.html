@@ -26,6 +26,7 @@
 
 <script src="./flatBuffers/flatbuffers.js"></script>
 <script src="./flatBuffers/schemas/test_generated.js"></script>
+<script src="./components/user/schemas/singInAsGuest_generated.js"></script>
 
 <script>
   $(function () {
@@ -34,11 +35,15 @@
     $('#messages').append($('<li>').text(JSON.stringify('token: ' + token)))
     $('#connect').click(async () => {
       if (!token) {
-        const {token: singInToken} = await $.ajax({
+        const byets = await $.ajax({
           url: target + "/user/signInAsGuest",
           type: 'post',
           dataType: 'json',
         })
+        const buf = new flatbuffers.ByteBuffer(byets)
+        const signInAsGuest = window.signInAsGuest.getRootAssignInAsGuest(buf)
+        const singInToken = signInAsGuest.token()
+        const userId = signInAsGuest.userId()
         localStorage.setItem("token", singInToken)
         token = singInToken
       }
