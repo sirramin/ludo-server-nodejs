@@ -11,7 +11,7 @@ exports.registerGuestUser = async () => {
   const token = await jwt.generateJwt(userId, username)
   return {
     token: token,
-    userId: userId
+    username: username
   }
 }
 

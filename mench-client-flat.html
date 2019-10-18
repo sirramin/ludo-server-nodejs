@@ -4,7 +4,9 @@
     <title>mench client</title>
 </head>
 <body>
-<h1><span>you are player: </span><span id="playerNumber"></span></h1>
+<h3><span>username: </span><span id="username"></span></h3>
+<h3><span>token: </span><span id="token"></span></h3>
+<h3><span>you are player: </span><span id="playerNumber"></span></h3>
 <ul id="messages"></ul>
 <button id="clearToken">clearToken</button>
 <button id="connect">connect</button>
@@ -25,14 +27,15 @@
 <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
 
 <script src="./flatBuffers/flatbuffers.js"></script>
-<script src="./flatBuffers/schemas/test_generated.js"></script>
-<script src="./components/user/schemas/singInAsGuest_generated.js"></script>
+<script src="components/user/flat/schemas/test_generated.js"></script>
+<script src="components/user/flat/schemas/singInAsGuest_generated.js"></script>
 
 <script>
   $(function () {
     const target = 'http://localhost:3001'
-    let {token} = localStorage
-    $('#messages').append($('<li>').text(JSON.stringify('token: ' + token)))
+    let {token, username} = localStorage
+    $('#token').text(token)
+    $('#username').text(username)
     $('#connect').click(async () => {
       if (!token) {
         const byets = await $.ajax({
@@ -43,9 +46,12 @@
         const buf = new flatbuffers.ByteBuffer(byets)
         const signInAsGuest = window.signInAsGuest.getRootAssignInAsGuest(buf)
         const singInToken = signInAsGuest.token()
-        const userId = signInAsGuest.userId()
+        const username = signInAsGuest.username()
         localStorage.setItem("token", singInToken)
+        localStorage.setItem("username", username)
         token = singInToken
+        $('#token').text(token)
+        $('#username').text(username)
       }
       const socket = io(target, {transports: ['websocket'], query: {token}})
       $('#joinRoom').click(() => {

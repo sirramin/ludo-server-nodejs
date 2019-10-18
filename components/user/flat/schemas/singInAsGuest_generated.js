@@ -57,7 +57,7 @@ signInAsGuest.prototype.token = function(optionalEncoding) {
  * @param {flatbuffers.Encoding=} optionalEncoding
  * @returns {string|Uint8Array|null}
  */
-signInAsGuest.prototype.userId = function(optionalEncoding) {
+signInAsGuest.prototype.username = function(optionalEncoding) {
   var offset = this.bb.__offset(this.bb_pos, 6);
   return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
 };
@@ -79,10 +79,10 @@ signInAsGuest.addToken = function(builder, tokenOffset) {
 
 /**
  * @param {flatbuffers.Builder} builder
- * @param {flatbuffers.Offset} userIdOffset
+ * @param {flatbuffers.Offset} usernameOffset
  */
-signInAsGuest.addUserId = function(builder, userIdOffset) {
-  builder.addFieldOffset(1, userIdOffset, 0);
+signInAsGuest.addUsername = function(builder, usernameOffset) {
+  builder.addFieldOffset(1, usernameOffset, 0);
 };
 
 /**
@@ -113,13 +113,13 @@ signInAsGuest.finishSizePrefixedsignInAsGuestBuffer = function(builder, offset) 
 /**
  * @param {flatbuffers.Builder} builder
  * @param {flatbuffers.Offset} tokenOffset
- * @param {flatbuffers.Offset} userIdOffset
+ * @param {flatbuffers.Offset} usernameOffset
  * @returns {flatbuffers.Offset}
  */
-signInAsGuest.createsignInAsGuest = function(builder, tokenOffset, userIdOffset) {
+signInAsGuest.createsignInAsGuest = function(builder, tokenOffset, usernameOffset) {
   signInAsGuest.startsignInAsGuest(builder);
   signInAsGuest.addToken(builder, tokenOffset);
-  signInAsGuest.addUserId(builder, userIdOffset);
+  signInAsGuest.addUsername(builder, usernameOffset);
   return signInAsGuest.endsignInAsGuest(builder);
 }
 
