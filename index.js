@@ -3,7 +3,9 @@ require('express-async-errors')
 const morgan = require('morgan')
 const app = express()
 const http = require('http').Server(app)
-global.io = require('socket.io')(http)
+global.io = require('socket.io')(http, {
+  transports: 'websocket'
+})
 const redisAdapter = require('socket.io-redis')
 const redisClient = require('./common/redis-client')
 const errorMiddleware = require('./middleware/errorMiddleware')

@@ -4,9 +4,9 @@
     <title>mench client</title>
 </head>
 <body>
-<h3><span>username: </span><span id="username"></span></h3>
-<h3><span>token: </span><span id="token"></span></h3>
-<h3><span>you are player: </span><span id="playerNumber"></span></h3>
+<h5><span>username: </span><span id="username"></span></h5>
+<h5><span>token: </span><span id="token"></span></h5>
+<h5><span>you are player: </span><span id="playerNumber"></span></h5>
 <ul id="messages"></ul>
 <button id="clearToken">clearToken</button>
 <button id="connect">connect</button>
@@ -33,6 +33,7 @@
 <script>
   $(function () {
     const target = 'http://localhost:3001'
+    // const target = 'http://192.168.43.243:3001'
     let {token, username} = localStorage
     $('#token').text(token)
     $('#username').text(username)
@@ -54,6 +55,7 @@
         $('#username').text(username)
       }
       const socket = io(target, {transports: ['websocket'], query: {token}})
+      // const socket = io(target)
       $('#joinRoom').click(() => {
         socket.emit('joinRoom', 1)
       })
@@ -205,7 +207,7 @@
       $.each(followings.data, (index, value) => {
         const invite = value.online ? '<input type="checkbox" >' : ''
         const li = '<li class="invite">' +
-          '<span>' + value.user.username + '</span>'
+          '<span>' + value.middleware.username + '</span>'
           + ' - ' +
           value.online
           + invite
@@ -221,10 +223,7 @@
     $('#binary').click(async() => {
       const byets = await $.ajax({
         url: target + "/user/testFlatBuffer",
-        type: 'post',
-        data: {
-          market: 'cafeBazaar'
-        },
+        type: 'get',
       })
       const buf = new flatbuffers.ByteBuffer(byets);
       const ReposList = window.ReposList.getRootAsReposList(buf);

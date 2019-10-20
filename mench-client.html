@@ -194,7 +194,7 @@
       $.each(followings.data, (index, value) => {
         const invite = value.online ? '<input type="checkbox" >' : ''
         const li = '<li class="invite">' +
-          '<span>' + value.user.username + '</span>'
+          '<span>' + value.middleware.username + '</span>'
           + ' - ' +
           value.online
           + invite

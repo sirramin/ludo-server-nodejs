@@ -8,7 +8,7 @@ module.exports = (dbUrl, market) => {
         marketName = (market === 'mtn' || market === 'mci') ? market : 'market',
         leaderboardPath = dbUrl + ':leaders:' + marketName,
         usersPath = dbUrl + ':users:' + marketName,
-        redisOptions = process.env.docker ? {host: 'user.js', port: 6378} : {host: 'localhost', port: 6378},
+        redisOptions = process.env.docker ? {host: 'middleware.js.js', port: 6378} : {host: 'localhost', port: 6378},
         lb = new Leaderboard(leaderboardPath)
 
     const getLeaderboard = async (name, userId) => {

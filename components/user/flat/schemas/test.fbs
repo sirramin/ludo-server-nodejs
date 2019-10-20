@@ -1,0 +1,8 @@
+
+namespace MyGame.Sample;
+
+table ReposList {
+    name : string;
+}
+
+root_type ReposList;

@@ -12,14 +12,13 @@ router.post('/signInAsGuest', async (req, res, next) => {
   //   userId: userId
   // })
   const buf = signInAsGuestBuf(token, username)
-  res.set('Content-type', 'application/x-flatbuffers');
-  res.send(buf)
-  // res.send(buf)
+  res.set('Content-type', 'application/octet-stream').send(buf)
+
 })
 
 router.get('/testFlatBuffer', async (req, res, next) => {
   const buf = testFlatBufferBuf()
-  res.send(Buffer.from(buf))
+  res.set('Content-type', 'application/octet-stream').send(buf)
 })
 
 module.exports = router

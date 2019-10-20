@@ -1216,7 +1216,7 @@ define({ "api": [
     "url": "/user/changeName",
     "title": "changeName",
     "name": "changeName",
-    "group": "user",
+    "group": "middleware.js",
     "header": {
       "fields": {
         "Header": [
@@ -1276,14 +1276,14 @@ define({ "api": [
     },
     "version": "0.0.0",
     "filename": "components/friendship/route.js",
-    "groupTitle": "user"
+    "groupTitle": "middleware.js"
   },
   {
     "type": "post",
     "url": "/user/changeName",
     "title": "changeName",
     "name": "changeName",
-    "group": "user",
+    "group": "middleware.js",
     "header": {
       "fields": {
         "Header": [
@@ -1343,14 +1343,14 @@ define({ "api": [
     },
     "version": "0.0.0",
     "filename": "components/user/route.js",
-    "groupTitle": "user"
+    "groupTitle": "middleware.js"
   },
   {
     "type": "post",
     "url": "/user/increaseCoin",
     "title": "increase coin",
     "name": "increaseCoin",
-    "group": "user",
+    "group": "middleware.js",
     "header": {
       "fields": {
         "Header": [
@@ -1410,14 +1410,14 @@ define({ "api": [
     },
     "version": "0.0.0",
     "filename": "components/friendship/route.js",
-    "groupTitle": "user"
+    "groupTitle": "middleware.js"
   },
   {
     "type": "post",
     "url": "/user/increaseCoin",
     "title": "increase coin",
     "name": "increaseCoin",
-    "group": "user",
+    "group": "middleware.js",
     "header": {
       "fields": {
         "Header": [
@@ -1477,6 +1477,6 @@ define({ "api": [
     },
     "version": "0.0.0",
     "filename": "components/user/route.js",
-    "groupTitle": "user"
+    "groupTitle": "middleware.js"
   }
 ] });
