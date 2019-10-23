@@ -209,8 +209,7 @@ module.exports = (socket) => {
                     "winner": currentPlayer
                 })
                 const roomInfo = await methods.getProp('info')
-                const leagueId = roomInfo.leagueId
-                await methods.givePrize(userId, leagueId)
+                await methods.givePrize(userId)
                 await methods.deleteRoom(roomId)
             }
 

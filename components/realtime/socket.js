@@ -8,22 +8,22 @@ const {testFlatBufferBuf} = require('../user/flat/data/user')
 
 
 io
-// .use(ioMiddleware)
+  .use(ioMiddleware)
   .on('connection', async (socket) => {
     logger.info('socket.id connected:' + socket.id)
     await redisHelperUser.addOnlineStatus(socket.userId, true)
     await redisHelperUser.changeSocketId(socket.userId, socket.id)
+
     // const hasRoomBefore = await checkHasRoomBefore(socket.userInfo)
     // if (hasRoomBefore) matchMaking.returnUserToGame(hasRoomBefore)      //hasRoomBefore = roomId
 
 
-    const buf = testFlatBufferBuf()
-    socket.emit( 'test', 'testttttt data')
-    socket.binary(true).emit( 'binary', buf)
+    // const buf = testFlatBufferBuf()
+    // socket.binary(true).emit('binary', buf)
 
 
-    socket.on('joinRoom', async (leagueId) => {
-      await matchMaking.findAvailableRooms(leagueId, socket)
+    socket.on('joinRoom', async () => {
+      await matchMaking.findAvailableRooms(socket)
     })
     socket.on('leftRoom', async () => {
       await matchMaking.leftRoom()

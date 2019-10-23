@@ -6,8 +6,8 @@ const auth = async (socket, next) => {
     try {
       const {userId} = await jwt.verifyJwt(socket.handshake.query.token)
       socket.userId = userId
-      socket.emit('message', 'user id: ' + userId)
-      socket.emit('message', 'socket id: ' + socket.id)
+      // socket.emit('message', 'user id: ' + userId)
+      // socket.emit('message', 'socket id: ' + socket.id)
       await redisHelper.addSocketIdToRedis(userId, socket.id)
       next()
     } catch (err) {

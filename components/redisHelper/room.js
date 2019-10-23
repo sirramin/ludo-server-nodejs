@@ -47,13 +47,12 @@ exp.getUserData = async (userId) => {
   return JSON.parse(await redisClient.hget(redisConfig.prefixes.users, userId))
 }
 
-exp.createNewRoom = async (leagueId) => {
+exp.createNewRoom = async () => {
   const roomId = uuidv4()
   const currentTimeStamp = new Date().getTime()
   const hmArgs = [redisConfig.prefixes.rooms + roomId,
     'state', "waiting",
     'creationDateTime', currentTimeStamp,
-    'leagueId', leagueId
   ]
   await redisClient.hmset(hmArgs)
   setTimeout(() => {
@@ -76,13 +75,13 @@ exp.checkRoomIsReady = async (roomId) => {
   return numberOfRoomPlayers === gameMeta.roomMax - 1
 }
 
-exp.loopOverAllRooms = async (i, leagueId) => {
+exp.loopOverAllRooms = async (i) => {
   i = i || gameMeta.roomMax - 1
   for (i; i >= 1; i--) {
     const args = [redisConfig.prefixes.roomsList, i, i]
     const availableRooms = await redisClient.zrangebyscore(args)
     if (availableRooms.length) {
-      return await _loopOverAvailableRooms(availableRooms, i, leagueId)
+      return await _loopOverAvailableRooms(availableRooms, i)
     }
   }
   return false
@@ -109,15 +108,15 @@ exp.joinPlayerToRoom = async (roomId, socket) => {
 }
 
 
-const _loopOverAvailableRooms = async (availableRooms, i, leagueId) => {
+const _loopOverAvailableRooms = async (availableRooms, i) => {
   for (const roomId of availableRooms) {
-    const roomCurrentInfo = await redisClient.hmget(redisConfig.prefixes.rooms + roomId, 'state', 'leagueId')
-    if (roomCurrentInfo && roomCurrentInfo.length && roomCurrentInfo[0] === 'waiting' && parseInt(roomCurrentInfo[1]) === leagueId) {
+    const roomCurrentInfo = await redisClient.hmget(redisConfig.prefixes.rooms + roomId, 'state')
+    if (roomCurrentInfo && roomCurrentInfo.length && roomCurrentInfo[0] === 'waiting') {
       return roomId
     }
   }
   if (i > 1)
-    return await exp.loopOverAllRooms(i - 1, leagueId)
+    return await exp.loopOverAllRooms(i - 1)
   return false
 }
 
