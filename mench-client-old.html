@@ -4,9 +4,7 @@
     <title>mench client</title>
 </head>
 <body>
-<h5><span>username: </span><span id="username"></span></h5>
-<h5><span>token: </span><span id="token"></span></h5>
-<h5><span>you are player: </span><span id="playerNumber"></span></h5>
+<h1><span>you are player: </span><span id="playerNumber"></span></h1>
 <ul id="messages"></ul>
 <button id="clearToken">clearToken</button>
 <button id="connect">connect</button>
@@ -26,36 +24,25 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.1/socket.io.js"></script>
 <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
 
-<script src="./flatBuffers/flatbuffers.js"></script>
+<script src="flatBuffers/flatbuffers-lib.js"></script>
 <script src="components/user/flat/schemas/test_generated.js"></script>
-<script src="components/user/flat/schemas/singInAsGuest_generated.js"></script>
 
 <script>
   $(function () {
     const target = 'http://localhost:3001'
-    // const target = 'http://192.168.43.243:3001'
-    let {token, username} = localStorage
-    $('#token').text(token)
-    $('#username').text(username)
+    let {token} = localStorage
+    $('#messages').append($('<li>').text(JSON.stringify('token: ' + token)))
     $('#connect').click(async () => {
       if (!token) {
-        const byets = await $.ajax({
+        const {token: singInToken} = await $.ajax({
           url: target + "/user/signInAsGuest",
           type: 'post',
           dataType: 'json',
         })
-        const buf = new flatbuffers.ByteBuffer(byets)
-        const signInAsGuest = window.signInAsGuest.getRootAssignInAsGuest(buf)
-        const singInToken = signInAsGuest.token()
-        const username = signInAsGuest.username()
         localStorage.setItem("token", singInToken)
-        localStorage.setItem("username", username)
         token = singInToken
-        $('#token').text(token)
-        $('#username').text(username)
       }
       const socket = io(target, {transports: ['websocket'], query: {token}})
-      // const socket = io(target)
       $('#joinRoom').click(() => {
         socket.emit('joinRoom', 1)
       })
@@ -223,9 +210,12 @@
     $('#binary').click(async() => {
       const byets = await $.ajax({
         url: target + "/user/testFlatBuffer",
-        type: 'get',
+        type: 'post',
+        data: {
+          market: 'cafeBazaar'
+        },
       })
-      const buf = new flatbuffers.ByteBuffer(byets);
+      const buf = new flatbuffersLib.ByteBuffer(byets);
       const ReposList = window.ReposList.getRootAsReposList(buf);
       console.log(ReposList.name())
     })

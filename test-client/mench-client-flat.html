@@ -1,0 +1,36 @@
+<!doctype html>
+<html>
+<head>
+    <title>mench client</title>
+</head>
+<body>
+<h5><span>username: </span><span id="username"></span></h5>
+<h5><span>token: </span><span id="token"></span></h5>
+<h5><span>you are player: </span><span id="playerNumber"></span></h5>
+<ul id="messages"></ul>
+<button id="clearToken">clearToken</button>
+<button id="connect">connect</button>
+<button id="joinRoom">joinRoom</button>
+<button id="rollDice">rollDice</button>
+<select id="move">
+    <option value="">--</option>
+</select>
+<button id="leftRoom">leftRoom</button>
+<button id="profile">profile</button>
+<button id="followings">followings</button>
+<button id="binary">binary</button>
+<br>
+<ul id="following-list"></ul>
+<button style="display: none" id="invite">invite</button>
+
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.1/socket.io.js"></script>
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script src="../flatBuffers/flatbuffers-lib.js"></script>
+<script src="./connect.js"></script>
+<script src="./clickEvents.js"></script>
+<script src="./socketEvents.js"></script>
+
+</body>
+</html>

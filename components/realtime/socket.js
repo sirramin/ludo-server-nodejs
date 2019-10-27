@@ -4,7 +4,7 @@ const matchMaking = require('../matchMaking/matchMaking')
 const logicEvents = require('../logics/gameEvents')
 const ioMiddleware = require('../../middleware/ioMiddleware')
 
-const {testFlatBufferBuf} = require('../user/flat/data/user')
+// const {testFlatBufferBuf} = require('../user/flat/data/user')
 
 
 io
