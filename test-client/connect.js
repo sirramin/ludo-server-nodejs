@@ -1,4 +1,3 @@
-
 let {token, username} = localStorage
 $('#token').text(token)
 $('#username').text(username)

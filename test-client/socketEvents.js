@@ -1,24 +1,20 @@
 const target = 'http://localhost:3001'
 // const target = 'http://192.168.43.243:3001'
 
+
 const socketManager = (token) => {
   socket = io(target, {transports: ['websocket'], query: {token}})
 
-  socket.on('message', function (msg) {
-    $('#messages').append($('<li>').text(JSON.stringify(msg)))
+  socket.on('errorMessage', function (byets) {
+    console.log('errorMessage')
+    const buf = new flatbuffersLib.ByteBuffer(byets)
+    const errorMessage = window.Mench.MatchMaking.obj.getRootAsobj(buf)
+    $('#messages').append($('<li>').text(errorMessage.data()))
   })
 
-  socket.on('string', function (data) {
-    $('#messages').append($('<li>').text(data))
+  socket.on('profile', function (data) {
+    $('#messages').append($('<li>').text(data + JSON.stringify(data.data)))
   })
-
-  socket.on('json', function (data) {
-    $('#messages').append($('<li>').text(JSON.stringify(data)))
-  })
-
-// socket.on('profile', function (data) {
-//     $('#messages').append($('<li>').text(data + JSON.stringify(data.data)))
-// })
 
   socket.on('friendly', function (data) {
     if (data === 'friendlyMatchRequest')
@@ -58,20 +54,6 @@ const socketManager = (token) => {
       $('#move').show()
       $('#messages').append($('<li>').text(data + ' ' + data.data).css('color', color))
       const marblesArray = data.data
-      // var selectedNumber = Math.floor(Math.random() * marblesArray.length) + 1;
-
-      // console.log("my array: ", marblesArray);
-      // var rand = marblesArray[Math.floor(Math.random() * marblesArray.length)];
-      // console.log("picked number: ", rand);
-      // setTimeout(function () {
-      //     console.log("move!");
-      //     socket.emit('event', JSON.stringify({
-      //         act: 'move',
-      //         data: {
-      //             marbleNumber: rand
-      //         }
-      //     }))
-      // }, 2000)
 
       marblesArray.forEach((item, index) => {
 
