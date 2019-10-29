@@ -1,8 +1,0 @@
-namespace Realtime.middleware
-
-table ioMiddleware {
-    token : string;
-    username : string;
-}
-
-root_type signInAsGuest;

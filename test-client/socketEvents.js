@@ -6,9 +6,9 @@ const socketManager = (token) => {
   socket = io(target, {transports: ['websocket'], query: {token}})
 
   socket.on('errorMessage', function (byets) {
-    console.log('errorMessage')
-    const buf = new flatbuffersLib.ByteBuffer(byets)
-    const errorMessage = window.Mench.MatchMaking.obj.getRootAsobj(buf)
+    const bufView = new Uint8Array(byets);
+    const buf = new flatbuffersLib.ByteBuffer(bufView)
+    const errorMessage = Mench.MatchMaking.obj.getRootAsobj(buf)
     $('#messages').append($('<li>').text(errorMessage.data()))
   })
 
