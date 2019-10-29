@@ -3,12 +3,10 @@ const redisHelperUser = require('../redisHelper/user')
 const {errorBuf} = require('../../flatBuffers/error/data/error')
 
 const findAvailableRooms = async (socket) => {
-  const buf = errorBuf('sssssssssssssssssssssssss')
-  socket.binary(true).emit('errorMessage', buf)
 
   const isPlayerJoinedBefore = await redisHelperUser.findUserCurrentRoom(socket.userId)
   if (isPlayerJoinedBefore) {
-    socket.emit('error', 'playerAlreadyJoined')
+    socket.binary(true).emit('errorMessage', errorBuf('player already joined'))
     return
   }
   let roomId = await loopOverAllRooms(null)

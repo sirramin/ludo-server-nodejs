@@ -31,7 +31,7 @@ const redisHelper = {
   },
 
   async findUserCurrentRoom(userId) {
-    return await redisClient.hget(users + userId, 'roomId')
+    return await redisClient.hget(users + userId, 'room')
   },
 
   async updateUserRoom(roomId, userId) {

@@ -28,6 +28,7 @@ const sendPositions = async (roomId) => {
   for (const [index, userId]  of  players.entries()) {
     const playerNumber = index + 1
     marblesPosition[playerNumber] = [0, 0, 0, 0]
+    socket.binary(true).emit('yourPlayerNumber', errorBuf('player already joined'))
     sendJsonToSpecificPlayer(userId, {'yourPlayerNumber': playerNumber})
   }
   positions = await getRoomPlayersWithNames(roomId)

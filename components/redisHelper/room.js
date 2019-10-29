@@ -61,7 +61,7 @@ exp.createNewRoom = async () => {
   return roomId
 }
 
-exp.changeRoomState = async (roomId, state) => {
+const _changeRoomState = async (roomId, state) => {
   await redisClient.hset(redisConfig.prefixes.rooms + roomId, 'state', state)
 }
 
@@ -89,20 +89,19 @@ exp.loopOverAllRooms = async (i) => {
 
 exp.joinPlayerToRoom = async (roomId, socket) => {
   if (await exp.checkRoomIsFull(roomId)) {
-    socket.emit('string', 'roomIsFull')
+    socket.binary(true).emit('errorMessage', errorBuf('room is full'))
     return
   }
   if (await _checkRoomStarted(roomId)) {
-    socket.emit('string', 'roomStartedBefore')
+    socket.binary(true).emit('errorMessage', errorBuf('this room game started before'))
     return
   }
   await addPlayerTooRoom(roomId, socket.userId)
   await redisClient.zincrby(redisConfig.prefixes.roomsList, 1, roomId)
   await redisHelperUser.updateUserRoom(roomId, socket.userId)
   socketHelper.joinRoom(socket.id, roomId)
-  socketHelper.sendString(roomId, 'بازیکن جدیدی عضو اتاق شد')
   if (await exp.checkRoomIsReady(roomId)) {
-    exp.changeRoomState(roomId)
+    _changeRoomState(roomId)
     startHelper(roomId)
   }
 }
@@ -133,7 +132,7 @@ const _checkRoomHasMinimumPlayers = async (roomId) => {
 const _roomWaitingTimeOver = async (roomId) => {
   if (! await _checkRoomStarted(roomId)) {
     if (await _checkRoomHasMinimumPlayers(roomId)) {
-      exp.changeRoomState(roomId)
+      _changeRoomState(roomId)
       startHelper(roomId)
     } else {
       await _destroyRoom(roomId)

@@ -4,7 +4,7 @@ const redisHelperUser = require('../redisHelper/user')
 const userModel = require('./model')
 
 exports.registerGuestUser = async () => {
-  const username = 'guest' + _.random(11111111, 99999999)
+  const username = 'guest_' + _.random(111111, 999999)
   const guest = await userModel.create({username})
   const userId = guest._doc._id.toString()
   await redisHelperUser.addGuestToRedis(username, userId)
