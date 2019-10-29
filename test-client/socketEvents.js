@@ -1,14 +1,12 @@
 const target = 'http://localhost:3001'
-// const target = 'http://192.168.43.243:3001'
-
 
 const socketManager = (token) => {
   socket = io(target, {transports: ['websocket'], query: {token}})
 
   socket.on('errorMessage', function (byets) {
-    const bufView = new Uint8Array(byets);
+    const bufView = new Uint8Array(byets)
     const buf = new flatbuffersLib.ByteBuffer(bufView)
-    const errorMessage = Mench.MatchMaking.obj.getRootAsobj(buf)
+    const errorMessage = Mench.Text.Str.getRootAsStr(buf)
     $('#messages').append($('<li>').text(errorMessage.data()))
   })
 

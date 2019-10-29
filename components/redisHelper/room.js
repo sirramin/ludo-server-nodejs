@@ -89,11 +89,11 @@ exp.loopOverAllRooms = async (i) => {
 
 exp.joinPlayerToRoom = async (roomId, socket) => {
   if (await exp.checkRoomIsFull(roomId)) {
-    socket.binary(true).emit('errorMessage', errorBuf('room is full'))
+    socket.binary(true).emit('errorMessage', stringBuf('room is full'))
     return
   }
   if (await _checkRoomStarted(roomId)) {
-    socket.binary(true).emit('errorMessage', errorBuf('this room game started before'))
+    socket.binary(true).emit('errorMessage', stringBuf('this room game started before'))
     return
   }
   await addPlayerTooRoom(roomId, socket.userId)

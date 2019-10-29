@@ -10,12 +10,12 @@ var Mench = Mench || {};
  * @const
  * @namespace
  */
-Mench.MatchMaking = Mench.MatchMaking || {};
+Mench.Text = Mench.Text || {};
 
 /**
  * @constructor
  */
-Mench.MatchMaking.obj = function() {
+Mench.Text.Str = function() {
   /**
    * @type {flatbuffers.ByteBuffer}
    */
@@ -30,9 +30,9 @@ Mench.MatchMaking.obj = function() {
 /**
  * @param {number} i
  * @param {flatbuffers.ByteBuffer} bb
- * @returns {Mench.MatchMaking.obj}
+ * @returns {Mench.Text.Str}
  */
-Mench.MatchMaking.obj.prototype.__init = function(i, bb) {
+Mench.Text.Str.prototype.__init = function(i, bb) {
   this.bb_pos = i;
   this.bb = bb;
   return this;
@@ -40,27 +40,27 @@ Mench.MatchMaking.obj.prototype.__init = function(i, bb) {
 
 /**
  * @param {flatbuffers.ByteBuffer} bb
- * @param {Mench.MatchMaking.obj=} obj
- * @returns {Mench.MatchMaking.obj}
+ * @param {Mench.Text.Str=} obj
+ * @returns {Mench.Text.Str}
  */
-Mench.MatchMaking.obj.getRootAsobj = function(bb, obj) {
-  return (obj || new Mench.MatchMaking.obj).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+Mench.Text.Str.getRootAsStr = function(bb, obj) {
+  return (obj || new Mench.Text.Str).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 };
 
 /**
  * @param {flatbuffers.ByteBuffer} bb
- * @param {Mench.MatchMaking.obj=} obj
- * @returns {Mench.MatchMaking.obj}
+ * @param {Mench.Text.Str=} obj
+ * @returns {Mench.Text.Str}
  */
-Mench.MatchMaking.obj.getSizePrefixedRootAsobj = function(bb, obj) {
-  return (obj || new Mench.MatchMaking.obj).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+Mench.Text.Str.getSizePrefixedRootAsStr = function(bb, obj) {
+  return (obj || new Mench.Text.Str).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 };
 
 /**
  * @param {flatbuffers.Encoding=} optionalEncoding
  * @returns {string|Uint8Array|null}
  */
-Mench.MatchMaking.obj.prototype.data = function(optionalEncoding) {
+Mench.Text.Str.prototype.data = function(optionalEncoding) {
   var offset = this.bb.__offset(this.bb_pos, 4);
   return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
 };
@@ -68,7 +68,7 @@ Mench.MatchMaking.obj.prototype.data = function(optionalEncoding) {
 /**
  * @param {flatbuffers.Builder} builder
  */
-Mench.MatchMaking.obj.startobj = function(builder) {
+Mench.Text.Str.startStr = function(builder) {
   builder.startObject(1);
 };
 
@@ -76,7 +76,7 @@ Mench.MatchMaking.obj.startobj = function(builder) {
  * @param {flatbuffers.Builder} builder
  * @param {flatbuffers.Offset} dataOffset
  */
-Mench.MatchMaking.obj.addData = function(builder, dataOffset) {
+Mench.Text.Str.addData = function(builder, dataOffset) {
   builder.addFieldOffset(0, dataOffset, 0);
 };
 
@@ -84,7 +84,7 @@ Mench.MatchMaking.obj.addData = function(builder, dataOffset) {
  * @param {flatbuffers.Builder} builder
  * @returns {flatbuffers.Offset}
  */
-Mench.MatchMaking.obj.endobj = function(builder) {
+Mench.Text.Str.endStr = function(builder) {
   var offset = builder.endObject();
   return offset;
 };
@@ -93,7 +93,7 @@ Mench.MatchMaking.obj.endobj = function(builder) {
  * @param {flatbuffers.Builder} builder
  * @param {flatbuffers.Offset} offset
  */
-Mench.MatchMaking.obj.finishobjBuffer = function(builder, offset) {
+Mench.Text.Str.finishStrBuffer = function(builder, offset) {
   builder.finish(offset);
 };
 
@@ -101,7 +101,7 @@ Mench.MatchMaking.obj.finishobjBuffer = function(builder, offset) {
  * @param {flatbuffers.Builder} builder
  * @param {flatbuffers.Offset} offset
  */
-Mench.MatchMaking.obj.finishSizePrefixedobjBuffer = function(builder, offset) {
+Mench.Text.Str.finishSizePrefixedStrBuffer = function(builder, offset) {
   builder.finish(offset, undefined, true);
 };
 
@@ -110,10 +110,10 @@ Mench.MatchMaking.obj.finishSizePrefixedobjBuffer = function(builder, offset) {
  * @param {flatbuffers.Offset} dataOffset
  * @returns {flatbuffers.Offset}
  */
-Mench.MatchMaking.obj.createobj = function(builder, dataOffset) {
-  Mench.MatchMaking.obj.startobj(builder);
-  Mench.MatchMaking.obj.addData(builder, dataOffset);
-  return Mench.MatchMaking.obj.endobj(builder);
+Mench.Text.Str.createStr = function(builder, dataOffset) {
+  Mench.Text.Str.startStr(builder);
+  Mench.Text.Str.addData(builder, dataOffset);
+  return Mench.Text.Str.endStr(builder);
 }
 
 // Exports for Node.js and RequireJS

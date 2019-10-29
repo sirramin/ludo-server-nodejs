@@ -1,6 +1,9 @@
 const jwt = require('../common/jwt')
 const redisHelper = require('../components/redisHelper/user')
 
+const {stringBuf} = require('../flatBuffers/str/data/str')
+
+
 const auth = async (socket, next) => {
   if (socket.handshake.query && socket.handshake.query.token) {
     try {
@@ -11,11 +14,10 @@ const auth = async (socket, next) => {
       await redisHelper.addSocketIdToRedis(userId, socket.id)
       next()
     } catch (err) {
-      // socket.emit('message', 'Unauthorized')
-      next('Unauthorized')
+      socket.binary(true).emit('errorMessage', stringBuf('unauthorized'))
     }
   } else {
-    next('header token is required!')
+    socket.binary(true).emit('errorMessage', stringBuf('unauthorized'))
   }
 }
 

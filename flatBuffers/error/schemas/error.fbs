@@ -1,7 +1,0 @@
-namespace Mench.MatchMaking;
-
-table Obj {
-    data : string;
-}
-
-root_type Obj;

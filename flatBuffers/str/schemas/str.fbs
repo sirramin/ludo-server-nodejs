@@ -1,0 +1,7 @@
+namespace Mench.Text;
+
+table Str {
+    data : string;
+}
+
+root_type Str;
