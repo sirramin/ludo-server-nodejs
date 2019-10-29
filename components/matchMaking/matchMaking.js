@@ -4,7 +4,7 @@ const {errorBuf} = require('../../flatBuffers/error/data/error')
 
 const findAvailableRooms = async (socket) => {
   const buf = errorBuf('sssssssssssssssssssssssss')
-  socket.emit('errorMessage', buf)
+  socket.binary(true).emit('errorMessage', buf)
 
   const isPlayerJoinedBefore = await redisHelperUser.findUserCurrentRoom(socket.userId)
   if (isPlayerJoinedBefore) {
