@@ -8,13 +8,13 @@ const {integerBuf} = require('../../flatBuffers/int/data/int')
 const maxTime = 11
 let positions = []
 let marblesPosition = {}
-let orbs = {}
+let lights = {}
 let currentPlayer
 
 const init = async (roomId) => {
   const playersCount = await getRoomPlayersCount(roomId)
   for (let i = 1; i <= playersCount; i++) {
-    orbs['player' + i] = 3
+    lights['player' + i] = 3
   }
   await sendPositions(roomId)
 }
@@ -32,7 +32,7 @@ const sendPositions = async (roomId) => {
   sendJson(roomId, {
     positions,
     marblesPosition,
-    orbs,
+    lights,
     hits,
     beats
   })
@@ -66,7 +66,7 @@ const timerCounter = (roomId) => {
     if (remainingTime === 0) {
       await getInitialProperties()
       // if (positions.length === 1) clearInterval(timerInterval)
-      if (orbs['player' + currentPlayer] === 1 && positions.length > 1)
+      if (lights['player' + currentPlayer] === 1 && positions.length > 1)
         await redisHelperRoom.kickUser(findUserId())
       else if (positions.length > 1) {
         await changeTurn()
@@ -88,17 +88,17 @@ const changeTurn = async () => {
   currentPlayer = await redisHelperRoom.getProp('currentPlayer')
   const previousPlayer = currentPlayer
   const nextPlayer = previousPlayer + 1 > numberOfplayers ? 1 : previousPlayer + 1
-  if (orbs['player' + nextPlayer] > 0) {
+  if (lights['player' + nextPlayer] > 0) {
     currentPlayer = nextPlayer
     let propsArray = ['currentPlayer', currentPlayer]
-    orbs['player' + previousPlayer] -= 1
-    propsArray.push('orbs', JSON.stringify(orbs))
+    lights['player' + previousPlayer] -= 1
+    propsArray.push('lights', JSON.stringify(lights))
     await redisHelperRoom.setMultipleProps(...propsArray)
     redisHelperRoom.sendGameEvents(104, 'changeTurn', {
       "player": nextPlayer,
       "decreaseOrb": true,
       "timeEnds": true,
-      "orbs": orbs
+      "lights": lights
     })
     const playerUserId = findUserId()
     await redisHelperRoom.sendEventToSpecificSocket(playerUserId, 201, 'yourTurn', 1)
@@ -110,7 +110,7 @@ const getInitialProperties = async () => {
   // marblesPosition = JSON.parse(roomInfo['marblesPosition'])
   positions = JSON.parse(roomInfo['positions'])
   currentPlayer = parseInt(roomInfo['currentPlayer'])
-  orbs = JSON.parse(roomInfo['orbs'])
+  lights = JSON.parse(roomInfo['lights'])
 }
 
 module.exports = init

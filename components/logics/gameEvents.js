@@ -3,7 +3,7 @@ const maxTime = 110
 
 module.exports = (socket) => {
     const userId = socket.userInfo.userId
-    let matchMaking, roomId, methods, roomInfo, positions, marblesPosition, currentPlayer, orbs, currentPlayerMarbles,
+    let matchMaking, roomId, methods, roomInfo, positions, marblesPosition, currentPlayer, lights, currentPlayerMarbles,
         diceAttempts, remainingTime, playerCastleNumber, hits, beats
 
     const getAct = async (msg) => {
@@ -53,7 +53,7 @@ module.exports = (socket) => {
         marblesPosition = JSON.parse(roomInfo['marblesPosition'])
         currentPlayerMarbles = marblesPosition[currentPlayer.toString()]
         positions = JSON.parse(roomInfo['positions'])
-        orbs = JSON.parse(roomInfo['orbs'])
+        lights = JSON.parse(roomInfo['lights'])
         hits = JSON.parse(roomInfo['hits'])
         beats = JSON.parse(roomInfo['beats'])
         playerCastleNumber = parseInt(await methods.getUserData(userId)).castleNumber
@@ -288,7 +288,7 @@ module.exports = (socket) => {
             "player": nextPlayer,
             "decreaseOrb": false,
             "timeEnds": false,
-            "orbs": orbs
+            "lights": lights
         })
         const playerUserId = findUserId(nextPlayer)
         await methods.sendEventToSpecificSocket(playerUserId, 201, 'yourTurn', 1)

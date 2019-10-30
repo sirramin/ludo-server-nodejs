@@ -3,7 +3,7 @@ const _ = require('lodash')
 const maxTime = 11
 let positions = []
 let marblesPosition = {}
-let orbs = {}
+let lights = {}
 let currentPlayer
 
 module.exports.handler = async (roomId, methods) => {
@@ -26,7 +26,7 @@ const timerCounter = (roomId, methods) => {
         // logger.info('restart timer:::  roomId: ' + roomId + ' remainingTime: ' + remainingTime)
         if (remainingTime === 0) {
             await getInitialProperties(methods)
-            if (orbs['player' + currentPlayer] === 1 && positions.length > 1)
+            if (lights['player' + currentPlayer] === 1 && positions.length > 1)
                 await methods.kickUser(findUserId())
             else if (positions.length > 1) {
                 await changeTurn(methods)
@@ -48,17 +48,17 @@ const changeTurn = async (methods) => {
     currentPlayer = await methods.getProp('currentPlayer')
     const previousPlayer = currentPlayer
     const nextPlayer = previousPlayer + 1 > positions.length ? 1 : previousPlayer + 1
-    if (orbs['player' + nextPlayer] > 0) {
+    if (lights['player' + nextPlayer] > 0) {
         currentPlayer = nextPlayer
         let propsArray = ['currentPlayer', currentPlayer]
-        orbs['player' + previousPlayer] -= 1
-        propsArray.push('orbs', JSON.stringify(orbs))
+        lights['player' + previousPlayer] -= 1
+        propsArray.push('lights', JSON.stringify(lights))
         await methods.setMultipleProps(...propsArray)
         methods.sendGameEvents(104, 'changeTurn', {
             "player": nextPlayer,
             "decreaseOrb": true,
             "timeEnds": true,
-            "orbs": orbs
+            "lights": lights
         })
         const playerUserId = findUserId()
         await methods.sendEventToSpecificSocket(playerUserId, 201, 'yourTurn', 1)
@@ -70,7 +70,7 @@ const getInitialProperties = async (methods) => {
     // marblesPosition = JSON.parse(roomInfo['marblesPosition'])
     positions = JSON.parse(roomInfo['positions'])
     currentPlayer = parseInt(roomInfo['currentPlayer'])
-    orbs = JSON.parse(roomInfo['orbs'])
+    lights = JSON.parse(roomInfo['lights'])
 }
 
 

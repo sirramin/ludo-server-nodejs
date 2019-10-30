@@ -2,7 +2,7 @@ const _ = require('lodash')
 module.exports = (io, userId, gameMeta, marketKey, roomId) => {
     const maxTime = 11,
         methods = require('../redisHelper/room')(io, gameMeta, roomId, marketKey)
-    let roomInfo, positions, currentPlayer, thisPlayerNumber, thisPlayerIndex, marblesPosition, orbs, hits
+    let roomInfo, positions, currentPlayer, thisPlayerNumber, thisPlayerIndex, marblesPosition, lights, hits
 
     const handleLeft = async () => {
         await getInitialProperties()
@@ -18,13 +18,13 @@ module.exports = (io, userId, gameMeta, marketKey, roomId) => {
     const affectRoomInRedis = async () => {
         positions.splice(thisPlayerIndex, 1)
         delete marblesPosition[thisPlayerNumber.toString()]
-        delete orbs['player' + thisPlayerNumber.toString()]
-        await methods.setMultipleProps(['positions', JSON.stringify(positions), 'orbs', JSON.stringify(orbs), 'marblesPosition', JSON.stringify(marblesPosition)])
+        delete lights['player' + thisPlayerNumber.toString()]
+        await methods.setMultipleProps(['positions', JSON.stringify(positions), 'lights', JSON.stringify(lights), 'marblesPosition', JSON.stringify(marblesPosition)])
         methods.sendGameEvents(6, 'playerLeft', {
             player: thisPlayerNumber,
             positions: positions,
             marblesPosition: marblesPosition,
-            orbs: orbs
+            lights: lights
         })
     }
 
@@ -39,7 +39,7 @@ module.exports = (io, userId, gameMeta, marketKey, roomId) => {
         thisPlayerNumber = findThisPlayerNumber()
         thisPlayerIndex = thisPlayerNumber - 1
         marblesPosition = JSON.parse(roomInfo['marblesPosition'])
-        orbs = JSON.parse(roomInfo['orbs'])
+        lights = JSON.parse(roomInfo['lights'])
         hits = JSON.parse(roomInfo['hits'])
     }
 
@@ -55,14 +55,14 @@ module.exports = (io, userId, gameMeta, marketKey, roomId) => {
         await methods.setProp('diceAttempts', 0)
         const numberOfPlayers = positions.length
         const nextPlayer = currentPlayer + 1 > numberOfPlayers ? 1 : currentPlayer + 1
-        if (orbs['player' + nextPlayer] > 0) {
+        if (lights['player' + nextPlayer] > 0) {
             logger.info('------changeTurn  orb > 0 -----------')
             await methods.setProp('currentPlayer', nextPlayer)
             methods.sendGameEvents(104, 'changeTurn', {
                 "player": nextPlayer,
                 "decreaseOrb": false,
                 "timeEnds": false,
-                "orbs": orbs,
+                "lights": lights,
                 "kick": true
             })
             const playerUserId = findUserIdOfNextPlayer(nextPlayer)
