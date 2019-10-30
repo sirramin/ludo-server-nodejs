@@ -1,0 +1,7 @@
+namespace Mench.Number;
+
+table Integ {
+    data : ushort;
+}
+
+root_type Integ;

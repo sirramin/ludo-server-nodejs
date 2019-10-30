@@ -106,7 +106,6 @@ exp.joinPlayerToRoom = async (roomId, socket) => {
   }
 }
 
-
 const _loopOverAvailableRooms = async (availableRooms, i) => {
   for (const roomId of availableRooms) {
     const roomCurrentInfo = await redisClient.hmget(redisConfig.prefixes.rooms + roomId, 'state')

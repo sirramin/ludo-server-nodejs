@@ -1,22 +1,20 @@
 const _ = require('lodash')
 const {getRoomPlayersCount, getRoomPlayers, getRoomPlayersWithNames} = require('../redisHelper/players')
 const {updateRemainingTime, updateDiceAttempts, updateCurrentPlayer} = require('../redisHelper/logic')
-const {sendJsonToSpecificPlayer, sendJson} = require('../realtime/socketHelper')
+const {emitToSpecificPlayer} = require('../realtime/socketHelper')
+const {stringBuf} = require('../../flatBuffers/str/data/str')
+const {integerBuf} = require('../../flatBuffers/int/data/int')
 
 const maxTime = 11
 let positions = []
 let marblesPosition = {}
 let orbs = {}
 let currentPlayer
-let hits = []
-let beats = []
 
 const init = async (roomId) => {
   const playersCount = await getRoomPlayersCount(roomId)
   for (let i = 1; i <= playersCount; i++) {
     orbs['player' + i] = 3
-    hits[i - 1] = 0
-    beats[i - 1] = 0
   }
   await sendPositions(roomId)
 }
@@ -28,8 +26,7 @@ const sendPositions = async (roomId) => {
   for (const [index, userId]  of  players.entries()) {
     const playerNumber = index + 1
     marblesPosition[playerNumber] = [0, 0, 0, 0]
-    socket.binary(true).emit('yourPlayerNumber', errorBuf('player already joined'))
-    sendJsonToSpecificPlayer(userId, {'yourPlayerNumber': playerNumber})
+    emitToSpecificPlayer('yourPlayerNumber', userId, integerBuf(playerNumber))
   }
   positions = await getRoomPlayersWithNames(roomId)
   sendJson(roomId, {
