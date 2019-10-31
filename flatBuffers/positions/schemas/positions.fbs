@@ -1,0 +1,13 @@
+namespace Mench.pos;
+
+table Position {
+    player : ushort;
+    userId : string;
+    username : string;
+}
+
+table Positions {
+    data : [Positions];
+}
+
+root_type Positions;

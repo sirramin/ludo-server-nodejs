@@ -6,8 +6,15 @@ const socketManager = (token) => {
   socket.on('errorMessage', function (byets) {
     const bufView = new Uint8Array(byets)
     const buf = new flatbuffersLib.ByteBuffer(bufView)
-    const errorMessage = Mench.Text.Str.getRootAsStr(buf)
-    $('#messages').append($('<li>').text(errorMessage.data()))
+    const object = Mench.Text.Str.getRootAsStr(buf)
+    $('#messages').append($('<li>').text(object.data()))
+  })
+
+  socket.on('yourPlayerNumber', function (byets) {
+    const bufView = new Uint8Array(byets)
+    const buf = new flatbuffersLib.ByteBuffer(bufView)
+    const object = Mench.Number.Integ.getRootAsInteg(buf)
+    $('#playerNumber').text(object.data())
   })
 
   socket.on('profile', function (data) {
@@ -58,11 +65,6 @@ const socketManager = (token) => {
         $('#move').append('<option value="' + item + '">' + item + '</option>')
 
       })
-    } else if (data.hasOwnProperty('yourPlayerNumber')) {
-      // $('#messages').append($('<li>').text(data + ' ' + JSON.stringify(data.data)).css('color', color))
-      $('#playerNumber').text(data.yourPlayerNumber)
-    } else {
-      // $('#messages').append($('<li>').text(data + ' ' + JSON.stringify(data.data)).css('color', color))
     }
 
 

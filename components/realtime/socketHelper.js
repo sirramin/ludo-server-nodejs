@@ -2,13 +2,13 @@ const {getSocketId} = require('../redisHelper/user')
 
 const exp = {}
 
-exp.sendString = (roomId, string) => {
-  io.to(roomId).emit('string', string)
+exp.emitToAll = async (event, roomId, buf) => {
+  io.binary(true).to(roomId).emit(event, buf)
 }
 
 exp.emitToSpecificPlayer = async (event, userId, buf) => {
   const socketId = await getSocketId(userId)
-  io.binary(true).to(socketId).emit(event, buf);
+  io.binary(true).to(socketId).emit(event, buf)
 }
 
 exp.broadcast = async (socket, msg) => {
