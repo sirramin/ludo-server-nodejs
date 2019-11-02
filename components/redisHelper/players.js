@@ -34,8 +34,4 @@ exp.removeAlPlayerFromRoom = async (roomId) => {
   await redisClient.del(roomPlayers + roomId)
 }
 
-exp.getRoomPlayersCount = async (roomId) => {
-  await redisClient.scard(roomId)
-}
-
 module.exports = exp

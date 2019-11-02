@@ -10,7 +10,7 @@ const config = {
   gameMeta: {
     roomMin: 2,
     roomMax: 4,
-    waitingTime: 6000,
+    waitingTime: 3000,
     kickTime: 30000
   }
 }

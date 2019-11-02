@@ -15,7 +15,7 @@ Mench.pos = Mench.pos || {};
 /**
  * @constructor
  */
-Mench.pos.Position = function() {
+Mench.pos.CurrentPosition = function() {
   /**
    * @type {flatbuffers.ByteBuffer}
    */
@@ -30,9 +30,9 @@ Mench.pos.Position = function() {
 /**
  * @param {number} i
  * @param {flatbuffers.ByteBuffer} bb
- * @returns {Mench.pos.Position}
+ * @returns {Mench.pos.CurrentPosition}
  */
-Mench.pos.Position.prototype.__init = function(i, bb) {
+Mench.pos.CurrentPosition.prototype.__init = function(i, bb) {
   this.bb_pos = i;
   this.bb = bb;
   return this;
@@ -40,26 +40,26 @@ Mench.pos.Position.prototype.__init = function(i, bb) {
 
 /**
  * @param {flatbuffers.ByteBuffer} bb
- * @param {Mench.pos.Position=} obj
- * @returns {Mench.pos.Position}
+ * @param {Mench.pos.CurrentPosition=} obj
+ * @returns {Mench.pos.CurrentPosition}
  */
-Mench.pos.Position.getRootAsPosition = function(bb, obj) {
-  return (obj || new Mench.pos.Position).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+Mench.pos.CurrentPosition.getRootAsCurrentPosition = function(bb, obj) {
+  return (obj || new Mench.pos.CurrentPosition).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 };
 
 /**
  * @param {flatbuffers.ByteBuffer} bb
- * @param {Mench.pos.Position=} obj
- * @returns {Mench.pos.Position}
+ * @param {Mench.pos.CurrentPosition=} obj
+ * @returns {Mench.pos.CurrentPosition}
  */
-Mench.pos.Position.getSizePrefixedRootAsPosition = function(bb, obj) {
-  return (obj || new Mench.pos.Position).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+Mench.pos.CurrentPosition.getSizePrefixedRootAsCurrentPosition = function(bb, obj) {
+  return (obj || new Mench.pos.CurrentPosition).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 };
 
 /**
  * @returns {number}
  */
-Mench.pos.Position.prototype.player = function() {
+Mench.pos.CurrentPosition.prototype.player = function() {
   var offset = this.bb.__offset(this.bb_pos, 4);
   return offset ? this.bb.readUint16(this.bb_pos + offset) : 0;
 };
@@ -68,7 +68,7 @@ Mench.pos.Position.prototype.player = function() {
  * @param {flatbuffers.Encoding=} optionalEncoding
  * @returns {string|Uint8Array|null}
  */
-Mench.pos.Position.prototype.userId = function(optionalEncoding) {
+Mench.pos.CurrentPosition.prototype.userId = function(optionalEncoding) {
   var offset = this.bb.__offset(this.bb_pos, 6);
   return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
 };
@@ -77,7 +77,7 @@ Mench.pos.Position.prototype.userId = function(optionalEncoding) {
  * @param {flatbuffers.Encoding=} optionalEncoding
  * @returns {string|Uint8Array|null}
  */
-Mench.pos.Position.prototype.username = function(optionalEncoding) {
+Mench.pos.CurrentPosition.prototype.username = function(optionalEncoding) {
   var offset = this.bb.__offset(this.bb_pos, 8);
   return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
 };
@@ -85,7 +85,7 @@ Mench.pos.Position.prototype.username = function(optionalEncoding) {
 /**
  * @param {flatbuffers.Builder} builder
  */
-Mench.pos.Position.startPosition = function(builder) {
+Mench.pos.CurrentPosition.startCurrentPosition = function(builder) {
   builder.startObject(3);
 };
 
@@ -93,7 +93,7 @@ Mench.pos.Position.startPosition = function(builder) {
  * @param {flatbuffers.Builder} builder
  * @param {number} player
  */
-Mench.pos.Position.addPlayer = function(builder, player) {
+Mench.pos.CurrentPosition.addPlayer = function(builder, player) {
   builder.addFieldInt16(0, player, 0);
 };
 
@@ -101,7 +101,7 @@ Mench.pos.Position.addPlayer = function(builder, player) {
  * @param {flatbuffers.Builder} builder
  * @param {flatbuffers.Offset} userIdOffset
  */
-Mench.pos.Position.addUserId = function(builder, userIdOffset) {
+Mench.pos.CurrentPosition.addUserId = function(builder, userIdOffset) {
   builder.addFieldOffset(1, userIdOffset, 0);
 };
 
@@ -109,7 +109,7 @@ Mench.pos.Position.addUserId = function(builder, userIdOffset) {
  * @param {flatbuffers.Builder} builder
  * @param {flatbuffers.Offset} usernameOffset
  */
-Mench.pos.Position.addUsername = function(builder, usernameOffset) {
+Mench.pos.CurrentPosition.addUsername = function(builder, usernameOffset) {
   builder.addFieldOffset(2, usernameOffset, 0);
 };
 
@@ -117,7 +117,7 @@ Mench.pos.Position.addUsername = function(builder, usernameOffset) {
  * @param {flatbuffers.Builder} builder
  * @returns {flatbuffers.Offset}
  */
-Mench.pos.Position.endPosition = function(builder) {
+Mench.pos.CurrentPosition.endCurrentPosition = function(builder) {
   var offset = builder.endObject();
   return offset;
 };
@@ -129,12 +129,12 @@ Mench.pos.Position.endPosition = function(builder) {
  * @param {flatbuffers.Offset} usernameOffset
  * @returns {flatbuffers.Offset}
  */
-Mench.pos.Position.createPosition = function(builder, player, userIdOffset, usernameOffset) {
-  Mench.pos.Position.startPosition(builder);
-  Mench.pos.Position.addPlayer(builder, player);
-  Mench.pos.Position.addUserId(builder, userIdOffset);
-  Mench.pos.Position.addUsername(builder, usernameOffset);
-  return Mench.pos.Position.endPosition(builder);
+Mench.pos.CurrentPosition.createCurrentPosition = function(builder, player, userIdOffset, usernameOffset) {
+  Mench.pos.CurrentPosition.startCurrentPosition(builder);
+  Mench.pos.CurrentPosition.addPlayer(builder, player);
+  Mench.pos.CurrentPosition.addUserId(builder, userIdOffset);
+  Mench.pos.CurrentPosition.addUsername(builder, usernameOffset);
+  return Mench.pos.CurrentPosition.endCurrentPosition(builder);
 }
 
 /**
@@ -183,12 +183,12 @@ Mench.pos.Positions.getSizePrefixedRootAsPositions = function(bb, obj) {
 
 /**
  * @param {number} index
- * @param {Mench.pos.Positions=} obj
- * @returns {Mench.pos.Positions}
+ * @param {Mench.pos.CurrentPosition=} obj
+ * @returns {Mench.pos.CurrentPosition}
  */
 Mench.pos.Positions.prototype.data = function(index, obj) {
   var offset = this.bb.__offset(this.bb_pos, 4);
-  return offset ? (obj || new Mench.pos.Positions).__init(this.bb.__indirect(this.bb.__vector(this.bb_pos + offset) + index * 4), this.bb) : null;
+  return offset ? (obj || new Mench.pos.CurrentPosition).__init(this.bb.__indirect(this.bb.__vector(this.bb_pos + offset) + index * 4), this.bb) : null;
 };
 
 /**

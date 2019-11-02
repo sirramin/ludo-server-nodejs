@@ -17,6 +17,36 @@ const socketManager = (token) => {
     $('#playerNumber').text(object.data())
   })
 
+  socket.on('positions', function (byets) {
+    const bufView = new Uint8Array(byets)
+    const buf = new flatbuffersLib.ByteBuffer(bufView)
+    const object = Mench.pos.Positions.getRootAsPositions(buf)
+    for (let i = 0; i <= object.dataLength() - 1; i++) {
+      $('#messages').append($('<li>').text(object.data(i).player()))
+      $('#messages').append($('<li>').text(object.data(i).username()))
+      $('#messages').append($('<li>').text(object.data(i).userId()))
+    }
+  })
+
+  socket.on('firstTurn', function (byets) {
+    const bufView = new Uint8Array(byets)
+    const buf = new flatbuffersLib.ByteBuffer(bufView)
+    const object = Mench.Number.Integ.getRootAsInteg(buf)
+    $('#messages').append($('<li>').text('firstTurn: ' + object.data()))
+  })
+
+  socket.on('yourTurn', function (byets) {
+    const bufView = new Uint8Array(byets)
+    const buf = new flatbuffersLib.ByteBuffer(bufView)
+    const object = Mench.Number.Integ.getRootAsInteg(buf)
+    $('#playerNumber').text(object.data())
+
+    yourTrun = true
+    color = 'blue'
+    $('#rollDice').show()
+    $('#messages').append($('<li>').text(data).css('color', color))
+  })
+
   socket.on('profile', function (data) {
     $('#messages').append($('<li>').text(data + JSON.stringify(data.data)))
   })
@@ -46,12 +76,6 @@ const socketManager = (token) => {
       $('#rollDice').hide()
       $('#move').hide()
       $('#messages').append($('<li>').text(data + ' ' + JSON.stringify(data.data)))
-    } else if (data === 'yourTurn') {
-      yourTrun = true
-      color = 'blue'
-      $('#rollDice').show()
-      // diceClick()
-      $('#messages').append($('<li>').text(data).css('color', color))
     } else if (data === 'marblesCanMove' && yourTrun) {
       console.log('marblesCanMove')
       console.log('yourTrun')

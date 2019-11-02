@@ -1,5 +1,5 @@
 const _ = require('lodash')
-const {getRoomPlayersCount, getRoomPlayers, getRoomPlayersWithNames} = require('../redisHelper/players')
+const {numberOfPlayersInRoom, getRoomPlayers, getRoomPlayersWithNames} = require('../redisHelper/players')
 const {updateRemainingTime, updateDiceAttempts, updateCurrentPlayer} = require('../redisHelper/logic')
 const {emitToSpecificPlayer, emitToAll} = require('../realtime/socketHelper')
 const {stringBuf} = require('../../flatBuffers/str/data/str')
@@ -13,7 +13,7 @@ let lights = {}
 let currentPlayer
 
 const init = async (roomId) => {
-  const playersCount = await getRoomPlayersCount(roomId)
+  const playersCount = await numberOfPlayersInRoom(roomId)
   for (let i = 1; i <= playersCount; i++) {
     lights[i] = 3
   }
@@ -24,36 +24,26 @@ const sendPositions = async (roomId) => {
   const players = await getRoomPlayers(roomId)
   updateRemainingTime(roomId, maxTime)
   updateDiceAttempts(roomId, 0)
-  for (const [index, userId]  of  players.entries()) {
+  for (const [index, userId] of players.entries()) {
     const playerNumber = index + 1
     marblesPosition[index] = [0, 0, 0, 0]
     emitToSpecificPlayer('yourPlayerNumber', userId, integerBuf(playerNumber))
   }
   positions = await getRoomPlayersWithNames(roomId)
   emitToAll('positions', roomId, positionBuf(positions))
-
-  sendJson(roomId, {
-    positions,
-    marblesPosition,
-    lights,
-  })
   await firstTurn(roomId)
 }
 
 const firstTurn = async (roomId) => {
-  const playersCount = await getRoomPlayersCount(roomId)
+  const playersCount = await numberOfPlayersInRoom(roomId)
   const rand = Math.floor(Math.random() * playersCount)
   const firstTurn = positions[rand].player
   currentPlayer = firstTurn
   await updateCurrentPlayer('currentPlayer', currentPlayer)
-  //must be optimised
+  emitToAll('firstTurn', roomId, integerBuf(firstTurn))
   const playerUserId = findUserId()
-  sendJsonToSpecificPlayer(userId, {'yourTurn': 1})
-  await redisHelperRoom.sendEventToSpecificSocket(playerUserId, 201, 'yourTurn', 1)
-  // await redisHelperRoom.sendEventToSpecificSocket(playerUserId, 202, 'yourPlayerNumber', rand + 1)
-  redisHelperRoom.sendGameEvents(102, 'firstTurn', firstTurn)
+  emitToSpecificPlayer('yourTurn', playerUserId, null)
   timerCounter(roomId)
-  redisHelperRoom.sendGameEvents(103, 'timerStarted')
 }
 
 const timerCounter = (roomId) => {

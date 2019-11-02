@@ -1,21 +1,21 @@
-let {token, username} = localStorage
-$('#token').text(token)
-$('#username').text(username)
+// let {token, username} = localStorage
+// $('#token').text(token)
+// $('#username').text(username)
 let socket
 
 $('#connect').click(async () => {
-  if (!token) {
-    const {token: singInToken, username} = await $.ajax({
-      url: target + "/user/signInAsGuest",
-      type: 'post',
-      dataType: 'json',
-    })
-    localStorage.setItem("token", singInToken)
-    localStorage.setItem("username", username)
-    token = singInToken
-    $('#token').text(token)
-    $('#username').text(username)
-  }
+  // if (!token) {
+  const {token: singInToken, username} = await $.ajax({
+    url: target + "/user/signInAsGuest",
+    type: 'post',
+    dataType: 'json',
+  })
+  // localStorage.setItem("token", singInToken)
+  // localStorage.setItem("username", username)
+  token = singInToken
+  $('#token').text(token)
+  $('#username').text(username)
+  // }
   socketManager(token)
 })
 
