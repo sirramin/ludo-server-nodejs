@@ -35,16 +35,10 @@ const socketManager = (token) => {
     $('#messages').append($('<li>').text('firstTurn: ' + object.data()))
   })
 
-  socket.on('yourTurn', function (byets) {
-    const bufView = new Uint8Array(byets)
-    const buf = new flatbuffersLib.ByteBuffer(bufView)
-    const object = Mench.Number.Integ.getRootAsInteg(buf)
-    $('#playerNumber').text(object.data())
-
+  socket.on('yourTurn', function () {
     yourTrun = true
-    color = 'blue'
     $('#rollDice').show()
-    $('#messages').append($('<li>').text(data).css('color', color))
+    $('#messages').append($('<li>').text('yourTurn').css('color', 'blue'))
   })
 
   socket.on('profile', function (data) {
