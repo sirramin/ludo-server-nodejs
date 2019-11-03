@@ -11,7 +11,9 @@ const config = {
     roomMin: 2,
     roomMax: 4,
     waitingTime: 3000,
-    kickTime: 30000
+    kickTime: 30000,
+    timerMaxTime: 7,
+    lightsAtStart: 4
   }
 }
 

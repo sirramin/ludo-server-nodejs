@@ -143,7 +143,6 @@ const _destroyRoom = async (roomId) => {
   await removeAlPlayerFromRoom(roomId)
   await redisClient.del(redisConfig.prefixes.rooms + roomId)
   await redisClient.zrem(redisConfig.prefixes.roomsList, roomId)
-  socketHelper.sendString(roomId, 'اتاق بسته شد')
   io.of('/').in(roomId).clients((error, clients) => {
     if (error) logger.error(error)
     if (clients.length) {

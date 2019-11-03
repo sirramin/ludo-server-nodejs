@@ -278,22 +278,22 @@ module.exports = (socket) => {
         return userObj.userId
     }
 
-    const changeTurn = async () => {
-        await methods.setProp('remainingTime', maxTime)
-        await methods.setProp('diceAttempts', 0)
-        const numberOfplayers = positions.length
-        const nextPlayer = currentPlayer + 1 > numberOfplayers ? 1 : currentPlayer + 1
-        await methods.setProp('currentPlayer', nextPlayer)
-        methods.sendGameEvents(104, 'changeTurn', {
-            "player": nextPlayer,
-            "decreaseOrb": false,
-            "timeEnds": false,
-            "lights": lights
-        })
-        const playerUserId = findUserId(nextPlayer)
-        await methods.sendEventToSpecificSocket(playerUserId, 201, 'yourTurn', 1)
-        // methods.sendEventToSpecificSocket(playerUserId, 202, 'yourPlayerNumber', nextPlayer)
-    }
+    // const changeTurn = async () => {
+    //     await methods.setProp('remainingTime', maxTime)
+    //     await methods.setProp('diceAttempts', 0)
+    //     const numberOfplayers = positions.length
+    //     const nextPlayer = currentPlayer + 1 > numberOfplayers ? 1 : currentPlayer + 1
+    //     await methods.setProp('currentPlayer', nextPlayer)
+    //     methods.sendGameEvents(104, 'changeTurn', {
+    //         "player": nextPlayer,
+    //         "decreaseOrb": false,
+    //         "timeEnds": false,
+    //         "lights": lights
+    //     })
+    //     const playerUserId = findUserId(nextPlayer)
+    //     await methods.sendEventToSpecificSocket(playerUserId, 201, 'yourTurn', 1)
+    //     // methods.sendEventToSpecificSocket(playerUserId, 202, 'yourPlayerNumber', nextPlayer)
+    // }
 
     const chat = (msg) => {
         methods.broadcast(socket, msg)
