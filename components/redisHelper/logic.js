@@ -18,12 +18,25 @@ exp.updateCurrentPlayer = async (roomId, currentPlayer) => {
   await redisClient.hset(rooms + roomId, 'currentPlayer', currentPlayer)
 }
 
-exp.getCurrentPlayer = async (roomId, currentPlayer) => {
-  await redisClient.hget(rooms + roomId, 'currentPlayer', currentPlayer)
+exp.updateLights = async (roomId, lights) => {
+  await redisClient.hset(rooms + roomId, 'lights', lights)
 }
 
-exp.updateCurrentPlayer = async (roomId, currentPlayer) => {
-  await redisClient.hset(rooms + roomId, 'currentPlayer', currentPlayer)
+exp.updateMarblesPosition = async (roomId, marblesPosition) => {
+  await redisClient.hset(rooms + roomId, 'marblesPosition', marblesPosition)
+}
+
+
+exp.getCurrentPlayer = async (roomId) => {
+  await redisClient.hget(rooms + roomId, 'currentPlayer')
+}
+
+exp.getLights = async (roomId) => {
+  await redisClient.hget(rooms + roomId, 'lights')
+}
+
+exp.getPositions = async (roomId) => {
+  await redisClient.hget(rooms + roomId, 'positions')
 }
 
 module.exports = exp

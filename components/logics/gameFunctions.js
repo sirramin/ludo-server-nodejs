@@ -1,6 +1,11 @@
 const _ = require('lodash')
 const {numberOfPlayersInRoom, getRoomPlayers, getRoomPlayersWithNames} = require('../redisHelper/players')
-const {updateRemainingTime, increaseRemainingTime, updateDiceAttempts, updateCurrentPlayer, getCurrentPlayer} = require('../redisHelper/logic')
+
+const {
+  updateRemainingTime, increaseRemainingTime, updateDiceAttempts, getLights,
+  updateCurrentPlayer, getCurrentPlayer, updateLights, updateMarblesPosition, getPositions
+} = require('../redisHelper/logic')
+
 const {kickUser} = require('../redisHelper/room')
 const {emitToSpecificPlayer, emitToAll} = require('../realtime/socketHelper')
 const {stringBuf} = require('../../flatBuffers/str/data/str')
@@ -13,23 +18,30 @@ const exp = {}
 exp.changeTurn = async (roomId, decreaseLight) => {
   updateRemainingTime(roomId, timerMaxTime)
   updateDiceAttempts(roomId, 0)
-  currentPlayer = await getCurrentPlayer()
+  const nextPlayer = await _findNextAvailablePlayer(roomId)
+  updateCurrentPlayer(roomId, nextPlayer)
+  emitToAll('changeTurn', roomId, integerBuf(nextPlayer))
+  const playerUserId = await exp.findUserId(roomId, nextPlayer)
+  emitToSpecificPlayer('yourTurn', playerUserId, null)
+  if (decreaseLight) {
+    _decreaseLight()
+  }
+}
+
+_findNextAvailablePlayer = async () => {
+  const currentPlayer = await getCurrentPlayer()
   const previousPlayer = currentPlayer
   const playersCount = await numberOfPlayersInRoom(roomId)
   const nextPlayer = previousPlayer + 1 > playersCount ? 1 : previousPlayer + 1
-  if (lights[nextPlayer - 1] > 0) {
-    lights[previousPlayer] -= 1
-    updateCurrentPlayer(roomId, nextPlayer)
-    emitToAll('changeTurn', roomId, integerBuf(nextPlayer))
-    redisHelperRoom.sendGameEvents(104, 'changeTurn', {
-      "lights": lights
-    })
-    const playerUserId = findUserId()
-    await redisHelperRoom.sendEventToSpecificSocket(playerUserId, 201, 'yourTurn', 1)
-    if(updateCurrentPlayer){
-      _decreaseLight()
-    }
-  }
+}
+
+
+exp.findUserId = async (roomId, playerNumber) => {
+  const positions = await getPositions(roomId)
+  const userObj = _.find(positions, function (o) {
+    return o.player === playerNumber
+  })
+  return userObj.userId
 }
 
 _decreaseLight = (roomId) => {
