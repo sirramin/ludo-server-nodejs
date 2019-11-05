@@ -1,38 +1,39 @@
 const redisClient = require('../../common/redis-client')
 const uuidv4 = require('uuid/v4');
 const socketHelper = require("../realtime/socketHelper")
-const {gameMeta, redis: redisConfig} = require('../../common/config')
+const {gameMeta, redis: {prefixes: {rooms, roomsList}}} = require('../../common/config')
 const redisHelperUser = require('./user')
 const startHelper = require('./start')
 const {addPlayerTooRoom, numberOfPlayersInRoom, removeAlPlayerFromRoom} = require('./players')
+const {stringBuf} = require('../../flatBuffers/str/data/str')
 
 const exp = {}
 
 exp.deleteRoom = async (roomId) => {
-  await redisClient.del(redisConfig.prefixes.rooms)
-  await redisClient.zrem(redisConfig.prefixes.roomsList, roomId)
+  await redisClient.del(rooms)
+  await redisClient.zrem(roomsList, roomId)
 }
 
-exp.kickUser = async (userId) => {
-  const currentPlayers = await getProp('players')
-  const socketId = await getUserSocketIdFromRedis(userId)
-  if (currentPlayers.length > 1) {
-    await deleteUserRoom(userId)
-    currentPlayers.splice(currentPlayers.indexOf(userId), 1)
-    await redisClient.hset(redisConfig.prefixes.rooms, 'players', JSON.stringify(currentPlayers))
-    await redisClient.zincrby(redisConfig.prefixes.roomsList, -1, roomId)
-    await sendEventToSpecificSocket(userId, 203, 'youWillBeKicked', 1)
-    io.of('/').adapter.remoteDisconnect(socketId, true, async (err) => {
-      const gameLeft = require('../logics/' + gameMeta.name + '/gameLeft')(userId, roomId)
-      await gameLeft.handleLeft()
-      logger.info('---------- remoteDisconnect kick-------------------')
-      await addToLeaderboard(userId, false)
-      if (currentPlayers && currentPlayers.length === 1) {
-        await makeRemainingPlayerWinner(roomId)
-      }
-    })
-  }
-}
+// exp.kickUser = async (userId) => {
+//   const currentPlayers = await getProp('players')
+//   const socketId = await getUserSocketIdFromRedis(userId)
+//   if (currentPlayers.length > 1) {
+//     await deleteUserRoom(userId)
+//     currentPlayers.splice(currentPlayers.indexOf(userId), 1)
+//     await redisClient.hset(rooms, 'players', JSON.stringify(currentPlayers))
+//     await redisClient.zincrby(roomsList, -1, roomId)
+//     await sendEventToSpecificSocket(userId, 203, 'youWillBeKicked', 1)
+//     io.of('/').adapter.remoteDisconnect(socketId, true, async (err) => {
+//       const gameLeft = require('../logics/' + gameMeta.name + '/gameLeft')(userId, roomId)
+//       await gameLeft.handleLeft()
+//       logger.info('---------- remoteDisconnect kick-------------------')
+//       await addToLeaderboard(userId, false)
+//       if (currentPlayers && currentPlayers.length === 1) {
+//         await makeRemainingPlayerWinner(roomId)
+//       }
+//     })
+//   }
+// }
 
 exp.getUserSocketIdFromRedis = async (userId) => {
   const userDataParsed = JSON.parse(await redisClient.hget(redisConfig.prefixes.users, userId))
@@ -49,20 +50,17 @@ exp.getUserData = async (userId) => {
 
 exp.createNewRoom = async () => {
   const roomId = uuidv4()
+  await redisClient.hset(rooms + roomId, "status", "waiting")
   const currentTimeStamp = new Date().getTime()
-  const hmArgs = [redisConfig.prefixes.rooms + roomId,
-    'state', "waiting",
-    'creationDateTime', currentTimeStamp,
-  ]
-  await redisClient.hmset(hmArgs)
+  await redisClient.hset(rooms + roomId, "creationDateTime", currentTimeStamp)
   setTimeout(() => {
     _roomWaitingTimeOver(roomId)
   }, gameMeta.waitingTime)
   return roomId
 }
 
-const _changeRoomState = async (roomId, state) => {
-  await redisClient.hset(redisConfig.prefixes.rooms + roomId, 'state', state)
+const _changeRoomState = async (roomId, status) => {
+  await redisClient.hset(rooms + roomId, "status", status)
 }
 
 exp.checkRoomIsFull = async (roomId) => {
@@ -78,7 +76,7 @@ exp.checkRoomIsReady = async (roomId) => {
 exp.loopOverAllRooms = async (i) => {
   i = i || gameMeta.roomMax - 1
   for (i; i >= 1; i--) {
-    const args = [redisConfig.prefixes.roomsList, i, i]
+    const args = [roomsList, i, i]
     const availableRooms = await redisClient.zrangebyscore(args)
     if (availableRooms.length) {
       return await _loopOverAvailableRooms(availableRooms, i)
@@ -97,19 +95,19 @@ exp.joinPlayerToRoom = async (roomId, socket) => {
     return
   }
   await addPlayerTooRoom(roomId, socket.userId)
-  await redisClient.zincrby(redisConfig.prefixes.roomsList, 1, roomId)
+  await redisClient.zincrby(roomsList, 1, roomId)
   await redisHelperUser.updateUserRoom(roomId, socket.userId)
   socketHelper.joinRoom(socket.id, roomId)
   if (await exp.checkRoomIsReady(roomId)) {
-    _changeRoomState(roomId)
+    await _changeRoomState(roomId, 'started')
     startHelper(roomId)
   }
 }
 
 const _loopOverAvailableRooms = async (availableRooms, i) => {
   for (const roomId of availableRooms) {
-    const roomCurrentInfo = await redisClient.hmget(redisConfig.prefixes.rooms + roomId, 'state')
-    if (roomCurrentInfo && roomCurrentInfo.length && roomCurrentInfo[0] === 'waiting') {
+    const roomStatus = await redisClient.hget(rooms + roomId, 'status')
+    if (roomStatus === 'waiting') {
       return roomId
     }
   }
@@ -119,8 +117,8 @@ const _loopOverAvailableRooms = async (availableRooms, i) => {
 }
 
 const _checkRoomStarted = async (roomId) => {
-  const state = await redisClient.hget(redisConfig.prefixes.rooms + roomId, 'state')
-  return state === 'started'
+  const status = await redisClient.hget(rooms + roomId, 'status')
+  return status === 'started'
 }
 
 const _checkRoomHasMinimumPlayers = async (roomId) => {
@@ -129,9 +127,9 @@ const _checkRoomHasMinimumPlayers = async (roomId) => {
 }
 
 const _roomWaitingTimeOver = async (roomId) => {
-  if (! await _checkRoomStarted(roomId)) {
+  if (!await _checkRoomStarted(roomId)) {
     if (await _checkRoomHasMinimumPlayers(roomId)) {
-      _changeRoomState(roomId)
+      await _changeRoomState(roomId, 'started')
       startHelper(roomId)
     } else {
       await _destroyRoom(roomId)
@@ -141,8 +139,8 @@ const _roomWaitingTimeOver = async (roomId) => {
 
 const _destroyRoom = async (roomId) => {
   await removeAlPlayerFromRoom(roomId)
-  await redisClient.del(redisConfig.prefixes.rooms + roomId)
-  await redisClient.zrem(redisConfig.prefixes.roomsList, roomId)
+  await redisClient.del(rooms + roomId)
+  await redisClient.zrem(roomsList, roomId)
   io.of('/').in(roomId).clients((error, clients) => {
     if (error) logger.error(error)
     if (clients.length) {

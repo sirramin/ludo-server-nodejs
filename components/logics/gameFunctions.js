@@ -16,10 +16,13 @@ const {gameMeta: {timerMaxTime, lightsAtStart}} = require('../../common/config')
 const exp = {}
 
 exp.changeTurn = async (roomId, decreaseLight) => {
-  updateRemainingTime(roomId, timerMaxTime)
-  updateDiceAttempts(roomId, 0)
+  await updateRemainingTime(roomId, timerMaxTime)
+  await updateDiceAttempts(roomId, 0)
   const nextPlayer = await _findNextAvailablePlayer(roomId)
-  updateCurrentPlayer(roomId, nextPlayer)
+  if (!nextPlayer) {
+    return
+  }
+  await updateCurrentPlayer(roomId, nextPlayer)
   emitToAll('changeTurn', roomId, integerBuf(nextPlayer))
   const playerUserId = await exp.findUserId(roomId, nextPlayer)
   emitToSpecificPlayer('yourTurn', playerUserId, null)
@@ -28,13 +31,18 @@ exp.changeTurn = async (roomId, decreaseLight) => {
   }
 }
 
-_findNextAvailablePlayer = async () => {
-  const currentPlayer = await getCurrentPlayer()
-  const previousPlayer = currentPlayer
+_findNextAvailablePlayer = async (roomId) => {
+  const previousPlayer = await getCurrentPlayer(roomId)
   const playersCount = await numberOfPlayersInRoom(roomId)
   const nextPlayer = previousPlayer + 1 > playersCount ? 1 : previousPlayer + 1
+  const positions = await getPositions(roomId)
+  for (let i = 1; i < playersCount; i++) {
+    if (positions[nextPlayer - 1]) {
+      return nextPlayer
+    }
+  }
+  return null
 }
-
 
 exp.findUserId = async (roomId, playerNumber) => {
   const positions = await getPositions(roomId)
@@ -44,9 +52,9 @@ exp.findUserId = async (roomId, playerNumber) => {
   return userObj.userId
 }
 
-_decreaseLight = (roomId) => {
+_decreaseLight = (roomId, lights) => {
   // decrease light in redis
-  emitToAll('lights', roomId, integerBuf(firstTurn))
+  emitToAll('lights', roomId, arrayBuf(lights))
 
 }
 

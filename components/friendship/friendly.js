@@ -59,7 +59,7 @@ module.exports = (io, socket, gameMeta) => {
         currentPlayersLength === gameMeta.roomMax - 1 ? newState = "started" : newState = "waiting"
         roomInfo.state = newState
         currentPlayers.push(userId)
-        await redisClient.hmset(roomsPrefix + roomId, 'info', JSON.stringify(roomInfo), 'players', JSON.stringify(currentPlayers))
+        // await redisClient.hmset(roomsPrefix + roomId, 'info', JSON.stringify(roomInfo), 'players', JSON.stringify(currentPlayers))
         await redisClient.zincrby(roomsListPrefix, 1, roomId)
         await updateUserRoom(roomId)
         io.of('/').adapter.remoteJoin(socket.id, roomId, (err) => {
@@ -77,7 +77,7 @@ module.exports = (io, socket, gameMeta) => {
         const currentTimeStamp = new Date().getTime()
         const newRoomPlayers = [socket.userInfo.userId]
         const hmArgs = [roomsPrefix + roomId, 'roomId', roomId, 'state', 'waiting', 'creationDateTime', currentTimeStamp, 'marketKey', marketKey, 'players', newRoomPlayers]
-        await redisClient.hmset(hmArgs)
+        // await redisClient.hmset(hmArgs)
         await redisClient.zadd(roomsListPrefix, 1, roomId)
         await updateUserRoom(roomId)
         socket.join(roomId)

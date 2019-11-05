@@ -91,7 +91,7 @@ module.exports = (dbUrl, market) => {
             await lb.incr(userId, leagueScore)
         const newScore = await lb.score(userId)
         await userQuery.updateScoreInMongo(userId, userInfo.win, userInfo.lose, newScore)
-        return await redisClient.hmset(usersPath, userId, JSON.stringify(userInfo))
+        // return await redisClient.hmset(usersPath, userId, JSON.stringify(userInfo))
     }
 
     const firstTimeScore = async (name, userId) => {
@@ -103,7 +103,7 @@ module.exports = (dbUrl, market) => {
             "lose": 0
         }
         await lb.add(userId, 0)
-        await redisClient.hmset(usersPath, userId, JSON.stringify(userInfo))
+        // await redisClient.hmset(usersPath, userId, JSON.stringify(userInfo))
     }
 
     const changeName = async (newName, userId) => {

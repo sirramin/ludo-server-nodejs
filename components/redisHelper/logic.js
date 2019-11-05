@@ -26,6 +26,10 @@ exp.updateMarblesPosition = async (roomId, marblesPosition) => {
   await redisClient.hset(rooms + roomId, 'marblesPosition', marblesPosition)
 }
 
+exp.updatePositions = async (roomId, positions) => {
+  await redisClient.hset(rooms + roomId, 'positions', positions)
+}
+
 
 exp.getCurrentPlayer = async (roomId) => {
   await redisClient.hget(rooms + roomId, 'currentPlayer')

@@ -2,7 +2,7 @@ const _ = require('lodash')
 const {numberOfPlayersInRoom, getRoomPlayers, getRoomPlayersWithNames} = require('../redisHelper/players')
 
 const {updateRemainingTime, increaseRemainingTime, updateDiceAttempts, getLights,
-  updateCurrentPlayer, getCurrentPlayer, updateLights, updateMarblesPosition} = require('../redisHelper/logic')
+  updateCurrentPlayer, getCurrentPlayer, updateLights, updateMarblesPosition, updatePositions} = require('../redisHelper/logic')
 
 const {kickUser, deleteRoom} = require('../redisHelper/room')
 const {emitToSpecificPlayer, emitToAll} = require('../realtime/socketHelper')
@@ -18,22 +18,23 @@ const init = async (roomId) => {
   for (let i = 0; i < playersCount; i++) {
     lights[i] = lightsAtStart
   }
-  updateLights(roomId, lights)
+  await updateLights(roomId, lights)
   await sendPositions(roomId)
 }
 
 const sendPositions = async (roomId) => {
   const players = await getRoomPlayers(roomId)
-  updateRemainingTime(roomId, timerMaxTime)
-  updateDiceAttempts(roomId, 0)
+  await updateRemainingTime(roomId, timerMaxTime)
+  await updateDiceAttempts(roomId, 0)
   let marblesPosition = []
   for (const [index, userId] of players.entries()) {
     const playerNumber = index + 1
     marblesPosition[index] = [0, 0, 0, 0]
     emitToSpecificPlayer('yourPlayerNumber', userId, integerBuf(playerNumber))
   }
-  updateMarblesPosition(roomId, marblesPosition)
+  await updateMarblesPosition(roomId, marblesPosition)
   const positions = await getRoomPlayersWithNames(roomId)
+  await updatePositions(roomId, positions)
   emitToAll('positions', roomId, positionBuf(positions))
   await firstTurn(roomId)
 }

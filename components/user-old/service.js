@@ -44,7 +44,7 @@ module.exports = (dbUrl, market) => {
       "win": 0,
       "lose": 0
     }
-    await redisClient.hmset(usersPath, userId, JSON.stringify(userInfo))
+    // await redisClient.hmset(usersPath, userId, JSON.stringify(userInfo))
     // const leaderboardService = require('../leaderboard/service')(dbUrl, market)
     // leaderboardService.firstTimeScore(name, userId)
   }

@@ -99,7 +99,7 @@ const leaderboardClass = class {
             await this.lb.incr(userId, leagueScore)
         const newScore = await this.lb.score(userId)
         // await this.userQuery.updateScoreInMongo(userId, userInfo.win, userInfo.lose, newScore)
-        return await redisClient.hmset(this.usersPath, userId, JSON.stringify(userInfo))
+        // return await redisClient.hmset(this.usersPath, userId, JSON.stringify(userInfo))
     }
 
 
@@ -111,7 +111,7 @@ const leaderboardClass = class {
             "lose": 0
         }
         await this.lb.add(userId, 0)
-        await redisClient.hmset(this.usersPath, userId, JSON.stringify(userInfo))
+        // await redisClient.hmset(this.usersPath, userId, JSON.stringify(userInfo))
     }
 
 
