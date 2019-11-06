@@ -4,7 +4,8 @@ const config = {
       roomsList: 'roomsList', // sorted set
       rooms: 'rooms:', // hash
       roomPlayers: 'roomPlayers:', // set
-      users: 'users:'
+      users: 'users:', // hash
+      positions: 'positions:' // hash
     }
   },
   gameMeta: {

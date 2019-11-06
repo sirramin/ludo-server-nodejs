@@ -1,8 +1,10 @@
 const _ = require('lodash')
 const {numberOfPlayersInRoom, getRoomPlayers, getRoomPlayersWithNames} = require('../redisHelper/players')
 
-const {updateRemainingTime, increaseRemainingTime, updateDiceAttempts, getLights,
-  updateCurrentPlayer, getCurrentPlayer, updateLights, updateMarblesPosition, updatePositions} = require('../redisHelper/logic')
+const {
+  updateRemainingTime, increaseRemainingTime, updateDiceAttempts, getLights,
+  updateCurrentPlayer, getCurrentPlayer, updateLights, updateMarblesPosition, updatePositions
+} = require('../redisHelper/logic')
 
 const {kickUser, deleteRoom} = require('../redisHelper/room')
 const {emitToSpecificPlayer, emitToAll} = require('../realtime/socketHelper')
@@ -18,14 +20,14 @@ const init = async (roomId) => {
   for (let i = 0; i < playersCount; i++) {
     lights[i] = lightsAtStart
   }
-  await updateLights(roomId, lights)
-  await sendPositions(roomId)
+  updateLights(roomId, lights)
+  sendPositions(roomId)
 }
 
 const sendPositions = async (roomId) => {
   const players = await getRoomPlayers(roomId)
-  await updateRemainingTime(roomId, timerMaxTime)
-  await updateDiceAttempts(roomId, 0)
+  updateRemainingTime(roomId, timerMaxTime)
+  updateDiceAttempts(roomId, 0)
   let marblesPosition = []
   for (const [index, userId] of players.entries()) {
     const playerNumber = index + 1
@@ -36,15 +38,15 @@ const sendPositions = async (roomId) => {
   const positions = await getRoomPlayersWithNames(roomId)
   await updatePositions(roomId, positions)
   emitToAll('positions', roomId, positionBuf(positions))
-  await firstTurn(roomId)
+  firstTurn(roomId)
 }
 
 const firstTurn = async (roomId) => {
   const playersCount = await numberOfPlayersInRoom(roomId)
-  const firstTurn = Math.floor(Math.random() * playersCount)
-  await updateCurrentPlayer(roomId, firstTurn)
+  const firstTurn = _.random(1, playersCount)
+  updateCurrentPlayer(roomId, firstTurn)
   emitToAll('firstTurn', roomId, integerBuf(firstTurn))
-  const playerUserId = findUserId(roomId, firstTurn)
+  const playerUserId = await findUserId(roomId, firstTurn)
   emitToSpecificPlayer('yourTurn', playerUserId, null)
   timerCounter(roomId)
 }
@@ -63,9 +65,9 @@ const timerCounter = (roomId) => {
       const lights = await getLights(roomId)
       const currentPlayer = await getCurrentPlayer(roomId)
       if (lights[currentPlayer - 1] === 1 && playersCount > 1) {
-        await kickUser(await findUserId(roomId, currentPlayer))
+        kickUser(await findUserId(roomId, currentPlayer))
       } else if (playersCount > 1) {
-        await changeTurn(roomId)
+         changeTurn(roomId)
       }
     }
   }, 1000)

@@ -16,8 +16,8 @@ const {gameMeta: {timerMaxTime, lightsAtStart}} = require('../../common/config')
 const exp = {}
 
 exp.changeTurn = async (roomId, decreaseLight) => {
-  await updateRemainingTime(roomId, timerMaxTime)
-  await updateDiceAttempts(roomId, 0)
+  updateRemainingTime(roomId, timerMaxTime)
+  updateDiceAttempts(roomId, 0)
   const nextPlayer = await _findNextAvailablePlayer(roomId)
   if (!nextPlayer) {
     return

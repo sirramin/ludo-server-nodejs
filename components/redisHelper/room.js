@@ -50,9 +50,9 @@ exp.getUserData = async (userId) => {
 
 exp.createNewRoom = async () => {
   const roomId = uuidv4()
-  await redisClient.hset(rooms + roomId, "status", "waiting")
   const currentTimeStamp = new Date().getTime()
-  await redisClient.hset(rooms + roomId, "creationDateTime", currentTimeStamp)
+  await redisClient.hset(rooms + roomId, "status", "waiting")
+  redisClient.hset(rooms + roomId, "creationDateTime", currentTimeStamp)
   setTimeout(() => {
     _roomWaitingTimeOver(roomId)
   }, gameMeta.waitingTime)
