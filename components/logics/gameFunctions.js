@@ -18,7 +18,8 @@ const exp = {}
 exp.changeTurn = async (roomId, decreaseLight) => {
   updateRemainingTime(roomId, timerMaxTime)
   updateDiceAttempts(roomId, 0)
-  const nextPlayer = await _findNextAvailablePlayer(roomId)
+  const previousPlayer = await getCurrentPlayer(roomId)
+  const nextPlayer = await _findNextAvailablePlayer(roomId, previousPlayer)
   if (!nextPlayer) {
     return
   }
@@ -27,12 +28,11 @@ exp.changeTurn = async (roomId, decreaseLight) => {
   const playerUserId = await exp.findUserId(roomId, nextPlayer)
   emitToSpecificPlayer('yourTurn', playerUserId, null)
   if (decreaseLight) {
-    _decreaseLight()
+    _decreaseLight(roomId, previousPlayer)
   }
 }
 
-_findNextAvailablePlayer = async (roomId) => {
-  const previousPlayer = await getCurrentPlayer(roomId)
+_findNextAvailablePlayer = async (roomId, previousPlayer) => {
   const playersCount = await numberOfPlayersInRoom(roomId)
   const nextPlayer = previousPlayer + 1 > playersCount ? 1 : previousPlayer + 1
   const positions = await getPositions(roomId)
@@ -52,7 +52,7 @@ exp.findUserId = async (roomId, playerNumber) => {
   return userObj.userId
 }
 
-_decreaseLight = (roomId, lights) => {
+_decreaseLight = (roomId, playerNumber) => {
   // decrease light in redis
   emitToAll('lights', roomId, arrayBuf(lights))
 

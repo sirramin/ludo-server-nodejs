@@ -18,9 +18,14 @@ exp.updateCurrentPlayer = async (roomId, currentPlayer) => {
   await redisClient.hset(rooms + roomId, 'currentPlayer', currentPlayer)
 }
 
-exp.updateLights = async (roomId, lights) => {
+exp.initLights = async (roomId, lights) => {
   await redisClient.hset(rooms + roomId, 'lights', JSON.stringify(lights))
 }
+
+exp.decreaseLights = async (roomId, lights) => {
+  await redisClient.hset(rooms + roomId, 'lights', JSON.stringify(lights))
+}
+
 
 exp.updateMarblesPosition = async (roomId, marblesPosition) => {
   await redisClient.hset(rooms + roomId, 'marblesPosition', JSON.stringify(marblesPosition))
