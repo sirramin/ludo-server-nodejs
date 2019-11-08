@@ -3,7 +3,7 @@ const {numberOfPlayersInRoom, getRoomPlayers, getRoomPlayersWithNames} = require
 
 const {
   updateRemainingTime, increaseRemainingTime, updateDiceAttempts, getLights,
-  updateCurrentPlayer, getCurrentPlayer, updateLights, updateMarblesPosition, updatePositions
+  updateCurrentPlayer, getCurrentPlayer, initLights, updateMarblesPosition, updatePositions
 } = require('../redisHelper/logic')
 
 const {kickUser, deleteRoom} = require('../redisHelper/room')
@@ -20,7 +20,7 @@ const init = async (roomId) => {
   for (let i = 0; i < playersCount; i++) {
     lights[i] = lightsAtStart
   }
-  updateLights(roomId, lights)
+  initLights(roomId, lights)
   sendPositions(roomId)
 }
 
@@ -67,7 +67,7 @@ const timerCounter = (roomId) => {
       if (lights[currentPlayer - 1] === 1 && playersCount > 1) {
         kickUser(await findUserId(roomId, currentPlayer))
       } else if (playersCount > 1) {
-         changeTurn(roomId)
+         changeTurn(roomId, true)
       }
     }
   }, 1000)

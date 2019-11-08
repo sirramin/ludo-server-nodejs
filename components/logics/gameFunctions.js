@@ -1,16 +1,14 @@
 const _ = require('lodash')
 const {numberOfPlayersInRoom, getRoomPlayers, getRoomPlayersWithNames} = require('../redisHelper/players')
 
-const {
-  updateRemainingTime, increaseRemainingTime, updateDiceAttempts, getLights,
-  updateCurrentPlayer, getCurrentPlayer, updateLights, updateMarblesPosition, getPositions
-} = require('../redisHelper/logic')
+const {updateRemainingTime, updateDiceAttempts, updateCurrentPlayer, getCurrentPlayer, getPositions, decreaseLights, getLights} = require('../redisHelper/logic')
 
 const {kickUser} = require('../redisHelper/room')
 const {emitToSpecificPlayer, emitToAll} = require('../realtime/socketHelper')
 const {stringBuf} = require('../../flatBuffers/str/data/str')
 const {integerBuf} = require('../../flatBuffers/int/data/int')
 const {positionBuf} = require('../../flatBuffers/positions/data/positions')
+const {arrayBuf} = require('../../flatBuffers/arr/data/arr')
 const {gameMeta: {timerMaxTime, lightsAtStart}} = require('../../common/config')
 
 const exp = {}
@@ -52,10 +50,10 @@ exp.findUserId = async (roomId, playerNumber) => {
   return userObj.userId
 }
 
-_decreaseLight = (roomId, playerNumber) => {
-  // decrease light in redis
+_decreaseLight = async (roomId, playerNumber) => {
+  await decreaseLights(roomId, playerNumber)
+  let lights = await getLights(roomId)
   emitToAll('lights', roomId, arrayBuf(lights))
-
 }
 
 module.exports = exp

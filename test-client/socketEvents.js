@@ -28,6 +28,15 @@ const socketManager = (token) => {
     }
   })
 
+  socket.on('lights', function (byets) {
+    const bufView = new Uint8Array(byets)
+    const buf = new flatbuffersLib.ByteBuffer(bufView)
+    const object = Mench.Arrs.Arr.getRootAsArr(buf)
+    for (let i = 0; i <= object.dataLength() - 1; i++) {
+      $('#messages').append($('<span>').text(' lights' + object.data(i)))
+    }
+  })
+
   socket.on('firstTurn', function (byets) {
     const bufView = new Uint8Array(byets)
     const buf = new flatbuffersLib.ByteBuffer(bufView)
@@ -41,8 +50,11 @@ const socketManager = (token) => {
     $('#messages').append($('<li>').text('yourTurn').css('color', 'blue'))
   })
 
-  socket.on('profile', function (data) {
-    $('#messages').append($('<li>').text(data + JSON.stringify(data.data)))
+  socket.on('changeTurn', function (byets) {
+    const bufView = new Uint8Array(byets)
+    const buf = new flatbuffersLib.ByteBuffer(bufView)
+    const object = Mench.Number.Integ.getRootAsInteg(buf)
+    $('#messages').append($('<li>').text('changeTurn: ' + object.data()))
   })
 
   socket.on('friendly', function (data) {

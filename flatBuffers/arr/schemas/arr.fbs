@@ -1,0 +1,8 @@
+namespace Mench.Arrs;
+
+
+table Arr {
+    data : [ushort];
+}
+
+root_type Arr;

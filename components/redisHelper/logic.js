@@ -2,6 +2,7 @@ const redisClient = require('../../common/redis-client')
 const {redis: {prefixes: {rooms, positions}}} = require('../../common/config')
 const exp = {}
 
+////////////////////////    set    /////////////////////////////////////////////
 exp.updateRemainingTime = async (roomId, time) => {
   await redisClient.hset(rooms + roomId, 'remainingTime', time)
 }
@@ -22,10 +23,11 @@ exp.initLights = async (roomId, lights) => {
   await redisClient.hset(rooms + roomId, 'lights', JSON.stringify(lights))
 }
 
-exp.decreaseLights = async (roomId, lights) => {
+exp.decreaseLights = async (roomId, playerNumber) => {
+  let lights = await exp.getLights(roomId)
+  lights[playerNumber - 1] -= 1
   await redisClient.hset(rooms + roomId, 'lights', JSON.stringify(lights))
 }
-
 
 exp.updateMarblesPosition = async (roomId, marblesPosition) => {
   await redisClient.hset(rooms + roomId, 'marblesPosition', JSON.stringify(marblesPosition))
@@ -34,7 +36,6 @@ exp.updateMarblesPosition = async (roomId, marblesPosition) => {
 exp.updatePositions = async (roomId, positions) => {
   await redisClient.hset(rooms + roomId, 'positions', JSON.stringify(positions))
 }
-
 
 ////////////////////////    get    /////////////////////////////////////////////
 exp.getCurrentPlayer = async (roomId) => {
