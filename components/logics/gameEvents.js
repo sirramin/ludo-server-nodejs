@@ -1,6 +1,6 @@
 const _ = require('lodash')
 const {gameMeta: {timerMaxTime}} = require('../../common/config')
-const {getDiceAttempts, increaseDiceAttempts} = require('../redisHelper/logic')
+const {updateRemainingTime, increaseDiceAttempts, getMarblesPositions} = require('../redisHelper/logic')
 const {findUserCurrentRoom} = require('../redisHelper/user')
 const {emitToSpecificPlayer, emitToAll} = require('../realtime/socketHelper')
 const {integerBuf} = require('../../flatBuffers/int/data/int')
@@ -12,10 +12,10 @@ exp.rollDice = async (userId) => {
   await increaseDiceAttempts(roomId)
   const tossNumber = _.random(1, 6)
   emitToSpecificPlayer('tossNumber', userId, integerBuf(tossNumber))
-  await _checkRules(tossNumber)
+  await _checkRules(roomId, tossNumber)
 }
 
-const _checkRules = async (tossNumber) => {
+const _checkRules = async (roomId, tossNumber) => {
   if (tossNumber === 6) {
     updateRemainingTime(roomId, timerMaxTime)
   }
@@ -27,7 +27,7 @@ const _checkRules = async (tossNumber) => {
       methods.sendGameEvents(21, 'marblesCanMove', marbs)
       await saveTossNumber(tossNumber)
     } else {
-      methods.sendGameEvents(21, 'marblesCanMove', [])
+      // methods.sendGameEvents(21, 'marblesCanMove', [])
       if (tossNumber === 6)
         methods.sendGameEvents(22, 'canRollDiceAgain', true)
       await changeTurn()
@@ -53,7 +53,9 @@ const saveTossNumber = async (tossNumber) => {
   await methods.setProp('tossNumber', tossNumber)
 }
 
-const playerHasMarbleOnRoad = () => {
+const numberOfMarblesOnRoad = async (roomId) => {
+  const marblePositions = await getMarblesPositions(roomId)
+    marblesPosition[currentPlayer.toString()]
   for (let key in currentPlayerMarbles) {
     if (currentPlayerMarbles.hasOwnProperty(key) && currentPlayerMarbles[key] > 0)
       return true
