@@ -57,7 +57,7 @@ exp.getPositions = async (roomId) => {
   return JSON.parse(positions)
 }
 
-exp.getMarblesPositions = async (roomId) => {
+exp.getMarblesPosition = async (roomId) => {
   const marblesPosition = await redisClient.hget(rooms + roomId, 'marblesPosition')
   return JSON.parse(marblesPosition)
 }
