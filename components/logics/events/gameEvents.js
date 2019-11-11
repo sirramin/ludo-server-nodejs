@@ -1,10 +1,10 @@
 const _ = require('lodash')
-const {gameMeta: {timerMaxTime}} = require('../../common/config')
-const {updateRemainingTime, increaseDiceAttempts, getMarblesPosition, getCurrentPlayer} = require('../redisHelper/logic')
-const {findUserCurrentRoom} = require('../redisHelper/user')
-const {emitToSpecificPlayer, emitToAll} = require('../realtime/socketHelper')
-const {integerBuf} = require('../../flatBuffers/int/data/int')
-const {checkRules} = require('./gameEventsHelper')
+const {gameMeta: {timerMaxTime}} = require('../../../common/config')
+const {updateRemainingTime, increaseDiceAttempts, getMarblesPosition, getCurrentPlayer} = require('../../redisHelper/logic')
+const {findUserCurrentRoom} = require('../../redisHelper/user')
+const {emitToSpecificPlayer, emitToAll} = require('../../realtime/socketHelper')
+const {integerBuf} = require('../../../flatBuffers/int/data/int')
+const {checkRules} = require('./checkRules')
 const exp = {}
 
 exp.rollDice = async (userId) => {
