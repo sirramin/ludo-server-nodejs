@@ -1,5 +1,6 @@
 const _ = require('lodash')
 const {gameMeta: {timerMaxTime}} = require('../../common/config')
+const {updateRemainingTime, increaseDiceAttempts, getMarblesPosition, getCurrentPlayer} = require('../redisHelper/logic')
 const exp = {}
 
 
@@ -11,16 +12,27 @@ exp.checkRules = async (roomId, tossNumber) => {
   const numberOfMarblesOnRoad = _numberOfMarblesOnRoad(roomId)
   if (numberOfMarblesOnRoad === 0) {
     if (tossNumber === 6) {
-      _autoMove()
-    }
-    else {
-        updateRemainingTime(roomId, timerMaxTime)
-      methods.sendGameEvents(22, 'canRollDiceAgain', true)
-
+      const marblesMeeting = await _checkMarblesMeeting(roomId)
+      if (marblesMeeting) {
+        _whichMarblesCanMove
+      } else {
+        _autoMove()
+      }
+    } else {
+      _diceAgain()
     }
   }
 
-    if (numberOfMarblesOnRoad) {
+  if (numberOfMarblesOnRoad === 1) {
+    if (tossNumber === 6) {
+      _autoMove()
+    } else {
+      _diceAgain()
+    }
+  }
+
+
+  if (numberOfMarblesOnRoad) {
     const marbs = whichMarblesCanMove(tossNumber)
     if (marbs.length > 0) {
       logger.info(JSON.stringify(marbs))
@@ -49,10 +61,15 @@ exp.checkRules = async (roomId, tossNumber) => {
   }
 }
 
-const _autoMove = ()=>{
+const _autoMove = () => {
 
 }
 
+const _diceAgain = async () => {
+  updateRemainingTime(roomId, timerMaxTime)
+  methods.sendGameEvents(22, 'canRollDiceAgain', true)
+
+}
 
 const saveTossNumber = async (tossNumber) => {
   await methods.setProp('tossNumber', tossNumber)
@@ -64,7 +81,7 @@ const _numberOfMarblesOnRoad = async (roomId) => {
   const currentPlayerMarbles = marblesPosition[currentPlayer]
   let n = 0
   for (let key in currentPlayerMarbles) {
-    if (currentPlayerMarbles.hasOwnProperty(key) && currentPlayerMarbles[key] > 0){
+    if (currentPlayerMarbles.hasOwnProperty(key) && currentPlayerMarbles[key] > 0) {
       n++
     }
   }
@@ -74,7 +91,7 @@ const _numberOfMarblesOnRoad = async (roomId) => {
 const tileStarts = [1, 11, 21, 31]
 const tilesStartEndLast = [[1, 40, 41, 44], [11, 10, 45, 48], [21, 20, 49, 52], [31, 30, 53, 56]]
 
-const whichMarblesCanMove = (tossNumber) => {
+const _whichMarblesCanMove = (tossNumber) => {
   const tilesStartEndLastCurrentPlayer = tilesStartEndLast[currentPlayer - 1]
   let marblesCantMove = []
 
@@ -145,7 +162,6 @@ const positionCalculator = (marblePosition, tossNumber) => {
 }
 
 const move = async (marbleNumber) => {
-  await getInitialProperties()
   // await methods.setProp('remainingTime', maxTime)
   const tossNumber = parseInt(roomInfo.tossNumber)
   const marblePosition = currentPlayerMarbles[marbleNumber - 1]
@@ -178,28 +194,28 @@ const move = async (marbleNumber) => {
   }
 }
 
-const checkMarblesMeeting = (marblesPosition, newMarblesPosition, newPosition) => {
+const _checkMarblesMeeting = async (roomId, newPosition) => {
+  const marblesPosition = await getMarblesPosition(roomId)
   let returnValue
   dance:
-    for (let key in marblesPosition) {
-      for (let j = 0; j < marblesPosition[key].length; j++) {
-        if (marblesPosition[key][j] === newPosition) {
+    for (let [playerIndex, marblePositions] of marblesPosition.entries()) {
+      for (let [marbleIndex, marblePos] of marblePositions.entries()) {
+        if (marblePos === newPosition) {
           returnValue = {
             meet: true,
-            player: key,
-            marble: j
+            playerIndex,
+            marbleIndex
           }
           break dance
         }
       }
     }
-  logger.info(JSON.stringify(returnValue))
+  logger.info('marblesMeeting: ' + JSON.stringify(returnValue))
   if (returnValue)
     return returnValue
   else return {
     meet: false
   }
-
 }
 
 const checkGameEnds = (marblesPosition, newMarblesPosition) => {
