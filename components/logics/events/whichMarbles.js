@@ -1,13 +1,11 @@
 const _ = require('lodash')
 const {gameMeta: {timerMaxTime}} = require('../../../common/config')
 const {getCurrentPlayer, getMarblesPosition} = require('../../redisHelper/logic')
-const exp = {}
-
 
 const tileStarts = [1, 11, 21, 31]
 const tilesStartEndLast = [[1, 40, 41, 44], [11, 10, 45, 48], [21, 20, 49, 52], [31, 30, 53, 56]]
 
-const _whichMarblesCanMove = async (roomId) => {
+const whichMarblesCanMove = async (roomId) => {
   const currentPlayer = await getCurrentPlayer(roomId)
   const tilesStartEndLastCurrentPlayer = tilesStartEndLast[currentPlayer - 1]
   let marblesCantMove = []
@@ -57,4 +55,4 @@ const _whichMarblesCanMove = async (roomId) => {
 }
 
 
-module.exports = exp
+module.exports = whichMarblesCanMove
