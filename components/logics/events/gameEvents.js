@@ -1,38 +1,39 @@
 const _ = require('lodash')
 const {gameMeta: {timerMaxTime}} = require('../../../common/config')
-const {updateRemainingTime, increaseDiceAttempts, getMarblesPosition, getCurrentPlayer} = require('../../redisHelper/logic')
+const {updateDiceNumber, increaseDiceAttempts} = require('../../redisHelper/logic')
 const {findUserCurrentRoom} = require('../../redisHelper/user')
 const {emitToSpecificPlayer, emitToAll} = require('../../realtime/socketHelper')
 const {integerBuf} = require('../../../flatBuffers/int/data/int')
-const {checkRules} = require('./checkRules')
+const checkRules = require('./checkRules')
 const exp = {}
 
 exp.rollDice = async (userId) => {
   // await methods.setProp('remainingTime', maxTime)
   const roomId = await findUserCurrentRoom(userId)
   await increaseDiceAttempts(roomId)
-  const tossNumber = _.random(1, 6)
-  emitToSpecificPlayer('tossNumber', userId, integerBuf(tossNumber))
-  await checkRules(roomId, tossNumber)
+  const diceNumber = _.random(1, 6)
+  updateDiceNumber(diceNumber)
+  emitToSpecificPlayer('diceNumber', userId, integerBuf(diceNumber))
+  await checkRules(roomId, diceNumber)
 }
 
 const move = async (marbleNumber) => {
   await getInitialProperties()
   // await methods.setProp('remainingTime', maxTime)
-  const tossNumber = parseInt(roomInfo.tossNumber)
+  const diceNumber = parseInt(roomInfo.diceNumber)
   const marblePosition = currentPlayerMarbles[marbleNumber - 1]
-  const newPosition = positionCalculator(marblePosition, tossNumber)
+  const newPosition = positionCalculator(marblePosition, diceNumber)
   let newMarblesPosition = JSON.parse(JSON.stringify(marblesPosition))
   newMarblesPosition[currentPlayer.toString()][marbleNumber - 1] = newPosition
   await methods.setProp('marblesPosition', JSON.stringify(newMarblesPosition))
   const marblesMeeting = checkMarblesMeeting(marblesPosition, newMarblesPosition, newPosition)
 
   if (marblesMeeting.meet)
-    await hitPlayer(newPosition, newMarblesPosition, marblesMeeting, tossNumber)
+    await hitPlayer(newPosition, newMarblesPosition, marblesMeeting, diceNumber)
   else {
     methods.sendGameEvents(23, 'marblesPosition', newMarblesPosition)
 
-    if (tossNumber === 6)
+    if (diceNumber === 6)
       methods.sendGameEvents(22, 'canRollDiceAgain', true)
 
     const isGameEnds = checkGameEnds(marblesPosition, newMarblesPosition, newPosition)
@@ -45,7 +46,7 @@ const move = async (marbleNumber) => {
       await methods.deleteRoom(roomId)
     }
 
-    if (tossNumber !== 6)
+    if (diceNumber !== 6)
       await changeTurn()
   }
 }

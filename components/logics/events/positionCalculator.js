@@ -2,25 +2,25 @@ const _ = require('lodash')
 const {gameMeta: {timerMaxTime}} = require('../../../common/config')
 const {getCurrentPlayer, getMarblesPosition} = require('../../redisHelper/logic')
 
-const positionCalculator = (marblePosition, tossNumber) => {
+const positionCalculator = (marblePosition, diceNumber) => {
   const tilesStartEndLastCurrentPlayer = tilesStartEndLast[currentPlayer - 1]
   let newPosition
-  if (marblePosition + tossNumber > tilesStartEndLastCurrentPlayer[3])
+  if (marblePosition + diceNumber > tilesStartEndLastCurrentPlayer[3])
     return false
 
   if (marblePosition !== 0) {
     if (currentPlayer !== 1) {
-      if (marblePosition + tossNumber > 40)
-        newPosition = marblePosition + tossNumber - 40
-      else if (marblePosition + tossNumber > tilesStartEndLastCurrentPlayer[1] && marblePosition < tilesStartEndLastCurrentPlayer[0])
-        newPosition = marblePosition + tossNumber - tilesStartEndLastCurrentPlayer[1] + tilesStartEndLastCurrentPlayer[2] - 1
+      if (marblePosition + diceNumber > 40)
+        newPosition = marblePosition + diceNumber - 40
+      else if (marblePosition + diceNumber > tilesStartEndLastCurrentPlayer[1] && marblePosition < tilesStartEndLastCurrentPlayer[0])
+        newPosition = marblePosition + diceNumber - tilesStartEndLastCurrentPlayer[1] + tilesStartEndLastCurrentPlayer[2] - 1
       else
-        newPosition = marblePosition + tossNumber
+        newPosition = marblePosition + diceNumber
     }
     if (currentPlayer === 1) {
-      newPosition = marblePosition + tossNumber
+      newPosition = marblePosition + diceNumber
     }
-  } else if (marblePosition === 0 && tossNumber === 6)
+  } else if (marblePosition === 0 && diceNumber === 6)
     newPosition = tileStarts[currentPlayer - 1]
 
   return newPosition

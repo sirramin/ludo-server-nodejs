@@ -1,18 +1,20 @@
 const _ = require('lodash')
 const {gameMeta: {timerMaxTime}} = require('../../../common/config')
 const {getCurrentPlayer} = require('../../redisHelper/logic')
+const whichMarblesCanMove = require('./whichMarbles')
+const {numberOfMarblesOnRoad} = require('./gameEventsHelper')
 
-const checkRules = async (roomId, tossNumber) => {
-  // if (tossNumber === 6) {
+const checkRules = async (roomId, diceNumber) => {
+  // if (diceNumber === 6) {
   //   updateRemainingTime(roomId, timerMaxTime)
   // }
 
-  const numberOfMarblesOnRoad = _numberOfMarblesOnRoad(roomId)
+  const numberOfMarblesOnRoad = numberOfMarblesOnRoad(roomId)
   if (numberOfMarblesOnRoad === 0) {
-    if (tossNumber === 6) {
+    if (diceNumber === 6) {
       const marblesMeeting = await _checkMarblesMeeting(roomId)
       if (marblesMeeting) {
-        _whichMarblesCanMove
+        whichMarblesCanMove(roomId)
       } else {
         _autoMove()
       }
@@ -22,7 +24,7 @@ const checkRules = async (roomId, tossNumber) => {
   }
 
   if (numberOfMarblesOnRoad === 1) {
-    if (tossNumber === 6) {
+    if (diceNumber === 6) {
       _autoMove()
     } else {
       _diceAgain()
@@ -31,24 +33,24 @@ const checkRules = async (roomId, tossNumber) => {
 
 
   if (numberOfMarblesOnRoad) {
-    const marbs = whichMarblesCanMove(tossNumber)
+    const marbs = whichMarblesCanMove(diceNumber)
     if (marbs.length > 0) {
       logger.info(JSON.stringify(marbs))
       methods.sendGameEvents(21, 'marblesCanMove', marbs)
-      await saveTossNumber(tossNumber)
+      await savediceNumber(diceNumber)
     } else {
       // methods.sendGameEvents(21, 'marblesCanMove', [])
-      if (tossNumber === 6)
+      if (diceNumber === 6)
         methods.sendGameEvents(22, 'canRollDiceAgain', true)
       await changeTurn()
     }
   } else /* All In Nest */ {
-    if (tossNumber === 6) {
+    if (diceNumber === 6) {
       await methods.setProp('diceAttempts', 0)
-      await saveTossNumber(tossNumber)
+      await savediceNumber(diceNumber)
       methods.sendGameEvents(21, 'marblesCanMove', [1, 2, 3, 4])
       logger.info(JSON.stringify([1, 2, 3, 4]))
-    } else  /* tossNumber !== 6 */ {
+    } else  /* diceNumber !== 6 */ {
       const timeCanRollDice = (playerCastleNumber === 3) ? 4 : 3
       // diceAttempts = parseInt(await methods.getProp('diceAttempts'))
       logger.info('diceAttempts2: ' + diceAttempts)

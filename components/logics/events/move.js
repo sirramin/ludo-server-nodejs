@@ -4,20 +4,20 @@ const {getCurrentPlayer, getMarblesPosition} = require('../../redisHelper/logic'
 
 const move = async (marbleNumber) => {
   // await methods.setProp('remainingTime', maxTime)
-  const tossNumber = parseInt(roomInfo.tossNumber)
+  const diceNumber = parseInt(roomInfo.diceNumber)
   const marblePosition = currentPlayerMarbles[marbleNumber - 1]
-  const newPosition = positionCalculator(marblePosition, tossNumber)
+  const newPosition = positionCalculator(marblePosition, diceNumber)
   let newMarblesPosition = JSON.parse(JSON.stringify(marblesPosition))
   newMarblesPosition[currentPlayer.toString()][marbleNumber - 1] = newPosition
   await methods.setProp('marblesPosition', JSON.stringify(newMarblesPosition))
   const marblesMeeting = checkMarblesMeeting(marblesPosition, newMarblesPosition, newPosition)
 
   if (marblesMeeting.meet)
-    await hitPlayer(newPosition, newMarblesPosition, marblesMeeting, tossNumber)
+    await hitPlayer(newPosition, newMarblesPosition, marblesMeeting, diceNumber)
   else {
     methods.sendGameEvents(23, 'marblesPosition', newMarblesPosition)
 
-    if (tossNumber === 6)
+    if (diceNumber === 6)
       methods.sendGameEvents(22, 'canRollDiceAgain', true)
 
     const isGameEnds = checkGameEnds(marblesPosition, newMarblesPosition, newPosition)
@@ -30,7 +30,7 @@ const move = async (marbleNumber) => {
       await methods.deleteRoom(roomId)
     }
 
-    if (tossNumber !== 6)
+    if (diceNumber !== 6)
       await changeTurn()
   }
 }

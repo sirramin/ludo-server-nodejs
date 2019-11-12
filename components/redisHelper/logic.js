@@ -23,6 +23,10 @@ exp.updateCurrentPlayer = async (roomId, currentPlayer) => {
   await redisClient.hset(rooms + roomId, 'currentPlayer', currentPlayer)
 }
 
+exp.updateDiceNumber = async (roomId, diceNumber) => {
+  await redisClient.hset(rooms + roomId, 'diceNumber', diceNumber)
+}
+
 exp.initLights = async (roomId, lights) => {
   await redisClient.hset(rooms + roomId, 'lights', JSON.stringify(lights))
 }
@@ -63,8 +67,13 @@ exp.getMarblesPosition = async (roomId) => {
 }
 
 exp.getDiceAttempts = async (roomId) => {
-  const currentPlayer = await redisClient.hget(rooms + roomId, 'diceAttempts')
-  return parseInt(currentPlayer)
+  const diceAttempts = await redisClient.hget(rooms + roomId, 'diceAttempts')
+  return parseInt(diceAttempts)
+}
+
+exp.getDiceNumber = async (roomId) => {
+  const diceNumber = await redisClient.hget(rooms + roomId, 'diceNumber')
+  return parseInt(diceNumber)
 }
 
 module.exports = exp

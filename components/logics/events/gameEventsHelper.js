@@ -13,11 +13,11 @@ const _diceAgain = async () => {
 
 }
 
-const saveTossNumber = async (tossNumber) => {
-  await methods.setProp('tossNumber', tossNumber)
+const savediceNumber = async (diceNumber) => {
+  await methods.setProp('diceNumber', diceNumber)
 }
 
-const _numberOfMarblesOnRoad = async (roomId) => {
+exp.numberOfMarblesOnRoad = async (roomId) => {
   const marblesPosition = await getMarblesPosition(roomId)
   const currentPlayer = await getCurrentPlayer(roomId)
   const currentPlayerMarbles = marblesPosition[currentPlayer]
@@ -65,15 +65,15 @@ const checkGameEnds = (marblesPosition, newMarblesPosition) => {
   return diff.length === 0
 }
 
-const hitPlayer = async (newPosition, newMarblesPosition, marblesMeeting, tossNumber) => {
+const hitPlayer = async (newPosition, newMarblesPosition, marblesMeeting, diceNumber) => {
   newMarblesPosition[marblesMeeting.player][marblesMeeting.marble] = 0
   logger.info('marblesMeeting.marble: ' + marblesMeeting.marble)
   await methods.setProp('marblesPosition', JSON.stringify(newMarblesPosition))
   methods.sendGameEvents(23, 'marblesPosition', newMarblesPosition)
   await increaseHitAndBeat(currentPlayer, marblesMeeting.player)
-  if (tossNumber === 6)
+  if (diceNumber === 6)
     methods.sendGameEvents(22, 'canRollDiceAgain', true)
-  if (tossNumber !== 6)
+  if (diceNumber !== 6)
     await changeTurn()
 }
 
