@@ -26,7 +26,7 @@ exp.changeTurn = async (roomId, decreaseLight) => {
   const playerUserId = await exp.findUserId(roomId, nextPlayer)
   emitToSpecificPlayer('yourTurn', playerUserId, null)
   if (decreaseLight) {
-    _decreaseLight(roomId, previousPlayer)
+    await _decreaseLight(roomId, previousPlayer)
   }
 }
 
