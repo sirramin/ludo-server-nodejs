@@ -3,17 +3,16 @@ const {gameMeta: {timerMaxTime}} = require('../../../common/config')
 const {updateRemainingTime, increaseDiceAttempts, getMarblesPosition, getCurrentPlayer} = require('../../redisHelper/logic')
 const exp = {}
 
-const _autoMove = () => {
+exp.autoMove = () => {
 
 }
 
-const _diceAgain = async () => {
+exp.diceAgain = async () => {
   updateRemainingTime(roomId, timerMaxTime)
   methods.sendGameEvents(22, 'canRollDiceAgain', true)
-
 }
 
-const savediceNumber = async (diceNumber) => {
+exp.savediceNumber = async (diceNumber) => {
   await methods.setProp('diceNumber', diceNumber)
 }
 
@@ -30,7 +29,7 @@ exp.numberOfMarblesOnRoad = async (roomId) => {
   return n
 }
 
-const _checkMarblesMeeting = async (roomId, newPosition) => {
+exp.checkMarblesMeeting = async (roomId, newPosition) => {
   const marblesPosition = await getMarblesPosition(roomId)
   let returnValue
   dance:
@@ -54,7 +53,7 @@ const _checkMarblesMeeting = async (roomId, newPosition) => {
   }
 }
 
-const checkGameEnds = (marblesPosition, newMarblesPosition) => {
+exp.checkGameEnds = (marblesPosition, newMarblesPosition) => {
   const tilesStartEndLastCurrentPlayer = tilesStartEndLast[currentPlayer - 1]
   const marblesAtEnd = []
   newMarblesPosition[currentPlayer.toString()].forEach((marblesPos, marbleIndx) => {
@@ -65,7 +64,7 @@ const checkGameEnds = (marblesPosition, newMarblesPosition) => {
   return diff.length === 0
 }
 
-const hitPlayer = async (newPosition, newMarblesPosition, marblesMeeting, diceNumber) => {
+exp.hitPlayer = async (newPosition, newMarblesPosition, marblesMeeting, diceNumber) => {
   newMarblesPosition[marblesMeeting.player][marblesMeeting.marble] = 0
   logger.info('marblesMeeting.marble: ' + marblesMeeting.marble)
   await methods.setProp('marblesPosition', JSON.stringify(newMarblesPosition))
