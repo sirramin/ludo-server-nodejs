@@ -21,7 +21,7 @@ const init = async (roomId) => {
     lights[i] = lightsAtStart
   }
   initLights(roomId, lights)
-  sendPositions(roomId)
+  await sendPositions(roomId)
 }
 
 const sendPositions = async (roomId) => {
@@ -38,7 +38,7 @@ const sendPositions = async (roomId) => {
   const positions = await getRoomPlayersWithNames(roomId)
   await updatePositions(roomId, positions)
   emitToAll('positions', roomId, positionBuf(positions))
-  firstTurn(roomId)
+  await firstTurn(roomId)
 }
 
 const firstTurn = async (roomId) => {

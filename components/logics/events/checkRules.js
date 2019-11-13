@@ -1,6 +1,6 @@
 const _ = require('lodash')
 const {gameMeta: {timerMaxTime}} = require('../../../common/config')
-const {getCurrentPlayer} = require('../../redisHelper/logic')
+const {updateDiceAttempts, updateRemainingTime, getDiceAttempts} = require('../../redisHelper/logic')
 const {changeTurn} = require('../gameFunctions')
 const whichMarblesCanMove = require('./whichMarbles')
 const {numberOfMarblesOnRoad, autoMove, diceAgain, checkMarblesMeeting} = require('./gameEventsHelper')
@@ -9,9 +9,10 @@ const {emitToSpecificPlayer, emitToAll} = require('../../realtime/socketHelper')
 
 
 const checkRules = async (roomId, diceNumber) => {
-  // if (diceNumber === 6) {
-  //   updateRemainingTime(roomId, timerMaxTime)
-  // }
+  if (diceNumber === 6) {
+    updateDiceAttempts(roomId, 0)
+    updateRemainingTime(roomId, timerMaxTime)
+  }
 
   const numberOfMarblesOnRoad = await numberOfMarblesOnRoad(roomId)
   const marblesMeeting = await checkMarblesMeeting(roomId)
@@ -35,11 +36,14 @@ const checkRules = async (roomId, diceNumber) => {
 
 const _handleZeroMarblesOnRoad = async (roomId, diceNumber, marblesMeeting, marblesCanMove) => {
   if (diceNumber === 6) {
-    updateDiceAttempts(roomId, 0)
-
     await _handleHit(roomId, diceNumber, marblesCanMove, marblesMeeting)
   } else {
-    diceAgain()
+    const diceAttempts = getDiceAttempts(roomId)
+    if (diceAttempts < 3) {
+      diceAgain()
+    } else {
+      await changeTurn(roomId)
+    }
   }
 }
 
@@ -73,8 +77,6 @@ const _handleHit = async (roomId, diceNumber, marblesCanMove, marblesMeeting) =>
 //   if (diceNumber === 6) {
 //     await methods.setProp('diceAttempts', 0)
 //     await savediceNumber(diceNumber)
-//     methods.sendGameEvents(21, 'marblesCanMove', [1, 2, 3, 4])
-//     logger.info(JSON.stringify([1, 2, 3, 4]))
 //   } else  /* diceNumber !== 6 */ {
 //     const timeCanRollDice = (playerCastleNumber === 3) ? 4 : 3
 //     // diceAttempts = parseInt(await methods.getProp('diceAttempts'))
