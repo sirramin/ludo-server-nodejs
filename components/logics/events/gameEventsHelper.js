@@ -6,12 +6,14 @@ const {arrayBuf} = require('../../../flatBuffers/arr/data/arr')
 const exp = {}
 
 exp.autoMove = () => {
+  emitToAll('autoMove', roomId, arrayBuf(marblesCanMove))
+  // increase time 3 seconds
 
 }
 
 exp.manualMove = (roomId, marblesCanMove) => {
   emitToAll('marblesCanMove', roomId, arrayBuf(marblesCanMove))
-
+  // increase time 6 seconds
 }
 
 exp.diceAgain = async () => {
