@@ -1,9 +1,16 @@
 const _ = require('lodash')
 const {gameMeta: {timerMaxTime}} = require('../../../common/config')
 const {updateRemainingTime, increaseDiceAttempts, getMarblesPosition, getCurrentPlayer} = require('../../redisHelper/logic')
+const {emitToSpecificPlayer, emitToAll} = require('../../realtime/socketHelper')
+const {arrayBuf} = require('../../../flatBuffers/arr/data/arr')
 const exp = {}
 
 exp.autoMove = () => {
+
+}
+
+exp.manualMove = (roomId, marblesCanMove) => {
+  emitToAll('marblesCanMove', roomId, arrayBuf(marblesCanMove))
 
 }
 
