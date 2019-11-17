@@ -1,5 +1,5 @@
 const _ = require('lodash')
-const {gameMeta: {timerMaxTime}} = require('../../../common/config')
+const {gameMeta: {diceMaxTime}} = require('../../../common/config')
 const {updateRemainingTime, increaseDiceAttempts, getMarblesPosition, getCurrentPlayer} = require('../../redisHelper/logic')
 const {emitToSpecificPlayer, emitToAll} = require('../../realtime/socketHelper')
 const {arrayBuf} = require('../../../flatBuffers/arr/data/arr')
@@ -17,7 +17,7 @@ exp.manualMove = (roomId, marblesCanMove) => {
 }
 
 exp.diceAgain = async () => {
-  updateRemainingTime(roomId, timerMaxTime)
+  updateRemainingTime(roomId, diceMaxTime)
   methods.sendGameEvents(22, 'canRollDiceAgain', true)
 }
 

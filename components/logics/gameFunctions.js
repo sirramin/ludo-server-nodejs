@@ -9,12 +9,12 @@ const {stringBuf} = require('../../flatBuffers/str/data/str')
 const {integerBuf} = require('../../flatBuffers/int/data/int')
 const {positionBuf} = require('../../flatBuffers/positions/data/positions')
 const {arrayBuf} = require('../../flatBuffers/arr/data/arr')
-const {gameMeta: {timerMaxTime, lightsAtStart}} = require('../../common/config')
+const {gameMeta: {diceMaxTime, lightsAtStart}} = require('../../common/config')
 
 const exp = {}
 
 exp.changeTurn = async (roomId, decreaseLight) => {
-  updateRemainingTime(roomId, timerMaxTime)
+  updateRemainingTime(roomId, diceMaxTime)
   updateDiceAttempts(roomId, 0)
   const previousPlayer = await getCurrentPlayer(roomId)
   const nextPlayer = await _findNextAvailablePlayer(roomId, previousPlayer)

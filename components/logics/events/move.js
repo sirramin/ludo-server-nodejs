@@ -1,5 +1,5 @@
 const _ = require('lodash')
-const {gameMeta: {timerMaxTime}} = require('../../../common/config')
+const {gameMeta: {diceMaxTime}} = require('../../../common/config')
 const {getCurrentPlayer, getMarblesPosition} = require('../../redisHelper/logic')
 
 const move = async (marbleNumber) => {

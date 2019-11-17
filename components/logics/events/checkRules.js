@@ -1,5 +1,5 @@
 const _ = require('lodash')
-const {gameMeta: {timerMaxTime}} = require('../../../common/config')
+const {gameMeta: {diceMaxTime}} = require('../../../common/config')
 const {updateDiceAttempts, updateRemainingTime, getDiceAttempts} = require('../../redisHelper/logic')
 const {changeTurn} = require('../gameFunctions')
 const whichMarblesCanMove = require('./whichMarbles')
@@ -9,7 +9,7 @@ const {numberOfMarblesOnRoad, autoMove, manualMove, diceAgain, checkMarblesMeeti
 const checkRules = async (roomId, diceNumber) => {
   if (diceNumber === 6) {
     updateDiceAttempts(roomId, 0)
-    updateRemainingTime(roomId, timerMaxTime)
+    updateRemainingTime(roomId, diceMaxTime)
   }
 
   const numberOfMarblesOnRoad = await numberOfMarblesOnRoad(roomId)

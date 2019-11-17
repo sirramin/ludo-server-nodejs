@@ -11,7 +11,7 @@ const {emitToSpecificPlayer, emitToAll} = require('../realtime/socketHelper')
 const {stringBuf} = require('../../flatBuffers/str/data/str')
 const {integerBuf} = require('../../flatBuffers/int/data/int')
 const {positionBuf} = require('../../flatBuffers/positions/data/positions')
-const {gameMeta: {timerMaxTime, lightsAtStart}} = require('../../common/config')
+const {gameMeta: {diceMaxTime, lightsAtStart}} = require('../../common/config')
 const {changeTurn, findUserId} = require('./gameFunctions')
 
 const init = async (roomId) => {
@@ -26,7 +26,7 @@ const init = async (roomId) => {
 
 const sendPositions = async (roomId) => {
   const players = await getRoomPlayers(roomId)
-  updateRemainingTime(roomId, timerMaxTime)
+  updateRemainingTime(roomId, diceMaxTime)
   updateDiceAttempts(roomId, 0)
   let marblesPosition = []
   for (const [index, userId] of players.entries()) {

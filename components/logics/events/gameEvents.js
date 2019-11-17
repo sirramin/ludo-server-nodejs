@@ -1,5 +1,5 @@
 const _ = require('lodash')
-const {gameMeta: {timerMaxTime}} = require('../../../common/config')
+const {gameMeta: {diceMaxTime}} = require('../../../common/config')
 const {updateDiceNumber, increaseDiceAttempts} = require('../../redisHelper/logic')
 const {findUserCurrentRoom} = require('../../redisHelper/user')
 const {emitToSpecificPlayer, emitToAll} = require('../../realtime/socketHelper')
