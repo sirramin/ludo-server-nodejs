@@ -1,28 +1,24 @@
 const _ = require('lodash')
-const {gameMeta: {diceMaxTime}} = require('../../../common/config')
-const {updateRemainingTime, increaseDiceAttempts, getMarblesPosition, getCurrentPlayer} = require('../../redisHelper/logic')
+const {gameMeta: {diceMaxTime, autoMoveMaxTime, manualMoveMaxTime}} = require('../../../common/config')
+const {updateRemainingTime, getMarblesPosition, getCurrentPlayer, getDiceNumber} = require('../../redisHelper/logic')
 const {emitToSpecificPlayer, emitToAll} = require('../../realtime/socketHelper')
 const {arrayBuf} = require('../../../flatBuffers/arr/data/arr')
+const positionCalculator = require('./positionCalculator')
 const exp = {}
 
-exp.autoMove = () => {
+exp.autoMove = (roomId, marblesCanMove) => {
   emitToAll('autoMove', roomId, arrayBuf(marblesCanMove))
-  // increase time 3 seconds
-
+  updateRemainingTime(roomId, autoMoveMaxTime)
 }
 
 exp.manualMove = (roomId, marblesCanMove) => {
   emitToAll('marblesCanMove', roomId, arrayBuf(marblesCanMove))
-  // increase time 6 seconds
+  updateRemainingTime(roomId, manualMoveMaxTime)
 }
 
-exp.diceAgain = async () => {
+exp.diceAgain = async (roomId) => {
   updateRemainingTime(roomId, diceMaxTime)
-  methods.sendGameEvents(22, 'canRollDiceAgain', true)
-}
-
-exp.savediceNumber = async (diceNumber) => {
-  await methods.setProp('diceNumber', diceNumber)
+  emitToAll('canRollDiceAgain', roomId)
 }
 
 exp.numberOfMarblesOnRoad = async (roomId) => {
@@ -38,19 +34,27 @@ exp.numberOfMarblesOnRoad = async (roomId) => {
   return n
 }
 
-exp.checkMarblesMeeting = async (roomId, newPosition) => {
+exp.checkMarblesMeeting = async (roomId, marblesCanMove) => {
+  const diceNumber = await getDiceNumber(roomId)
   const marblesPosition = await getMarblesPosition(roomId)
-  let returnValue
+  // const currentPlayer = await getCurrentPlayer(roomId)
+  // const currentPlayerMarbles = marblesPosition[currentPlayer]
+
+  let returnValue = []
   dance:
-    for (let [playerIndex, marblePositions] of marblesPosition.entries()) {
-      for (let [marbleIndex, marblePos] of marblePositions.entries()) {
-        if (marblePos === newPosition) {
-          returnValue = {
-            meet: true,
-            playerIndex,
-            marbleIndex
+    for (let [currentPlayerMarbleIndex, currentPlayerMarblePositions] of marblesCanMove.entries()) {
+      const newPosition = await positionCalculator(currentPlayerMarblePositions, diceNumber)
+
+      for (let [playerIndex, marblePositions] of marblesPosition.entries()) {
+        for (let [marbleIndex, marblePos] of marblePositions.entries()) {
+          if (marblePos === newPosition) {
+            returnValue.push({
+              meet: true,
+              playerIndex,
+              marbleIndex
+            })
+            break dance
           }
-          break dance
         }
       }
     }

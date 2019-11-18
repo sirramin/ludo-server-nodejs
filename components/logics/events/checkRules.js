@@ -33,7 +33,7 @@ const checkRules = async (roomId, diceNumber) => {
 
 const _handleZeroMarblesOnRoad = async (roomId, diceNumber, marblesCanMove) => {
   if (diceNumber === 6) {
-    await _handleHit(roomId, diceNumber, marblesCanMove)
+    await _handleHit(roomId, marblesCanMove)
   } else {
     const diceAttempts = await getDiceAttempts(roomId)
     if (diceAttempts < 3) {
@@ -48,41 +48,26 @@ const _handleOneMarblesOnRoad = async (roomId, diceNumber, marblesCanMove) => {
   if (diceNumber === 6) {
     await manualMove(roomId)
   } else {
-    await _handleHit(roomId, diceNumber, marblesCanMove)
+    await _handleHit(roomId, marblesCanMove)
   }
 }
 
-const _handleMoreThanOneMarblesOnRoad = async (roomId, diceNumber, marblesCanMove) => {
+const _handleMoreThanOneMarblesOnRoad = async (roomId, marblesCanMove) => {
   if (numberOfMarblesOnRoad === 1) {
-    await _handleHit(roomId, diceNumber, marblesCanMove)
+    await _handleHit(roomId, marblesCanMove)
   }
   if (numberOfMarblesOnRoad > 1) {
-    await manualMove(roomId)
+    await manualMove(roomId, marblesCanMove)
   }
 }
 
 const _handleHit = async (roomId, marblesCanMove) => {
-  const marblesMeeting = await checkMarblesMeeting(roomId)
-  if (marblesMeeting) {
+  const marblesMeeting = await checkMarblesMeeting(roomId, marblesCanMove)
+  if (marblesMeeting.length) {
     await manualMove(roomId, marblesCanMove)
   } else {
-    autoMove()
+    autoMove(roomId, marblesCanMove)
   }
 }
-
-// if (numberOfMarblesOnRoad) {
-// } else /* All In Nest */ {
-//   if (diceNumber === 6) {
-//     await methods.setProp('diceAttempts', 0)
-//     await savediceNumber(diceNumber)
-//   } else  /* diceNumber !== 6 */ {
-//     const timeCanRollDice = (playerCastleNumber === 3) ? 4 : 3
-//     // diceAttempts = parseInt(await methods.getProp('diceAttempts'))
-//     logger.info('diceAttempts2: ' + diceAttempts)
-//     if (diceAttempts === timeCanRollDice) {
-//       await changeTurn()
-//     } else methods.sendGameEvents(22, 'canRollDiceAgain', true)
-//   }
-// }
 
 module.exports = checkRules

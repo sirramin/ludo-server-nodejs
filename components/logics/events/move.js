@@ -10,7 +10,7 @@ const move = async (marbleNumber) => {
   let newMarblesPosition = JSON.parse(JSON.stringify(marblesPosition))
   newMarblesPosition[currentPlayer.toString()][marbleNumber - 1] = newPosition
   await methods.setProp('marblesPosition', JSON.stringify(newMarblesPosition))
-  const marblesMeeting = checkMarblesMeeting(marblesPosition, newMarblesPosition, newPosition)
+  const marblesMeeting = await checkMarblesMeeting(roomId, newMarblesPosition, newPosition)
 
   if (marblesMeeting.meet)
     await hitPlayer(newPosition, newMarblesPosition, marblesMeeting, diceNumber)
