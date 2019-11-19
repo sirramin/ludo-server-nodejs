@@ -1,8 +1,9 @@
 const _ = require('lodash')
-const {gameMeta: {diceMaxTime}} = require('../../../common/config')
-const {getCurrentPlayer, getMarblesPosition} = require('../../redisHelper/logic')
+const {tiles: {tileStarts, tilesStartEndLast}} = require('../../../common/config')
+const {getCurrentPlayer} = require('../../redisHelper/logic')
 
-const positionCalculator = (marblePosition, diceNumber) => {
+const positionCalculator = async (roomId, marblePosition, diceNumber) => {
+  const currentPlayer = await getCurrentPlayer(roomId)
   const tilesStartEndLastCurrentPlayer = tilesStartEndLast[currentPlayer - 1]
   let newPosition
   if (marblePosition + diceNumber > tilesStartEndLastCurrentPlayer[3])

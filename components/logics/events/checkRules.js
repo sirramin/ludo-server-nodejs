@@ -1,9 +1,9 @@
 const _ = require('lodash')
 const {gameMeta: {diceMaxTime}} = require('../../../common/config')
+const {numberOfMarblesOnRoad, autoMove, manualMove, diceAgain, checkMarblesMeeting} = require('./gameEventsHelper')
 const {updateDiceAttempts, updateRemainingTime, getDiceAttempts} = require('../../redisHelper/logic')
 const {changeTurn} = require('../gameFunctions')
 const whichMarblesCanMove = require('./whichMarbles')
-const {numberOfMarblesOnRoad, autoMove, manualMove, diceAgain, checkMarblesMeeting} = require('./gameEventsHelper')
 
 
 const checkRules = async (roomId, diceNumber) => {
@@ -12,16 +12,16 @@ const checkRules = async (roomId, diceNumber) => {
     updateRemainingTime(roomId, diceMaxTime)
   }
 
-  const numberOfMarblesOnRoad = await numberOfMarblesOnRoad(roomId)
+  const MarblesOnRoad = await numberOfMarblesOnRoad(roomId)
   const marblesCanMove = await whichMarblesCanMove(roomId)
 
-  if (numberOfMarblesOnRoad === 0) { /* All In Nest */
+  if (MarblesOnRoad === 0) { /* All In Nest */
     await _handleZeroMarblesOnRoad(roomId, diceNumber, marblesCanMove)
   } else {
     if (marblesCanMove.length) {
-      if (numberOfMarblesOnRoad === 1) {
+      if (MarblesOnRoad === 1) {
         await _handleOneMarblesOnRoad(roomId, diceNumber, marblesCanMove)
-      } else if (numberOfMarblesOnRoad > 1) {
+      } else if (MarblesOnRoad > 1) {
         await _handleMoreThanOneMarblesOnRoad(roomId, diceNumber, marblesCanMove)
       }
     } else {

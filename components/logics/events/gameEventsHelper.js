@@ -43,7 +43,7 @@ exp.checkMarblesMeeting = async (roomId, marblesCanMove) => {
   let returnValue = []
   dance:
     for (let [currentPlayerMarbleIndex, currentPlayerMarblePositions] of marblesCanMove.entries()) {
-      const newPosition = await positionCalculator(currentPlayerMarblePositions, diceNumber)
+      const newPosition = await positionCalculator(roomId, currentPlayerMarblePositions, diceNumber)
 
       for (let [playerIndex, marblePositions] of marblesPosition.entries()) {
         for (let [marbleIndex, marblePos] of marblePositions.entries()) {

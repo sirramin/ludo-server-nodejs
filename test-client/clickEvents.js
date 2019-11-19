@@ -1,5 +1,5 @@
 $('#joinRoom').click(() => {
-  socket.emit('joinRoom', 1)
+  socket.emit('joinRoom')
 })
 
 $('#invite').click(() => {
@@ -15,7 +15,7 @@ $('#invite').click(() => {
 })
 
 $('#leftRoom').click(() => {
-  socket.emit('leftRoom', 1)
+  socket.emit('leftRoom')
 })
 
 $('#profile').click(() => {
@@ -26,10 +26,7 @@ $('#profile').click(() => {
 
 $('#rollDice').on('click', () => {
   $('#move').html('<option value="">--</option>')
-  socket.emit('event', JSON.stringify({
-    act: 'rollDice',
-    data: {}
-  }))
+  socket.emit('rollDice')
 })
 
 
