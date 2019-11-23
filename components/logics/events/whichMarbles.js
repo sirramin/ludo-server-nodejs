@@ -10,7 +10,7 @@ const whichMarblesCanMove = async (roomId) => {
   const diceNumber = await getDiceNumber(roomId)
   const tilesStartEndLastCurrentPlayer = tilesStartEndLast[currentPlayer - 1]
   let marblesCantMove = []
-  const currentPlayerMarbles = marblesPosition[currentPlayer]
+  const currentPlayerMarbles = marblesPosition[currentPlayer - 1]
 
   for (const [index, marblePosition] of currentPlayerMarbles.entries()) {
 

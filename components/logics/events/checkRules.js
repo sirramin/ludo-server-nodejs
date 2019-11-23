@@ -46,7 +46,7 @@ const _handleZeroMarblesOnRoad = async (roomId, diceNumber, marblesCanMove) => {
 
 const _handleOneMarblesOnRoad = async (roomId, diceNumber, marblesCanMove) => {
   if (diceNumber === 6) {
-    await manualMove(roomId)
+    await manualMove(roomId, marblesCanMove)
   } else {
     await _handleHit(roomId, marblesCanMove)
   }

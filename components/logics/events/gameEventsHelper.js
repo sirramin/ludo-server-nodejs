@@ -7,7 +7,7 @@ const positionCalculator = require('./positionCalculator')
 const exp = {}
 
 exp.autoMove = (roomId, marblesCanMove) => {
-  emitToAll('autoMove', roomId, arrayBuf(marblesCanMove))
+  emitToAll('autoMove', roomId, null)
   updateRemainingTime(roomId, autoMoveMaxTime)
 }
 
@@ -24,7 +24,7 @@ exp.diceAgain = async (roomId) => {
 exp.numberOfMarblesOnRoad = async (roomId) => {
   const marblesPosition = await getMarblesPosition(roomId)
   const currentPlayer = await getCurrentPlayer(roomId)
-  const currentPlayerMarbles = marblesPosition[currentPlayer]
+  const currentPlayerMarbles = marblesPosition[currentPlayer - 1]
   let n = 0
   for (let key in currentPlayerMarbles) {
     if (currentPlayerMarbles.hasOwnProperty(key) && currentPlayerMarbles[key] > 0) {
@@ -37,13 +37,14 @@ exp.numberOfMarblesOnRoad = async (roomId) => {
 exp.checkMarblesMeeting = async (roomId, marblesCanMove) => {
   const diceNumber = await getDiceNumber(roomId)
   const marblesPosition = await getMarblesPosition(roomId)
-  // const currentPlayer = await getCurrentPlayer(roomId)
-  // const currentPlayerMarbles = marblesPosition[currentPlayer]
+  const currentPlayer = await getCurrentPlayer(roomId)
+  const currentPlayerMarbles = marblesPosition[currentPlayer - 1]
 
   let returnValue = []
   dance:
-    for (let [currentPlayerMarbleIndex, currentPlayerMarblePositions] of marblesCanMove.entries()) {
-      const newPosition = await positionCalculator(roomId, currentPlayerMarblePositions, diceNumber)
+    for (let currentPlayerMarbleIndex of marblesCanMove) {
+      const currentPlayerMarblePosition = currentPlayerMarbles[currentPlayerMarbleIndex]
+      const newPosition = await positionCalculator(roomId, currentPlayerMarblePosition, diceNumber)
 
       for (let [playerIndex, marblePositions] of marblesPosition.entries()) {
         for (let [marbleIndex, marblePos] of marblePositions.entries()) {
@@ -59,11 +60,7 @@ exp.checkMarblesMeeting = async (roomId, marblesCanMove) => {
       }
     }
   logger.info('marblesMeeting: ' + JSON.stringify(returnValue))
-  if (returnValue)
-    return returnValue
-  else return {
-    meet: false
-  }
+  return returnValue
 }
 
 exp.checkGameEnds = (marblesPosition, newMarblesPosition) => {

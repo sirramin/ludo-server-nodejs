@@ -1,21 +1,24 @@
 const _ = require('lodash')
 const {gameMeta: {diceMaxTime}} = require('../../../common/config')
-const {getCurrentPlayer, getMarblesPosition} = require('../../redisHelper/logic')
+const {getCurrentPlayer, getMarblesPosition, getDiceNumber, updateMarblesPosition} = require('../../redisHelper/logic')
+const positionCalculator = require('./positionCalculator')
+const {checkMarblesMeeting, hitPlayer} = require('./gameEventsHelper')
+const {emitToSpecificPlayer, emitToAll} = require('../../realtime/socketHelper')
+const {positionBuf} = require('../../../flatBuffers/positions/data/positions')
 
-const move = async (marbleNumber) => {
-  // await methods.setProp('remainingTime', maxTime)
-  const diceNumber = parseInt(roomInfo.diceNumber)
-  const marblePosition = currentPlayerMarbles[marbleNumber - 1]
-  const newPosition = positionCalculator(marblePosition, diceNumber)
-  let newMarblesPosition = JSON.parse(JSON.stringify(marblesPosition))
-  newMarblesPosition[currentPlayer.toString()][marbleNumber - 1] = newPosition
-  await methods.setProp('marblesPosition', JSON.stringify(newMarblesPosition))
-  const marblesMeeting = await checkMarblesMeeting(roomId, newMarblesPosition, newPosition)
+const move = async (roomId, marbleNumber) => {
+  const currentPlayer = await getCurrentPlayer(roomId)
+  const marblesPosition = await getMarblesPosition(roomId)
+  const diceNumber = await getDiceNumber(roomId)
+  const newPosition = await positionCalculator(marblesPosition[currentPlayer - 1][marbleNumber - 1], diceNumber)
+  marblesPosition[currentPlayer - 1][marbleNumber - 1] = newPosition
+  updateMarblesPosition(roomId, marblesPosition)
+  const marblesMeeting = await checkMarblesMeeting(roomId, [marbleNumber])
 
-  if (marblesMeeting.meet)
-    await hitPlayer(newPosition, newMarblesPosition, marblesMeeting, diceNumber)
-  else {
-    methods.sendGameEvents(23, 'marblesPosition', newMarblesPosition)
+  if (marblesMeeting.length) {
+    await hitPlayer(newPosition, marblesPosition, marblesMeeting, diceNumber)
+  } else {
+    emitToAll('positions', roomId, positionBuf(marblesPosition))
 
     if (diceNumber === 6)
       methods.sendGameEvents(22, 'canRollDiceAgain', true)

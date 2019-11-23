@@ -57,12 +57,23 @@ const socketManager = (token) => {
     $('#messages').append($('<li>').text('changeTurn: ' + object.data()))
   })
 
-  socket.on('friendly', function (data) {
-    if (data === 'friendlyMatchRequest')
-      if (confirm('you are invited by ' + data.data.inviter)) {
-        socket.emit('joinFriendly', 1)
-      }
+  socket.on('diceNumber', function (byets) {
+    const bufView = new Uint8Array(byets)
+    const buf = new flatbuffersLib.ByteBuffer(bufView)
+    const object = Mench.Number.Integ.getRootAsInteg(buf)
+    $('#messages').append($('<li>').text('diceNumber: ' + object.data()))
   })
+
+  socket.on('canRollDiceAgain', function () {
+    $('#messages').append($('<li>').text('canRollDiceAgain'))
+  })
+
+  // socket.on('friendly', function (data) {
+  //   if (data === 'friendlyMatchRequest')
+  //     if (confirm('you are invited by ' + data.data.inviter)) {
+  //       socket.emit('joinFriendly', 1)
+  //     }
+  // })
 
   var yourTrun = false
   var color = 'black'

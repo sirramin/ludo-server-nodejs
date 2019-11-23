@@ -1,7 +1,7 @@
 const redisHelperUser = require('../redisHelper/user')
 const matchMaking = require('../matchMaking/matchMaking')
 // const friendly = require('./friendly')(io, socket, gameMeta)
-const {rollDice} = require('../logics/events/gameEvents')
+const {rollDice, move} = require('../logics/events/gameEvents')
 const ioMiddleware = require('../../middleware/ioMiddleware')
 
 io
@@ -28,17 +28,23 @@ io
       await matchMaking.leftRoom()
     })
 
-    socket.on('rollDice', async (msg) => {
+    socket.on('rollDice', async () => {
       rollDice(userId)
+    })
+
+    socket.on('move', async (marbleNumber) => {
+      move(userId, marbleNumber)
     })
 
     socket.on('message', (message) => {
       const messageData = JSON.parse(message)
       logger.info(messageData)
     })
+
     // socket.on('invite', async (usernamesArray) => {
     //   await friendly.invite(usernamesArray)
     // })
+
     // socket.on('joinFriendly', async (usernamesArray) => {
     //   await friendly.invite(usernamesArray)
     // })
