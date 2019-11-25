@@ -1,28 +1,35 @@
 const _ = require('lodash')
-const {gameMeta: {diceMaxTime}} = require('../../../common/config')
-const {numberOfMarblesOnRoad, autoMove, manualMove, diceAgain, checkMarblesMeeting} = require('./gameEventsHelper')
+const {gameMeta: {diceMaxTime, autoMoveMaxTime}} = require('../../../common/config')
+const {numberOfMarblesOnRoad, manualMove, diceAgain, checkMarblesMeeting} = require('./gameEventsHelper')
 const {updateDiceAttempts, updateRemainingTime, getDiceAttempts} = require('../../redisHelper/logic')
 const {changeTurn} = require('../gameFunctions')
 const whichMarblesCanMove = require('./whichMarbles')
+const move = require('./move')
+const {emitToAll} = require('../../realtime/socketHelper')
 
+let roomId, userId, diceNumber, marblesCanMove
 
-const checkRules = async (roomId, diceNumber) => {
+const checkRules = async (roomIdP, userIdP, diceNumberP) => {
+  roomId = roomIdP
+  userId = userIdP
+  diceNumber = diceNumberP
+
   if (diceNumber === 6) {
     updateDiceAttempts(roomId, 0)
     updateRemainingTime(roomId, diceMaxTime)
   }
 
   const MarblesOnRoad = await numberOfMarblesOnRoad(roomId)
-  const marblesCanMove = await whichMarblesCanMove(roomId)
+  marblesCanMove = await whichMarblesCanMove(roomId)
 
   if (MarblesOnRoad === 0) { /* All In Nest */
-    await _handleZeroMarblesOnRoad(roomId, diceNumber, marblesCanMove)
+    await _handleZeroMarblesOnRoad()
   } else {
     if (marblesCanMove.length) {
       if (MarblesOnRoad === 1) {
-        await _handleOneMarblesOnRoad(roomId, diceNumber, marblesCanMove)
+        await _handleOneMarblesOnRoad()
       } else if (MarblesOnRoad > 1) {
-        await _handleMoreThanOneMarblesOnRoad(roomId, diceNumber, marblesCanMove)
+        await _handleMoreThanOneMarblesOnRoad()
       }
     } else {
       await changeTurn(roomId)
@@ -31,7 +38,7 @@ const checkRules = async (roomId, diceNumber) => {
 }
 
 
-const _handleZeroMarblesOnRoad = async (roomId, diceNumber, marblesCanMove) => {
+const _handleZeroMarblesOnRoad = async () => {
   if (diceNumber === 6) {
     await _handleHit(roomId, marblesCanMove)
   } else {
@@ -44,30 +51,37 @@ const _handleZeroMarblesOnRoad = async (roomId, diceNumber, marblesCanMove) => {
   }
 }
 
-const _handleOneMarblesOnRoad = async (roomId, diceNumber, marblesCanMove) => {
+const _handleOneMarblesOnRoad = async () => {
   if (diceNumber === 6) {
-    await manualMove(roomId, marblesCanMove)
+    await manualMove(roomId, userId, marblesCanMove)
   } else {
     await _handleHit(roomId, marblesCanMove)
   }
 }
 
-const _handleMoreThanOneMarblesOnRoad = async (roomId, marblesCanMove) => {
+const _handleMoreThanOneMarblesOnRoad = async () => {
   if (numberOfMarblesOnRoad === 1) {
     await _handleHit(roomId, marblesCanMove)
   }
   if (numberOfMarblesOnRoad > 1) {
-    await manualMove(roomId, marblesCanMove)
+    await manualMove(roomId, userId, marblesCanMove)
   }
 }
 
-const _handleHit = async (roomId, marblesCanMove) => {
+const _handleHit = async () => {
   const marblesMeeting = await checkMarblesMeeting(roomId, marblesCanMove)
   if (marblesMeeting.length) {
-    await manualMove(roomId, marblesCanMove)
+    await manualMove(roomId, userId, marblesCanMove)
   } else {
-    autoMove(roomId, marblesCanMove)
+    _autoMove()
   }
 }
+
+const _autoMove = () => {
+  emitToAll('autoMove', roomId, null)
+  move(roomId, marblesCanMove[0])
+  updateRemainingTime(roomId, autoMoveMaxTime)
+}
+
 
 module.exports = checkRules

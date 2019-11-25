@@ -31,7 +31,7 @@ const sendPositions = async (roomId) => {
   let marblesPosition = []
   for (const [index, userId] of players.entries()) {
     const playerNumber = index + 1
-    marblesPosition[index] = [0, 0, 0, 0]
+    marblesPosition[index] = [0, 0, 0]
     emitToSpecificPlayer('yourPlayerNumber', userId, integerBuf(playerNumber))
   }
   await updateMarblesPosition(roomId, marblesPosition)

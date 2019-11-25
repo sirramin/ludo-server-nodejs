@@ -1,0 +1,13 @@
+namespace Mench.MarblesPos;
+
+struct Marbs3 {
+  one:ushort;
+  two:ushort;
+  three:ushort;
+}
+
+table MarblesPosition {
+    data : [[ushort]];
+}
+
+root_type MarblesPosition;

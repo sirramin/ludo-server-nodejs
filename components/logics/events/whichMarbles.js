@@ -35,10 +35,8 @@ const whichMarblesCanMove = async (roomId) => {
         marblesCantMove = _conflictSameColor(marblesCantMove, currentMarbleNumber)
       }
 
-      if (marblePosition2 >= tilesStartEndLastCurrentPlayer[2] && marblePosition2 <= tilesStartEndLastCurrentPlayer[3]) {
-        if (newPosition === marblePosition2) {
+      if (marblePosition2 >= tilesStartEndLastCurrentPlayer[2] && marblePosition2 <= tilesStartEndLastCurrentPlayer[3] && newPosition === marblePosition2) {
           marblesCantMove = _conflictInGateWay(marblesCantMove, currentMarbleNumber)
-        }
       }
 
     }

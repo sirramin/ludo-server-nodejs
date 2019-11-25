@@ -12,10 +12,11 @@ exp.rollDice = async (userId) => {
   // await methods.setProp('remainingTime', maxTime)
   const roomId = await findUserCurrentRoom(userId)
   await increaseDiceAttempts(roomId)
-  const diceNumber = _.random(1, 6)
-  updateDiceNumber(diceNumber)
-  emitToSpecificPlayer('diceNumber', userId, integerBuf(diceNumber))
-  await checkRules(roomId, diceNumber)
+  // const diceNumber = _.random(1, 6)
+  const diceNumber = 6
+  await updateDiceNumber(roomId, diceNumber)
+  emitToAll('diceNumber', roomId, integerBuf(diceNumber))
+  await checkRules(roomId, userId, diceNumber)
 }
 
 exp.move = async (userId, marbleNumber) => {

@@ -13,7 +13,7 @@ const config = {
     roomMax: 4,
     waitingTime: 3000,
     kickTime: 30000,
-    diceMaxTime: 7,
+    diceMaxTime: 10,
     autoMoveMaxTime: 7,
     manualMoveMaxTime: 7,
     lightsAtStart: 4

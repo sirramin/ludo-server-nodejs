@@ -6,13 +6,9 @@ const {arrayBuf} = require('../../../flatBuffers/arr/data/arr')
 const positionCalculator = require('./positionCalculator')
 const exp = {}
 
-exp.autoMove = (roomId, marblesCanMove) => {
-  emitToAll('autoMove', roomId, null)
-  updateRemainingTime(roomId, autoMoveMaxTime)
-}
 
-exp.manualMove = (roomId, marblesCanMove) => {
-  emitToAll('marblesCanMove', roomId, arrayBuf(marblesCanMove))
+exp.manualMove = async (roomId, userId, marblesCanMove) => {
+  emitToSpecificPlayer('marblesCanMove', userId, arrayBuf(marblesCanMove))
   updateRemainingTime(roomId, manualMoveMaxTime)
 }
 
@@ -41,11 +37,11 @@ exp.checkMarblesMeeting = async (roomId, marblesCanMove) => {
   const currentPlayerMarbles = marblesPosition[currentPlayer - 1]
 
   let returnValue = []
-  dance:
     for (let currentPlayerMarbleIndex of marblesCanMove) {
-      const currentPlayerMarblePosition = currentPlayerMarbles[currentPlayerMarbleIndex]
+      const currentPlayerMarblePosition = currentPlayerMarbles[currentPlayerMarbleIndex - 1]
       const newPosition = await positionCalculator(roomId, currentPlayerMarblePosition, diceNumber)
 
+      dance:
       for (let [playerIndex, marblePositions] of marblesPosition.entries()) {
         for (let [marbleIndex, marblePos] of marblePositions.entries()) {
           if (marblePos === newPosition) {

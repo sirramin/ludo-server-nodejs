@@ -68,6 +68,26 @@ const socketManager = (token) => {
     $('#messages').append($('<li>').text('canRollDiceAgain'))
   })
 
+  socket.on('marblesCanMove', function (byets) {
+    const bufView = new Uint8Array(byets)
+    const buf = new flatbuffersLib.ByteBuffer(bufView)
+    const object = Mench.Arrs.Arr.getRootAsArr(buf)
+    for (let i = 0; i <= object.dataLength() - 1; i++) {
+      $('#move').append('<option value="' + object.data(i) + '">' + object.data(i) + '</option>')
+    }
+  })
+
+  socket.on('marblesPosition', function (byets) {
+    const bufView = new Uint8Array(byets)
+    const buf = new flatbuffersLib.ByteBuffer(bufView)
+    const object = Mench.MarblesPos.MarblesPosition.getRootAsMarblesPosition(buf)
+    for (let i = 0; i <= object.dataLength() - 1; i++) {
+      $('#messages').append($('<li>').text(object.data(i).one()))
+      $('#messages').append($('<li>').text(object.data(i).two()))
+      $('#messages').append($('<li>').text(object.data(i).three()))
+    }
+  })
+
   // socket.on('friendly', function (data) {
   //   if (data === 'friendlyMatchRequest')
   //     if (confirm('you are invited by ' + data.data.inviter)) {
