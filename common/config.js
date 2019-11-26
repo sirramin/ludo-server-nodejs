@@ -11,9 +11,9 @@ const config = {
   gameMeta: {
     roomMin: 2,
     roomMax: 4,
-    waitingTime: 3000,
+    waitingTime: 3000, //debug
     kickTime: 30000,
-    diceMaxTime: 10,
+    diceMaxTime: 60, //debug
     autoMoveMaxTime: 7,
     manualMoveMaxTime: 7,
     lightsAtStart: 4
