@@ -39,24 +39,85 @@ Mench.MarblesPos.Marbs3.prototype.__init = function(i, bb) {
 };
 
 /**
+ * @param {flatbuffers.ByteBuffer} bb
+ * @param {Mench.MarblesPos.Marbs3=} obj
+ * @returns {Mench.MarblesPos.Marbs3}
+ */
+Mench.MarblesPos.Marbs3.getRootAsMarbs3 = function(bb, obj) {
+  return (obj || new Mench.MarblesPos.Marbs3).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+};
+
+/**
+ * @param {flatbuffers.ByteBuffer} bb
+ * @param {Mench.MarblesPos.Marbs3=} obj
+ * @returns {Mench.MarblesPos.Marbs3}
+ */
+Mench.MarblesPos.Marbs3.getSizePrefixedRootAsMarbs3 = function(bb, obj) {
+  return (obj || new Mench.MarblesPos.Marbs3).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+};
+
+/**
  * @returns {number}
  */
 Mench.MarblesPos.Marbs3.prototype.one = function() {
-  return this.bb.readUint16(this.bb_pos);
+  var offset = this.bb.__offset(this.bb_pos, 4);
+  return offset ? this.bb.readUint16(this.bb_pos + offset) : 0;
 };
 
 /**
  * @returns {number}
  */
 Mench.MarblesPos.Marbs3.prototype.two = function() {
-  return this.bb.readUint16(this.bb_pos + 2);
+  var offset = this.bb.__offset(this.bb_pos, 6);
+  return offset ? this.bb.readUint16(this.bb_pos + offset) : 0;
 };
 
 /**
  * @returns {number}
  */
 Mench.MarblesPos.Marbs3.prototype.three = function() {
-  return this.bb.readUint16(this.bb_pos + 4);
+  var offset = this.bb.__offset(this.bb_pos, 8);
+  return offset ? this.bb.readUint16(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ */
+Mench.MarblesPos.Marbs3.startMarbs3 = function(builder) {
+  builder.startObject(3);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} one
+ */
+Mench.MarblesPos.Marbs3.addOne = function(builder, one) {
+  builder.addFieldInt16(0, one, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} two
+ */
+Mench.MarblesPos.Marbs3.addTwo = function(builder, two) {
+  builder.addFieldInt16(1, two, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} three
+ */
+Mench.MarblesPos.Marbs3.addThree = function(builder, three) {
+  builder.addFieldInt16(2, three, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @returns {flatbuffers.Offset}
+ */
+Mench.MarblesPos.Marbs3.endMarbs3 = function(builder) {
+  var offset = builder.endObject();
+  return offset;
 };
 
 /**
@@ -67,12 +128,12 @@ Mench.MarblesPos.Marbs3.prototype.three = function() {
  * @returns {flatbuffers.Offset}
  */
 Mench.MarblesPos.Marbs3.createMarbs3 = function(builder, one, two, three) {
-  builder.prep(2, 6);
-  builder.writeInt16(three);
-  builder.writeInt16(two);
-  builder.writeInt16(one);
-  return builder.offset();
-};
+  Mench.MarblesPos.Marbs3.startMarbs3(builder);
+  Mench.MarblesPos.Marbs3.addOne(builder, one);
+  Mench.MarblesPos.Marbs3.addTwo(builder, two);
+  Mench.MarblesPos.Marbs3.addThree(builder, three);
+  return Mench.MarblesPos.Marbs3.endMarbs3(builder);
+}
 
 /**
  * @constructor
@@ -125,7 +186,7 @@ Mench.MarblesPos.MarblesPosition.getSizePrefixedRootAsMarblesPosition = function
  */
 Mench.MarblesPos.MarblesPosition.prototype.data = function(index, obj) {
   var offset = this.bb.__offset(this.bb_pos, 4);
-  return offset ? (obj || new Mench.MarblesPos.Marbs3).__init(this.bb.__vector(this.bb_pos + offset) + index * 6, this.bb) : null;
+  return offset ? (obj || new Mench.MarblesPos.Marbs3).__init(this.bb.__indirect(this.bb.__vector(this.bb_pos + offset) + index * 4), this.bb) : null;
 };
 
 /**
@@ -153,10 +214,23 @@ Mench.MarblesPos.MarblesPosition.addData = function(builder, dataOffset) {
 
 /**
  * @param {flatbuffers.Builder} builder
+ * @param {Array.<flatbuffers.Offset>} data
+ * @returns {flatbuffers.Offset}
+ */
+Mench.MarblesPos.MarblesPosition.createDataVector = function(builder, data) {
+  builder.startVector(4, data.length, 4);
+  for (var i = data.length - 1; i >= 0; i--) {
+    builder.addOffset(data[i]);
+  }
+  return builder.endVector();
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
  * @param {number} numElems
  */
 Mench.MarblesPos.MarblesPosition.startDataVector = function(builder, numElems) {
-  builder.startVector(6, numElems, 2);
+  builder.startVector(4, numElems, 4);
 };
 
 /**

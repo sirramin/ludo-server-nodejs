@@ -20,12 +20,17 @@ const socketManager = (token) => {
   socket.on('positions', function (byets) {
     const bufView = new Uint8Array(byets)
     const buf = new flatbuffersLib.ByteBuffer(bufView)
-    const object = Mench.pos.Positions.getRootAsPositions(buf)
-    for (let i = 0; i <= object.dataLength() - 1; i++) {
-      $('#messages').append($('<li>').text(object.data(i).player()))
-      $('#messages').append($('<li>').text(object.data(i).username()))
-      $('#messages').append($('<li>').text(object.data(i).userId()))
+    const Array = Mench.pos.Positions.getRootAsPositions(buf)
+    // for (let i = 0; i <= object.dataLength() - 1; i++) {
+    //   $('#messages').append($('<li>').text(object.data(i).player()))
+    //   $('#messages').append($('<li>').text(object.data(i).username()))
+    //   $('#messages').append($('<li>').text(object.data(i).userId()))
+    // }
+    let positionText = ''
+    for (let i = 0; i <= Array.dataLength() - 1; i++) {
+      positionText += '[' + Array.data(i).player() + ', ' + Array.data(i).username() + ', ' + Array.data(i).userId() + ']'
     }
+    $('#messages').append($('<li>').text('positions: ' + positionText))
   })
 
   socket.on('lights', function (byets) {
@@ -72,20 +77,23 @@ const socketManager = (token) => {
     const bufView = new Uint8Array(byets)
     const buf = new flatbuffersLib.ByteBuffer(bufView)
     const object = Mench.Arrs.Arr.getRootAsArr(buf)
+    let marblesCanMoveText = ''
     for (let i = 0; i <= object.dataLength() - 1; i++) {
       $('#move').append('<option value="' + object.data(i) + '">' + object.data(i) + '</option>')
+      marblesCanMoveText += object.data(i) + ', '
     }
+    $('#messages').append($('<li>').text('marblesCanMove: ' + marblesCanMoveText))
   })
 
   socket.on('marblesPosition', function (byets) {
     const bufView = new Uint8Array(byets)
     const buf = new flatbuffersLib.ByteBuffer(bufView)
-    const object = Mench.MarblesPos.MarblesPosition.getRootAsMarblesPosition(buf)
-    for (let i = 0; i <= object.dataLength() - 1; i++) {
-      $('#messages').append($('<li>').text(object.data(i).one()))
-      $('#messages').append($('<li>').text(object.data(i).two()))
-      $('#messages').append($('<li>').text(object.data(i).three()))
+    const Array = Mench.MarblesPos.MarblesPosition.getRootAsMarblesPosition(buf)
+    let marblesPositionText = ''
+    for (let i = 0; i <= Array.dataLength() - 1; i++) {
+      marblesPositionText += '[' + Array.data(i).one() + ', ' + Array.data(i).two() + ', ' + Array.data(i).three() + ']'
     }
+    $('#messages').append($('<li>').text('marblesPosition: ' + marblesPositionText))
   })
 
   // socket.on('friendly', function (data) {
