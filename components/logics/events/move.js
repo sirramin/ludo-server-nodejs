@@ -1,10 +1,10 @@
 const _ = require('lodash')
-const {gameMeta: {diceMaxTime}} = require('../../../common/config')
 const {getCurrentPlayer, getMarblesPosition, getDiceNumber, updateMarblesPosition} = require('../../redisHelper/logic')
 const positionCalculator = require('./positionCalculator')
 const {checkMarblesMeeting, hitPlayer} = require('./gameEventsHelper')
-const {emitToSpecificPlayer, emitToAll} = require('../../realtime/socketHelper')
+const {emitToAll} = require('../../realtime/socketHelper')
 const {marblesPositionBuf} = require('../../../flatBuffers/marblesPosition/data/marblesPosition')
+const {changeTurn} = require('../gameFunctions')
 
 const move = async (roomId, marbleNumber) => {
   const currentPlayer = await getCurrentPlayer(roomId)
@@ -20,22 +20,23 @@ const move = async (roomId, marbleNumber) => {
   } else {
     emitToAll('marblesPosition', roomId, marblesPositionBuf(marblesPosition))
 
-    if (diceNumber === 6){
+    if (diceNumber === 6) {
       emitToAll('canRollDiceAgain', roomId)
+    } else {
+      await changeTurn(roomId)
     }
 
-  //   const isGameEnds = checkGameEnds(marblesPosition, newMarblesPosition, newPosition)
-  //   if (isGameEnds) {
-  //     methods.sendGameEvents(24, 'gameEnd', {
-  //       "winner": currentPlayer
-  //     })
-  //     const roomInfo = await methods.getProp('info')
-  //     await methods.givePrize(userId)
-  //     await methods.deleteRoom(roomId)
-  //   }
-  //
-  //   if (diceNumber !== 6)
-  //     await changeTurn()
+    //   const isGameEnds = checkGameEnds(marblesPosition, newMarblesPosition, newPosition)
+    //   if (isGameEnds) {
+    //     methods.sendGameEvents(24, 'gameEnd', {
+    //       "winner": currentPlayer
+    //     })
+    //     const roomInfo = await methods.getProp('info')
+    //     await methods.givePrize(userId)
+    //     await methods.deleteRoom(roomId)
+    //   }
+    //
+
   }
 }
 

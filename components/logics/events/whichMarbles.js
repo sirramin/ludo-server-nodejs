@@ -30,23 +30,16 @@ const whichMarblesCanMove = async (roomId) => {
     }
 
     for (const [index2, marblePosition2] of currentPlayerMarbles.entries()) {
-
-      if (index2 + 1 !== currentMarbleNumber && newPosition === marblePosition2 && marblePosition2 !== 0) {
-        marblesCantMove = _conflictSameColor(marblesCantMove, currentMarbleNumber)
-      }
-
-      if (marblePosition2 >= tilesStartEndLastCurrentPlayer[2] && marblePosition2 <= tilesStartEndLastCurrentPlayer[3] && newPosition === marblePosition2) {
-          marblesCantMove = _conflictInGateWay(marblesCantMove, currentMarbleNumber)
-      }
-
+      marblesCantMove = _conflictSameColor(marblesCantMove, currentMarbleNumber, index2, newPosition, marblePosition2)
+      marblesCantMove = _conflictInGateWay(marblesCantMove, currentMarbleNumber, marblePosition2, tilesStartEndLastCurrentPlayer, newPosition)
     }
 
   }
 
-  return _.difference([1, 2, 3, 4], marblesCantMove)
+  return _.difference([1, 2, 3], marblesCantMove)
 }
 
-const _tileStartConflict = async (newPosition, marblesPosition, marblesCantMove, currentMarbleNumber) => {
+const _tileStartConflict = (newPosition, marblesPosition, marblesCantMove, currentMarbleNumber) => {
   // checking other marbles in their starting tile conflict
   // if this current player marble target meet one of the tileStarts
   const targetPlayerIndex = tileStarts.indexOf(newPosition)
@@ -59,19 +52,26 @@ const _tileStartConflict = async (newPosition, marblesPosition, marblesCantMove,
       }
     })
   }
+  return marblesCantMove
 }
 
-const _conflictSameColor = async (marblesCantMove, currentMarbleNumber) => {
+const _conflictSameColor = (marblesCantMove, currentMarbleNumber, index2, newPosition, marblePosition2) => {
   // player marble cant sit on same color
   // diceNumber === 6 && marblePosition === 0 &&
   logger.info('---------5--------')
-  return _.union(marblesCantMove, [currentMarbleNumber])
+  if (index2 + 1 !== currentMarbleNumber && newPosition === marblePosition2 && marblePosition2 !== 0) {
+    return _.union(marblesCantMove, [currentMarbleNumber])
+  }
+  return marblesCantMove
 }
 
-const _conflictInGateWay = async (marblesCantMove, currentMarbleNumber) => {
+const _conflictInGateWay = (marblesCantMove, currentMarbleNumber, marblePosition2, tilesStartEndLastCurrentPlayer, newPosition) => {
   //player has not enough space in its last tiles
   logger.info('---------6--------')
-  return _.union(marblesCantMove, [currentMarbleNumber])
+  if (marblePosition2 >= tilesStartEndLastCurrentPlayer[2] && marblePosition2 <= tilesStartEndLastCurrentPlayer[3] && newPosition === marblePosition2) {
+    return _.union(marblesCantMove, [currentMarbleNumber])
+  }
+  return marblesCantMove
 }
 
 

@@ -18,11 +18,11 @@ $('#leftRoom').click(() => {
   socket.emit('leftRoom')
 })
 
-$('#profile').click(() => {
-  socket.emit('event', JSON.stringify({
-    act: 'profile'
-  }))
-})
+// $('#profile').click(() => {
+//   socket.emit('event', JSON.stringify({
+//     act: 'profile'
+//   }))
+// })
 
 $('#rollDice').on('click', () => {
   $('#move').html('<option value="">--</option>')
@@ -31,11 +31,8 @@ $('#rollDice').on('click', () => {
 
 
 $('select').on('change', function () {
-  if (this.value)
-    socket.emit('event', JSON.stringify({
-      act: 'move',
-      data: {
-        marbleNumber: this.value
-      }
-    }))
+  if (this.value) {
+    const marbleNumber = this.value
+    socket.emit('move', marbleNumber)
+  }
 })

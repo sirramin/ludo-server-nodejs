@@ -79,7 +79,7 @@ exp.hitPlayer = async (newPosition, newMarblesPosition, marblesMeeting, diceNumb
   if (diceNumber === 6)
     methods.sendGameEvents(22, 'canRollDiceAgain', true)
   if (diceNumber !== 6)
-    await changeTurn()
+    await changeTurn(roomId)
 }
 
 module.exports = exp
