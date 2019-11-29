@@ -58,8 +58,8 @@ const _tileStartConflict = (newPosition, marblesPosition, marblesCantMove, curre
 const _conflictSameColor = (marblesCantMove, currentMarbleNumber, index2, newPosition, marblePosition2) => {
   // player marble cant sit on same color
   // diceNumber === 6 && marblePosition === 0 &&
-  logger.info('---------5--------')
   if (index2 + 1 !== currentMarbleNumber && newPosition === marblePosition2 && marblePosition2 !== 0) {
+    logger.info('---------5--------')
     return _.union(marblesCantMove, [currentMarbleNumber])
   }
   return marblesCantMove
@@ -67,8 +67,8 @@ const _conflictSameColor = (marblesCantMove, currentMarbleNumber, index2, newPos
 
 const _conflictInGateWay = (marblesCantMove, currentMarbleNumber, marblePosition2, tilesStartEndLastCurrentPlayer, newPosition) => {
   //player has not enough space in its last tiles
-  logger.info('---------6--------')
   if (marblePosition2 >= tilesStartEndLastCurrentPlayer[2] && marblePosition2 <= tilesStartEndLastCurrentPlayer[3] && newPosition === marblePosition2) {
+    logger.info('---------6--------')
     return _.union(marblesCantMove, [currentMarbleNumber])
   }
   return marblesCantMove

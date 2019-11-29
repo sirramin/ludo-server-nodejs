@@ -55,7 +55,9 @@ exp.checkMarblesMeeting = async (roomId, marblesCanMove) => {
         }
       }
     }
-  logger.info('marblesMeeting: ' + JSON.stringify(returnValue))
+  if (returnValue.length) {
+    logger.info('marblesMeeting: ' + returnValue.length)
+  }
   return returnValue
 }
 
