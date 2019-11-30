@@ -29,7 +29,7 @@ const checkRules = async (roomIdP, userIdP, diceNumberP) => {
       if (MarblesOnRoad === 1) {
         await _handleOneMarblesOnRoad()
       } else if (MarblesOnRoad > 1) {
-        await _handleMoreThanOneMarblesOnRoad()
+        await _handleMoreThanOneMarblesOnRoad(MarblesOnRoad)
       }
     } else {
       await changeTurn(roomId)
@@ -60,10 +60,10 @@ const _handleOneMarblesOnRoad = async () => {
 }
 
 const _handleMoreThanOneMarblesOnRoad = async () => {
-  if (numberOfMarblesOnRoad === 1) {
+  if (marblesCanMove.length === 1) {
     await _handleHit(roomId, marblesCanMove)
   }
-  if (numberOfMarblesOnRoad > 1) {
+  if (marblesCanMove.length > 1) {
     await manualMove(roomId, userId, marblesCanMove)
   }
 }
