@@ -1,9 +1,11 @@
 const _ = require('lodash')
 const {gameMeta: {diceMaxTime, autoMoveMaxTime, manualMoveMaxTime}} = require('../../../common/config')
-const {updateRemainingTime, getMarblesPosition, getCurrentPlayer, getDiceNumber} = require('../../redisHelper/logic')
+const {updateRemainingTime, getMarblesPosition, getCurrentPlayer, getDiceNumber, updateMarblesPosition} = require('../../redisHelper/logic')
 const {emitToSpecificPlayer, emitToAll} = require('../../realtime/socketHelper')
 const {arrayBuf} = require('../../../flatBuffers/arr/data/arr')
+const {marblesPositionBuf} = require('../../../flatBuffers/marblesPosition/data/marblesPosition')
 const positionCalculator = require('./positionCalculator')
+const {tiles: {tileStarts, tilesStartEndLast}} = require('../../../common/config')
 const exp = {}
 
 
@@ -37,51 +39,61 @@ exp.checkMarblesMeeting = async (roomId, marblesCanMove) => {
   const currentPlayerMarbles = marblesPosition[currentPlayer - 1]
 
   let returnValue = []
-    for (let currentPlayerMarbleIndex of marblesCanMove) {
-      const currentPlayerMarblePosition = currentPlayerMarbles[currentPlayerMarbleIndex - 1]
-      const newPosition = await positionCalculator(roomId, currentPlayerMarblePosition, diceNumber)
+  for (let currentPlayerMarbleIndex of marblesCanMove) {
+    const currentPlayerMarblePosition = currentPlayerMarbles[parseInt(currentPlayerMarbleIndex) - 1]
+    const newPosition = await positionCalculator(roomId, currentPlayerMarblePosition, diceNumber)
 
       dance:
-      for (let [playerIndex, marblePositions] of marblesPosition.entries()) {
-        for (let [marbleIndex, marblePos] of marblePositions.entries()) {
-          if (marblePos === newPosition) {
-            returnValue.push({
-              meet: true,
-              playerIndex,
-              marbleIndex
-            })
-            break dance
+        for (let [playerIndex, marblePositions] of marblesPosition.entries()) {
+          if (currentPlayer - 1 !== playerIndex) {
+            for (let [marbleIndex, marblePos] of marblePositions.entries()) {
+              if (marblePos === newPosition) {
+                returnValue.push({
+                  meet: true,
+                  playerIndex,
+                  marbleIndex
+                })
+                break dance
+              }
+            }
           }
+
         }
-      }
-    }
+
+  }
   if (returnValue.length) {
     logger.info('marblesMeeting: ' + returnValue.length)
   }
   return returnValue
 }
 
-exp.checkGameEnds = (marblesPosition, newMarblesPosition) => {
+exp.checkGameEnds = async (marblesPosition, roomId) => {
+  const currentPlayer = await getCurrentPlayer(roomId)
   const tilesStartEndLastCurrentPlayer = tilesStartEndLast[currentPlayer - 1]
   const marblesAtEnd = []
-  newMarblesPosition[currentPlayer.toString()].forEach((marblesPos, marbleIndx) => {
+  marblesPosition[currentPlayer - 1].forEach((marblesPos) => {
     if (marblesPos >= tilesStartEndLastCurrentPlayer[2] && marblesPos <= tilesStartEndLastCurrentPlayer[2])
       marblesAtEnd.push(marblesPos)
   })
   const diff = _.difference([tilesStartEndLastCurrentPlayer[2], tilesStartEndLastCurrentPlayer[2] + 1, tilesStartEndLastCurrentPlayer[3] - 1, tilesStartEndLastCurrentPlayer[3]], marblesAtEnd)
-  return diff.length === 0
+  if (diff.length === 0) {
+    emitToAll('gameEnd', currentPlayer)
+    // await methods.givePrize(userId)
+    // await methods.deleteRoom(roomId)
+  }
 }
 
-exp.hitPlayer = async (newPosition, newMarblesPosition, marblesMeeting, diceNumber) => {
-  newMarblesPosition[marblesMeeting.player][marblesMeeting.marble] = 0
-  logger.info('marblesMeeting.marble: ' + marblesMeeting.marble)
-  await methods.setProp('marblesPosition', JSON.stringify(newMarblesPosition))
-  methods.sendGameEvents(23, 'marblesPosition', newMarblesPosition)
-  await increaseHitAndBeat(currentPlayer, marblesMeeting.player)
-  if (diceNumber === 6)
-    methods.sendGameEvents(22, 'canRollDiceAgain', true)
-  if (diceNumber !== 6)
-    await changeTurn(roomId)
+exp.hitPlayer = async (newPosition, newMarblesPosition, marblesMeeting, diceNumber, roomId) => {
+  newMarblesPosition[marblesMeeting[0].playerIndex][marblesMeeting[0].marbleIndex] = 0
+  logger.info('marblesMeeting.playerIndex: ' + marblesMeeting[0].playerIndex + ' marblesMeeting.marbleIndex: ' + marblesMeeting[0].marbleIndex)
+  updateMarblesPosition(roomId, newMarblesPosition)
+  emitToAll('marblesPosition', roomId, marblesPositionBuf(newMarblesPosition))
+}
+
+exp.checkMarbleIsInItsFirstTile = async (roomId, marblesCanMove) => {
+  const marblesPosition = await getMarblesPosition(roomId)
+  const currentPlayer = await getCurrentPlayer(roomId)
+  return marblesPosition[currentPlayer - 1][marblesCanMove[0] - 1] === tileStarts[currentPlayer - 1]
 }
 
 module.exports = exp

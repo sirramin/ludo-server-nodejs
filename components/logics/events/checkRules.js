@@ -1,7 +1,7 @@
 const _ = require('lodash')
 const {gameMeta: {diceMaxTime, autoMoveMaxTime}} = require('../../../common/config')
-const {numberOfMarblesOnRoad, manualMove, diceAgain, checkMarblesMeeting} = require('./gameEventsHelper')
-const {updateDiceAttempts, updateRemainingTime, getDiceAttempts} = require('../../redisHelper/logic')
+const {numberOfMarblesOnRoad, manualMove, diceAgain, checkMarblesMeeting, checkMarbleIsInItsFirstTile} = require('./gameEventsHelper')
+const {updateDiceAttempts, updateRemainingTime, getDiceAttempts, getMarblesPosition, getCurrentPlayer} = require('../../redisHelper/logic')
 const {changeTurn} = require('../gameFunctions')
 const whichMarblesCanMove = require('./whichMarbles')
 const move = require('./move')
@@ -53,7 +53,11 @@ const _handleZeroMarblesOnRoad = async () => {
 
 const _handleOneMarblesOnRoad = async () => {
   if (diceNumber === 6) {
-    await manualMove(roomId, userId, marblesCanMove)
+    if(marblesCanMove.length === 1 && await checkMarbleIsInItsFirstTile(roomId, marblesCanMove)) {
+      await _handleHit(roomId, marblesCanMove)
+    } else {
+      await manualMove(roomId, userId, marblesCanMove)
+    }
   } else {
     await _handleHit(roomId, marblesCanMove)
   }
