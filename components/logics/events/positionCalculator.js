@@ -11,8 +11,8 @@ const positionCalculator = async (roomId, marblePosition, diceNumber) => {
   }
   if (marblePosition !== 0) {
     if (currentPlayer !== 1) {
-      if (marblePosition + diceNumber > 40)
-        newPosition = marblePosition + diceNumber - 40
+      if (marblePosition + diceNumber > tilesStartEndLastCurrentPlayer[0][1])
+        newPosition = marblePosition + diceNumber - tilesStartEndLastCurrentPlayer[0][1]
       else if (marblePosition + diceNumber > tilesStartEndLastCurrentPlayer[1] && marblePosition < tilesStartEndLastCurrentPlayer[0])
         newPosition = marblePosition + diceNumber - tilesStartEndLastCurrentPlayer[1] + tilesStartEndLastCurrentPlayer[2] - 1
       else

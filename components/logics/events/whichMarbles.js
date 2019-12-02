@@ -44,7 +44,7 @@ const _tileStartConflict = (newPosition, marblesPosition, marblesCantMove, curre
   // if this current player marble target meet one of the tileStarts
   const targetPlayerIndex = tileStarts.indexOf(newPosition)
   const targetPlayerMarblesPosition = marblesPosition[(targetPlayerIndex + 1).toString()]
-  if (targetPlayerMarblesPosition && targetPlayerMarblesPosition.length) { // kick must include in check
+  if (targetPlayerMarblesPosition && targetPlayerMarblesPosition.length) { //TODO kick must include in check
     targetPlayerMarblesPosition.forEach(targetMarblePosition => {
       if (targetMarblePosition === tileStarts[targetPlayerIndex]) {
         logger.info('---------3--------')
