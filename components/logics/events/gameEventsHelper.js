@@ -83,11 +83,12 @@ exp.checkGameEnds = async (marblesPosition, roomId) => {
   }
 }
 
-exp.hitPlayer = async (newPosition, newMarblesPosition, marblesMeeting, diceNumber, roomId) => {
-  newMarblesPosition[marblesMeeting[0].playerIndex][marblesMeeting[0].marbleIndex] = 0
-  logger.info('marblesMeeting.playerIndex: ' + marblesMeeting[0].playerIndex + ' marblesMeeting.marbleIndex: ' + marblesMeeting[0].marbleIndex)
-  updateMarblesPosition(roomId, newMarblesPosition)
-  emitToAll('marblesPosition', roomId, marblesPositionBuf(newMarblesPosition))
+exp.hitPlayer = async (roomId, marblesPosition, marblesMeeting) => {
+  const {playerIndex, marbleIndex} = marblesMeeting[0]
+  marblesPosition[playerIndex][marbleIndex] = 0
+  logger.info('marblesMeeting.playerIndex: ' + playerIndex + ' marblesMeeting.marbleIndex: ' + marbleIndex)
+  updateMarblesPosition(roomId, marblesPosition)
+  emitToAll('marblesPosition', roomId, marblesPositionBuf(marblesPosition))
 }
 
 exp.checkMarbleIsInItsFirstTile = async (roomId, marblesCanMove) => {

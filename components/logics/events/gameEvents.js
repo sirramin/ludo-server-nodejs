@@ -12,8 +12,8 @@ exp.rollDice = async (userId) => {
   // await methods.setProp('remainingTime', maxTime)
   const roomId = await findUserCurrentRoom(userId)
   await increaseDiceAttempts(roomId)
-  // const diceNumber = _.random(1, 6)
-  const diceNumber = 6 //debug
+  const diceNumber = _.random(1, 6)
+  // const diceNumber = 6 //debug
   await updateDiceNumber(roomId, diceNumber)
   emitToAll('diceNumber', roomId, integerBuf(diceNumber))
   await checkRules(roomId, userId, diceNumber)

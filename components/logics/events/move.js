@@ -11,12 +11,12 @@ const move = async (roomId, marbleNumber) => {
   const marblesPosition = await getMarblesPosition(roomId)
   const diceNumber = await getDiceNumber(roomId)
   const newPosition = await positionCalculator(roomId, marblesPosition[currentPlayer - 1][marbleNumber - 1], diceNumber)
+  const marblesMeeting = await checkMarblesMeeting(roomId, [marbleNumber])
   marblesPosition[currentPlayer - 1][marbleNumber - 1] = newPosition
   updateMarblesPosition(roomId, marblesPosition)
-  const marblesMeeting = await checkMarblesMeeting(roomId, [marbleNumber])
 
   if (marblesMeeting.length) {
-    await hitPlayer(newPosition, marblesPosition, marblesMeeting, diceNumber, roomId)
+    await hitPlayer(roomId, marblesPosition, marblesMeeting)
   } else {
     emitToAll('marblesPosition', roomId, marblesPositionBuf(marblesPosition))
   }
