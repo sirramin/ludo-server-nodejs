@@ -3,7 +3,7 @@ const {numberOfPlayersInRoom, getRoomPlayers, getRoomPlayersWithNames} = require
 
 const {updateRemainingTime, updateDiceAttempts, updateCurrentPlayer, getCurrentPlayer, getPositions, decreaseLights, getLights} = require('../redisHelper/logic')
 
-const {kickUser} = require('../redisHelper/room')
+const {kickUser, deleteRoom} = require('../redisHelper/room')
 const {emitToSpecificPlayer, emitToAll} = require('../realtime/socketHelper')
 const {stringBuf} = require('../../flatBuffers/str/data/str')
 const {integerBuf} = require('../../flatBuffers/int/data/int')
@@ -28,6 +28,10 @@ exp.changeTurn = async (roomId, decreaseLight) => {
   if (decreaseLight) {
     await _decreaseLight(roomId, previousPlayer)
   }
+}
+
+exp.deleteRoom = async (roomId) => {
+  deleteRoom(roomId)
 }
 
 _findNextAvailablePlayer = async (roomId, previousPlayer) => {

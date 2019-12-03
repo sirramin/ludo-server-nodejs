@@ -6,13 +6,12 @@ const {
   updateCurrentPlayer, getCurrentPlayer, initLights, updateMarblesPosition, updatePositions
 } = require('../redisHelper/logic')
 
-const {kickUser, deleteRoom} = require('../redisHelper/room')
 const {emitToSpecificPlayer, emitToAll} = require('../realtime/socketHelper')
-const {stringBuf} = require('../../flatBuffers/str/data/str')
 const {integerBuf} = require('../../flatBuffers/int/data/int')
 const {positionBuf} = require('../../flatBuffers/positions/data/positions')
 const {gameMeta: {diceMaxTime, lightsAtStart}} = require('../../common/config')
-const {changeTurn, findUserId} = require('./gameFunctions')
+const {changeTurn, findUserId, deleteRoom} = require('./gameFunctions')
+const {kickUser} = require('../matchMaking/kick')
 
 const init = async (roomId) => {
   const playersCount = await numberOfPlayersInRoom(roomId)
@@ -59,9 +58,7 @@ const timerCounter = (roomId) => {
       clearInterval(timerInterval)
       deleteRoom(roomId)
     }
-    // logger.info('roomId: '+ roomId + ' remainingTime: ' + remainingTime)
     if (remainingTime === 0) {
-      // if (positions.length === 1) clearInterval(timerInterval)
       const lights = await getLights(roomId)
       const currentPlayer = await getCurrentPlayer(roomId)
       if (lights[currentPlayer - 1] === 1 && playersCount > 1) {

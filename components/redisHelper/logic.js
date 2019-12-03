@@ -1,5 +1,5 @@
 const redisClient = require('../../common/redis-client')
-const {redis: {prefixes: {rooms, positions}}} = require('../../common/config')
+const {redis: {prefixes: {rooms}}} = require('../../common/config')
 const exp = {}
 
 ////////////////////////    set    /////////////////////////////////////////////

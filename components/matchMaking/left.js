@@ -1,4 +1,3 @@
-
 const leftRoom = async (socket) => {
   const userId = socket.userInfo.userId
   await redisHelperUser.removeUserSocketIdFromRedis()

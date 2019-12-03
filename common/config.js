@@ -5,13 +5,12 @@ const config = {
       rooms: 'rooms:', // hash
       roomPlayers: 'roomPlayers:', // set
       users: 'users:', // hash
-      positions: 'positions:' // hash
     }
   },
   gameMeta: {
     roomMin: 2,
     roomMax: 4,
-    waitingTime: 3000, //debug 30000
+    waitingTime: 3000, //TODO debug 30000
     kickTime: 30000,
     diceMaxTime: 60, //debug 10
     autoMoveMaxTime: 70, //debug 7

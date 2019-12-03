@@ -1,4 +1,9 @@
-const kickUserFromRoomByDC = async (socket) => {
+const {findUserCurrentRoom, getSocketId, deleteUserRoom} = require('../redisHelper/user')
+const {numberOfPlayersInRoom, removePlayerFromRoom} = require('../redisHelper/players')
+const {emitToSpecificPlayer} = require('../realtime/socketHelper')
+const {stringBuf} = require('../../flatBuffers/str/data/str')
+
+const kickUserByDC = async (socket) => {
   const userId = socket.userInfo.userId
   await redisHelperUser.removeUserSocketIdFromRedis()
   await redisHelperUser.addDisconnectStatusToUser()
@@ -30,5 +35,24 @@ const kickUserFromRoomByDC = async (socket) => {
         }
       }
     }, gameMeta.kickTime)
+  }
+}
+
+exp.kickUser = async (userId) => {
+  const roomId = await findUserCurrentRoom(userId)
+  const currentPlayers = await numberOfPlayersInRoom(roomId)
+  const socketId = await getSocketId(userId)
+  emitToSpecificPlayer('errorMessage', userId, stringBuf('you got kicked'))
+  removePlayerFromRoom(roomId, userId)
+
+    if (currentPlayers.length > 1) {
+    io.of('/').adapter.remoteDisconnect(socketId, true, async (err) => {
+      const gameLeft = require('../logics/' + gameMeta.name + '/gameLeft')(userId, roomId)
+      await gameLeft.handleLeft()
+      // await addToLeaderboard(userId, false)
+      if (currentPlayers && currentPlayers.length === 1) {
+        await makeRemainingPlayerWinner(roomId)
+      }
+    })
   }
 }
