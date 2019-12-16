@@ -1,7 +1,7 @@
 const redisClient = require('../../common/redis-client')
 const {redis: {prefixes: {roomPlayers}}} = require('../../common/config')
 const {getUsername, updateUserRoom, deleteUserRoom} = require('./user')
-const {updateRoomsListCount} = require('./room')
+const {updateRoomsListCount} = require('./roomList')
 const exp = {}
 
 exp.getRoomPlayers = async (roomId) => {
@@ -26,13 +26,13 @@ exp.numberOfPlayersInRoom = async (roomId) => {
 exp.addPlayerTooRoom = async (roomId, userId) => {
   redisClient.sadd(roomPlayers + roomId, userId)
   updateRoomsListCount(roomId, 1)
-  updateUserRoom(roomId, userId)
+  await updateUserRoom(roomId, userId)
 }
 
 exp.removePlayerFromRoom = async (roomId, userId) => {
-  redisClient.sadd(roomPlayers + roomId, userId)
+  redisClient.srem(roomPlayers + roomId, userId)
   await updateRoomsListCount(roomId, -1)
-  deleteUserRoom(userId)
+  await deleteUserRoom(userId)
 }
 
 exp.removeAlPlayerFromRoom = async (roomId) => {

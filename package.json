@@ -5,8 +5,8 @@
   "main": "index.js",
   "scripts": {
     "remote debug": "nodemon --inspect index.js 9222",
-    "start": "nodemon index.js",
-    "debug": "node index.js"
+    "start": "node index.js",
+    "debug": "nodemon index.js"
   },
   "author": "ramin sarmadi",
   "license": "ISC",

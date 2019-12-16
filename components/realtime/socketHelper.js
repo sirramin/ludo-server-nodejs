@@ -23,8 +23,21 @@ exp.joinRoom = (socketId, roomId) => {
   io.of('/').adapter.remoteJoin(socketId, roomId)
 }
 
-exp.leaveRoom = (socketId, roomId) => {
+exp.leaveRoom = async (userId, roomId) => {
+  const socketId = await getSocketId(userId)
   io.of('/').adapter.remoteLeave(socketId, roomId)
+}
+
+exp.disconnect = async (userId) => {
+  const socketId = await getSocketId(userId)
+  io.of('/').adapter.remoteDisconnect(socketId, true)
+}
+
+exp.logClientRooms = async (userId) => {
+  const socketId = await getSocketId(userId)
+  io.of('/').adapter.clientRooms(socketId, (err, rooms) => {
+    console.log('client Rooms:' + rooms.length); // an array containing every room a given id has joined.
+  })
 }
 
 module.exports = exp

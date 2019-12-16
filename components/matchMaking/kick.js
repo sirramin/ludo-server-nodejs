@@ -1,7 +1,12 @@
+const {deleteRoom} = require('../redisHelper/room')
 const {findUserCurrentRoom, getSocketId, deleteUserRoom} = require('../redisHelper/user')
 const {numberOfPlayersInRoom, removePlayerFromRoom} = require('../redisHelper/players')
-const {emitToSpecificPlayer} = require('../realtime/socketHelper')
+const {emitToSpecificPlayer, logClientRooms, disconnect} = require('../realtime/socketHelper')
 const {stringBuf} = require('../../flatBuffers/str/data/str')
+const handleLeft = require('../logics/gameLeft')
+const makeRemainingPlayerWinner = require('../logics/gameEnd')
+const exp = {}
+
 
 const kickUserByDC = async (socket) => {
   const userId = socket.userInfo.userId
@@ -40,19 +45,26 @@ const kickUserByDC = async (socket) => {
 
 exp.kickUser = async (userId) => {
   const roomId = await findUserCurrentRoom(userId)
-  const currentPlayers = await numberOfPlayersInRoom(roomId)
-  const socketId = await getSocketId(userId)
+  // const currentPlayers = await numberOfPlayersInRoom(roomId)
   emitToSpecificPlayer('errorMessage', userId, stringBuf('you got kicked'))
   removePlayerFromRoom(roomId, userId)
 
-    if (currentPlayers.length > 1) {
-    io.of('/').adapter.remoteDisconnect(socketId, true, async (err) => {
-      const gameLeft = require('../logics/' + gameMeta.name + '/gameLeft')(userId, roomId)
-      await gameLeft.handleLeft()
-      // await addToLeaderboard(userId, false)
-      if (currentPlayers && currentPlayers.length === 1) {
-        await makeRemainingPlayerWinner(roomId)
-      }
-    })
+  // if (currentPlayers.length > 1) {
+  // disconnect(userId)
+  logClientRooms(userId) //TODO just for debug
+  // await handleLeft()
+  // await addToLeaderboard(userId, false) //TODO
+  // await makeRemainingPlayerWinner(roomId) //TODO
+  // }
+  await _handleDeleteRoom(roomId)
+
+}
+
+const _handleDeleteRoom = async (roomId) => {
+  const playersCount = await numberOfPlayersInRoom(roomId)
+  if (playersCount === 1) {
+    await deleteRoom(roomId)
   }
 }
+
+module.exports = exp

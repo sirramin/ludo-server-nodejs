@@ -1,15 +1,12 @@
 const _ = require('lodash')
-const {numberOfPlayersInRoom, getRoomPlayers, getRoomPlayersWithNames} = require('../redisHelper/players')
+const {numberOfPlayersInRoom} = require('../redisHelper/players')
 
 const {updateRemainingTime, updateDiceAttempts, updateCurrentPlayer, getCurrentPlayer, getPositions, decreaseLights, getLights} = require('../redisHelper/logic')
 
-const {kickUser, deleteRoom} = require('../redisHelper/room')
 const {emitToSpecificPlayer, emitToAll} = require('../realtime/socketHelper')
-const {stringBuf} = require('../../flatBuffers/str/data/str')
 const {integerBuf} = require('../../flatBuffers/int/data/int')
-const {positionBuf} = require('../../flatBuffers/positions/data/positions')
 const {arrayBuf} = require('../../flatBuffers/arr/data/arr')
-const {gameMeta: {diceMaxTime, lightsAtStart}} = require('../../common/config')
+const {gameMeta: {diceMaxTime}} = require('../../common/config')
 
 const exp = {}
 
@@ -28,10 +25,6 @@ exp.changeTurn = async (roomId, decreaseLight) => {
   if (decreaseLight) {
     await _decreaseLight(roomId, previousPlayer)
   }
-}
-
-exp.deleteRoom = async (roomId) => {
-  deleteRoom(roomId)
 }
 
 _findNextAvailablePlayer = async (roomId, previousPlayer) => {
@@ -55,9 +48,14 @@ exp.findUserId = async (roomId, playerNumber) => {
 }
 
 _decreaseLight = async (roomId, playerNumber) => {
+  const {kickUser} = require('../matchMaking/kick')
   await decreaseLights(roomId, playerNumber)
   let lights = await getLights(roomId)
   emitToAll('lights', roomId, arrayBuf(lights))
+  const playersCount = await numberOfPlayersInRoom(roomId)
+  if (lights[playerNumber - 1] === 1 && playersCount > 1) {
+    kickUser(await exp.findUserId(roomId, playerNumber))
+  }
 }
 
 module.exports = exp

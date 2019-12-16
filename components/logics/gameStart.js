@@ -1,5 +1,6 @@
 const _ = require('lodash')
 const {numberOfPlayersInRoom, getRoomPlayers, getRoomPlayersWithNames} = require('../redisHelper/players')
+// const deleteRoomCycle = require('../redisHelper/deleteRoom')
 
 const {
   updateRemainingTime, increaseRemainingTime, updateDiceAttempts, getLights,
@@ -10,8 +11,8 @@ const {emitToSpecificPlayer, emitToAll} = require('../realtime/socketHelper')
 const {integerBuf} = require('../../flatBuffers/int/data/int')
 const {positionBuf} = require('../../flatBuffers/positions/data/positions')
 const {gameMeta: {diceMaxTime, lightsAtStart}} = require('../../common/config')
-const {changeTurn, findUserId, deleteRoom} = require('./gameFunctions')
-const {kickUser} = require('../matchMaking/kick')
+const {changeTurn, findUserId} = require('./gameFunctions')
+// const {kickUser} = require('../matchMaking/kick')
 
 const init = async (roomId) => {
   const playersCount = await numberOfPlayersInRoom(roomId)
@@ -52,20 +53,15 @@ const firstTurn = async (roomId) => {
 
 const timerCounter = (roomId) => {
   const timerInterval = setInterval(async () => {
-    const remainingTime = await increaseRemainingTime(roomId, -1)
     const playersCount = await numberOfPlayersInRoom(roomId)
-    if ((remainingTime < -1 && playersCount === 1) || remainingTime < -10) {
-      clearInterval(timerInterval)
-      deleteRoom(roomId)
-    }
-    if (remainingTime === 0) {
-      const lights = await getLights(roomId)
-      const currentPlayer = await getCurrentPlayer(roomId)
-      if (lights[currentPlayer - 1] === 1 && playersCount > 1) {
-        kickUser(await findUserId(roomId, currentPlayer))
-      } else if (playersCount > 1) {
-         changeTurn(roomId, true)
+    let remainingTime
+    if (playersCount > 1) {
+      remainingTime = await increaseRemainingTime(roomId, -1)
+      if (remainingTime === 0) {
+        changeTurn(roomId, true)
       }
+    } else if (playersCount === 1) {
+      clearInterval(timerInterval)
     }
   }, 1000)
 }

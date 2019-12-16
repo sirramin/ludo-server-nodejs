@@ -1,8 +1,7 @@
 const redisClient = require('../../common/redis-client')
-const uuidv4 = require('uuid/v4');
-const socketHelper = require("../realtime/socketHelper")
+const uuidv4 = require('uuid/v4')
+const socketHelper = require('../realtime/socketHelper')
 const {gameMeta, redis: {prefixes: {rooms, roomsList}}} = require('../../common/config')
-const redisHelperUser = require('./user')
 const startHelper = require('./start')
 const {addPlayerTooRoom, numberOfPlayersInRoom, removeAlPlayerFromRoom} = require('./players')
 const {stringBuf} = require('../../flatBuffers/str/data/str')
@@ -10,7 +9,7 @@ const {stringBuf} = require('../../flatBuffers/str/data/str')
 const exp = {}
 
 exp.deleteRoom = async (roomId) => {
-  await redisClient.del(rooms)
+  await redisClient.del(rooms + roomId)
   await redisClient.zrem(roomsList, roomId)
 }
 
