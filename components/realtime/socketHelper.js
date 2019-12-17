@@ -33,9 +33,23 @@ exp.disconnect = async (userId) => {
   io.of('/').adapter.remoteDisconnect(socketId, true)
 }
 
+exp.disconnectMultiple = async (roomId) => {
+  io.of('/').in(roomId).clients((error, clients) => {
+    if (error) logger.error(error)
+    if (clients.length) {
+      for(const clientSocketId of clients) {
+        io.of('/').adapter.remoteDisconnect(clientSocketId, true)
+      }
+    }
+  })
+}
+
 exp.logClientRooms = async (userId) => {
   const socketId = await getSocketId(userId)
   io.of('/').adapter.clientRooms(socketId, (err, rooms) => {
+    if(err) {
+      return
+    }
     console.log('client Rooms:' + rooms.length); // an array containing every room a given id has joined.
   })
 }

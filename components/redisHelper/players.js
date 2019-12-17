@@ -35,7 +35,7 @@ exp.removePlayerFromRoom = async (roomId, userId) => {
   await deleteUserRoom(userId)
 }
 
-exp.removeAlPlayerFromRoom = async (roomId) => {
+exp.removeAllPlayerFromRoom = async (roomId) => {
   await redisClient.del(roomPlayers + roomId)
 }
 

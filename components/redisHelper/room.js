@@ -8,11 +8,6 @@ const {stringBuf} = require('../../flatBuffers/str/data/str')
 
 const exp = {}
 
-exp.deleteRoom = async (roomId) => {
-  await redisClient.del(rooms + roomId)
-  await redisClient.zrem(roomsList, roomId)
-}
-
 exp.createNewRoom = async () => {
   const roomId = uuidv4()
   const currentTimeStamp = new Date().getTime()
@@ -67,6 +62,11 @@ exp.updateRoomsListCount = async (roomId, count) => {
   await redisClient.zincrby(roomsList, count, roomId)
 }
 
+exp.deleteRoom = async (roomId) => {
+  await redisClient.del(rooms + roomId)
+  await redisClient.zrem(roomsList, roomId)
+}
+
 const _changeRoomState = async (roomId, status) => {
   await redisClient.hset(rooms + roomId, "status", status)
 }
@@ -102,19 +102,6 @@ const _roomWaitingTimeOver = async (roomId) => {
       await _destroyRoom(roomId)
     }
   }
-}
-
-const _destroyRoom = async (roomId) => {
-  await removeAlPlayerFromRoom(roomId)
-  await redisClient.del(rooms + roomId)
-  await redisClient.zrem(roomsList, roomId)
-  io.of('/').in(roomId).clients((error, clients) => {
-    if (error) logger.error(error)
-    if (clients.length) {
-      clients.forEach(client => io.of('/').adapter.remoteLeave(client, roomId))
-    }
-  })
-  logger.info(roomId + ' destroyed')
 }
 
 module.exports = exp

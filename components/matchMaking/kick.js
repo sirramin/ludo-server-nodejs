@@ -1,7 +1,7 @@
 const {deleteRoom} = require('../redisHelper/room')
 const {findUserCurrentRoom, getSocketId, deleteUserRoom} = require('../redisHelper/user')
-const {numberOfPlayersInRoom, removePlayerFromRoom} = require('../redisHelper/players')
-const {emitToSpecificPlayer, logClientRooms, disconnect} = require('../realtime/socketHelper')
+const {numberOfPlayersInRoom, removePlayerFromRoom, removeAllPlayerFromRoom} = require('../redisHelper/players')
+const {emitToSpecificPlayer, logClientRooms, disconnect, disconnectMultiple} = require('../realtime/socketHelper')
 const {stringBuf} = require('../../flatBuffers/str/data/str')
 const handleLeft = require('../logics/gameLeft')
 const makeRemainingPlayerWinner = require('../logics/gameEnd')
@@ -49,21 +49,21 @@ exp.kickUser = async (userId) => {
   emitToSpecificPlayer('errorMessage', userId, stringBuf('you got kicked'))
   removePlayerFromRoom(roomId, userId)
 
-  // if (currentPlayers.length > 1) {
   // disconnect(userId)
-  logClientRooms(userId) //TODO just for debug
+  // logClientRooms(userId) //TODO just for debug
   // await handleLeft()
   // await addToLeaderboard(userId, false) //TODO
   // await makeRemainingPlayerWinner(roomId) //TODO
-  // }
-  await _handleDeleteRoom(roomId)
+  await _handleLastPlayer(roomId)
 
 }
 
-const _handleDeleteRoom = async (roomId) => {
+const _handleLastPlayer = async (roomId) => {
   const playersCount = await numberOfPlayersInRoom(roomId)
   if (playersCount === 1) {
-    await deleteRoom(roomId)
+    deleteRoom(roomId)
+    removeAllPlayerFromRoom(roomId)
+    disconnectMultiple(roomId)
   }
 }
 
