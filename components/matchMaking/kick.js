@@ -1,10 +1,11 @@
-const {deleteRoom} = require('../redisHelper/room')
+const {destroyRoom} = require('../redisHelper/room')
 const {findUserCurrentRoom, getSocketId, deleteUserRoom} = require('../redisHelper/user')
 const {numberOfPlayersInRoom, removePlayerFromRoom, removeAllPlayerFromRoom} = require('../redisHelper/players')
 const {emitToSpecificPlayer, logClientRooms, disconnect, disconnectMultiple} = require('../realtime/socketHelper')
 const {stringBuf} = require('../../flatBuffers/str/data/str')
 const handleLeft = require('../logics/gameLeft')
 const makeRemainingPlayerWinner = require('../logics/gameEnd')
+const {getLights} = require('../redisHelper/logic')
 const exp = {}
 
 
@@ -43,27 +44,42 @@ const kickUserByDC = async (socket) => {
   }
 }
 
-exp.kickUser = async (userId) => {
+exp.lightsRanOut = async (userId) => {
   const roomId = await findUserCurrentRoom(userId)
   // const currentPlayers = await numberOfPlayersInRoom(roomId)
-  emitToSpecificPlayer('errorMessage', userId, stringBuf('you got kicked'))
-  removePlayerFromRoom(roomId, userId)
+  // emitToSpecificPlayer('errorMessage', userId, stringBuf('you got kicked'))
+  // removePlayerFromRoom(roomId, userId)
 
   // disconnect(userId)
   // logClientRooms(userId) //TODO just for debug
   // await handleLeft()
   // await addToLeaderboard(userId, false) //TODO
   // await makeRemainingPlayerWinner(roomId) //TODO
-  await _handleLastPlayer(roomId)
+  await _handleLastPlayerWithLight(roomId)
 
+}
+
+const _handleLastPlayerWithLight = async (roomId) => {
+  let lights = await getLights(roomId)
+  let numberOfPlayersWithLight = 0
+  let playerIndex
+  for (const [index, light] of lights.entries()) {
+    if(light > 0 ) {
+      playerIndex = index
+      numberOfPlayersWithLight ++
+    }
+  }
+  if (numberOfPlayersWithLight === 1) {
+    destroyRoom(roomId)
+    // make ramaining winner (playerIndex + 1) //TODO
+  }
 }
 
 const _handleLastPlayer = async (roomId) => {
   const playersCount = await numberOfPlayersInRoom(roomId)
   if (playersCount === 1) {
-    deleteRoom(roomId)
-    removeAllPlayerFromRoom(roomId)
-    disconnectMultiple(roomId)
+    destroyRoom(roomId)
+    // make ramaining winner
   }
 }
 

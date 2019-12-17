@@ -27,16 +27,26 @@ exp.changeTurn = async (roomId, decreaseLight) => {
   }
 }
 
-_findNextAvailablePlayer = async (roomId, previousPlayer) => {
+const _findNextAvailablePlayer = async (roomId, previousPlayer) => {
   const playersCount = await numberOfPlayersInRoom(roomId)
-  const nextPlayer = previousPlayer + 1 > playersCount ? 1 : previousPlayer + 1
-  const positions = await getPositions(roomId)
-  for (let i = 1; i < playersCount; i++) {
-    if (positions[nextPlayer - 1]) {
-      return nextPlayer
+  const lights = await getLights(roomId)
+  const possibleNextPlayer = previousPlayer + 1 > playersCount ? 1 : previousPlayer + 1
+  return _checkLights(lights, playersCount, possibleNextPlayer, previousPlayer)
+}
+
+const _checkLights = (lights, playersCount, possibleNextPlayer, previousPlayer) => {
+  const possibleNextPlayerLights = lights[possibleNextPlayer - 1]
+  if (possibleNextPlayer === previousPlayer) {
+    return null
+  } else {
+    if (possibleNextPlayerLights > 0) {
+      return possibleNextPlayer
+    } else {
+      possibleNextPlayer = possibleNextPlayer + 1 > playersCount ? 1 : possibleNextPlayer + 1
+      _checkLights(lights, playersCount, possibleNextPlayer, previousPlayer)
     }
   }
-  return null
+
 }
 
 exp.findUserId = async (roomId, playerNumber) => {
@@ -47,14 +57,14 @@ exp.findUserId = async (roomId, playerNumber) => {
   return userObj.userId
 }
 
-_decreaseLight = async (roomId, playerNumber) => {
-  const {kickUser} = require('../matchMaking/kick')
+const _decreaseLight = async (roomId, playerNumber) => {
+  const {lightsRanOut} = require('../matchMaking/kick')
   await decreaseLights(roomId, playerNumber)
   let lights = await getLights(roomId)
   emitToAll('lights', roomId, arrayBuf(lights))
   const playersCount = await numberOfPlayersInRoom(roomId)
-  if (lights[playerNumber - 1] === 1 && playersCount > 1) {
-    kickUser(await exp.findUserId(roomId, playerNumber))
+  if (lights[playerNumber - 1] === 0 && playersCount > 1) {
+    lightsRanOut(await exp.findUserId(roomId, playerNumber))
   }
 }
 

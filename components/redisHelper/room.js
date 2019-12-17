@@ -1,9 +1,9 @@
 const redisClient = require('../../common/redis-client')
 const uuidv4 = require('uuid/v4')
-const socketHelper = require('../realtime/socketHelper')
+const {joinRoom, disconnectMultiple} = require('../realtime/socketHelper')
 const {gameMeta, redis: {prefixes: {rooms, roomsList}}} = require('../../common/config')
 const startHelper = require('./start')
-const {addPlayerTooRoom, numberOfPlayersInRoom, removeAlPlayerFromRoom} = require('./players')
+const {addPlayerTooRoom, numberOfPlayersInRoom, removeAllPlayerFromRoom} = require('./players')
 const {stringBuf} = require('../../flatBuffers/str/data/str')
 
 const exp = {}
@@ -51,7 +51,7 @@ exp.joinPlayerToRoom = async (roomId, socket) => {
     return
   }
   await addPlayerTooRoom(roomId, socket.userId)
-  socketHelper.joinRoom(socket.id, roomId)
+  joinRoom(socket.id, roomId)
   if (await exp.checkRoomIsReady(roomId)) {
     await _changeRoomState(roomId, 'started')
     await startHelper(roomId)
@@ -99,9 +99,15 @@ const _roomWaitingTimeOver = async (roomId) => {
       await _changeRoomState(roomId, 'started')
       await startHelper(roomId)
     } else {
-      await _destroyRoom(roomId)
+      await exp.destroyRoom(roomId)
     }
   }
+}
+
+exp.destroyRoom = async (roomId) => {
+  exp.deleteRoom(roomId)
+  removeAllPlayerFromRoom(roomId)
+  disconnectMultiple(roomId)
 }
 
 module.exports = exp
