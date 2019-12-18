@@ -63,6 +63,10 @@ const socketManager = (token) => {
     $('#messages').append($('<li>').text('yourTurn').css('color', 'blue'))
   })
 
+  socket.on('youWin', function () {
+    $('#messages').append($('<li>').text('youWin').css('color', 'green'))
+  })
+
   socket.on('changeTurn', function (byets) {
     const bufView = new Uint8Array(byets)
     const buf = new flatbuffersLib.ByteBuffer(bufView)
@@ -104,56 +108,18 @@ const socketManager = (token) => {
     $('#messages').append($('<li>').text('marblesPosition: ' + marblesPositionText))
   })
 
+  socket.on('winner', function (byets) {
+    const bufView = new Uint8Array(byets)
+    const buf = new flatbuffersLib.ByteBuffer(bufView)
+    const object = Mench.Text.Str.getRootAsStr(buf)
+    $('#messages').append($('<li>').text(object.data()))
+  })
+
   // socket.on('friendly', function (data) {
   //   if (data === 'friendlyMatchRequest')
   //     if (confirm('you are invited by ' + data.data.inviter)) {
   //       socket.emit('joinFriendly', 1)
   //     }
   // })
-
-  var yourTrun = false
-  var color = 'black'
-
-  const diceClick = () => {
-    setTimeout(function () {
-      if (yourTrun) {
-        // $('#rollDice').click()
-      }
-    }, 2000)
-  }
-
-  socket.on('json', function (data) {
-    if (data.hasOwnProperty('changeTurn')) {
-      yourTrun = false
-      color = 'black'
-      $('#rollDice').hide()
-      $('#move').hide()
-      $('#messages').append($('<li>').text(data + ' ' + JSON.stringify(data.data)))
-    } else if (data === 'marblesCanMove' && yourTrun) {
-      console.log('marblesCanMove')
-      console.log('yourTrun')
-      $('#rollDice').hide()
-      $('#move').show()
-      $('#messages').append($('<li>').text(data + ' ' + data.data).css('color', color))
-      const marblesArray = data.data
-
-      marblesArray.forEach((item, index) => {
-
-        $('#move').append('<option value="' + item + '">' + item + '</option>')
-
-      })
-    }
-
-
-    if (data === 'canRollDiceAgain' && yourTrun) {
-      $('#rollDice').show()
-      // diceClick()
-    }
-    if (data === 'marblesPosition' && yourTrun) {
-      console.log('--------' + yourTrun + '----------')
-      $('#rollDice').show()
-      // diceClick()
-    }
-  })
 }
 

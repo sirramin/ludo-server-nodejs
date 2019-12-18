@@ -4,7 +4,7 @@ const {numberOfPlayersInRoom, removePlayerFromRoom, removeAllPlayerFromRoom} = r
 const {emitToSpecificPlayer, logClientRooms, disconnect, disconnectMultiple} = require('../realtime/socketHelper')
 const {stringBuf} = require('../../flatBuffers/str/data/str')
 const handleLeft = require('../logics/gameLeft')
-const makeRemainingPlayerWinner = require('../logics/gameEnd')
+const makeRemainingPlayerWinner = require('../logics/winner')
 const {getLights} = require('../redisHelper/logic')
 const exp = {}
 
@@ -46,15 +46,6 @@ const kickUserByDC = async (socket) => {
 
 exp.lightsRanOut = async (userId) => {
   const roomId = await findUserCurrentRoom(userId)
-  // const currentPlayers = await numberOfPlayersInRoom(roomId)
-  // emitToSpecificPlayer('errorMessage', userId, stringBuf('you got kicked'))
-  // removePlayerFromRoom(roomId, userId)
-
-  // disconnect(userId)
-  // logClientRooms(userId) //TODO just for debug
-  // await handleLeft()
-  // await addToLeaderboard(userId, false) //TODO
-  // await makeRemainingPlayerWinner(roomId) //TODO
   await _handleLastPlayerWithLight(roomId)
 
 }
@@ -70,7 +61,7 @@ const _handleLastPlayerWithLight = async (roomId) => {
     }
   }
   if (numberOfPlayersWithLight === 1) {
-    // make ramaining winner (playerIndex + 1) //TODO
+    await makeRemainingPlayerWinner(roomId, playerIndex) //TODO
     destroyRoom(roomId)
   }
 }
