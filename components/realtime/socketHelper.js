@@ -39,6 +39,7 @@ exp.disconnectMultiple = async (roomId) => {
     if (clients.length) {
       for(const clientSocketId of clients) {
         io.of('/').adapter.remoteDisconnect(clientSocketId, true)
+        //TODO check room clients for certainty
       }
     }
   })

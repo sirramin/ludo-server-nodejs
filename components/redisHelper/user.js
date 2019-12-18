@@ -42,6 +42,13 @@ const redisHelper = {
     return await redisClient.hdel(users + userId, 'room')
   },
 
+  async deleteUsersRoomAndSocketIdMultiple(players) {
+    for (const playerId of players) {
+       await redisClient.hdel(users + playerId, 'room')
+       await redisClient.hdel(users + playerId, 'socketId')
+    }
+  },
+
   async LoopRemovePlayersRoomInRedis(roomPlayersArray, roomId) {
     for (let i = 0; i < roomPlayersArray.length; i++) {
       redisHelper.deleteUserRoom(roomPlayersArray[i])

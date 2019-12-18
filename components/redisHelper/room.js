@@ -3,7 +3,8 @@ const uuidv4 = require('uuid/v4')
 const {joinRoom, disconnectMultiple} = require('../realtime/socketHelper')
 const {gameMeta, redis: {prefixes: {rooms, roomsList}}} = require('../../common/config')
 const startHelper = require('./start')
-const {addPlayerTooRoom, numberOfPlayersInRoom, removeAllPlayerFromRoom} = require('./players')
+const {addPlayerTooRoom, numberOfPlayersInRoom, removeAllPlayerFromRoom, getRoomPlayers} = require('./players')
+const {deleteUsersRoomMultiple} = require('./user')
 const {stringBuf} = require('../../flatBuffers/str/data/str')
 
 const exp = {}
@@ -106,6 +107,8 @@ const _roomWaitingTimeOver = async (roomId) => {
 
 exp.destroyRoom = async (roomId) => {
   exp.deleteRoom(roomId)
+  const players = await getRoomPlayers(roomId)
+  await deleteUsersRoomMultiple(players)
   removeAllPlayerFromRoom(roomId)
   disconnectMultiple(roomId)
 }

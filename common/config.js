@@ -13,8 +13,8 @@ const config = {
     waitingTime: 3000, //TODO debug 30000
     kickTime: 30000,
     diceMaxTime: 1, //debug 10
-    autoMoveMaxTime: 70, //debug 7
-    manualMoveMaxTime: 70, //debug 7
+    autoMoveMaxTime: 7, //debug 7
+    manualMoveMaxTime: 7, //debug 7
     lightsAtStart: 4
   },
   tiles: {
