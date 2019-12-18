@@ -70,16 +70,16 @@ const _handleLastPlayerWithLight = async (roomId) => {
     }
   }
   if (numberOfPlayersWithLight === 1) {
-    destroyRoom(roomId)
     // make ramaining winner (playerIndex + 1) //TODO
+    destroyRoom(roomId)
   }
 }
 
 const _handleLastPlayer = async (roomId) => {
   const playersCount = await numberOfPlayersInRoom(roomId)
   if (playersCount === 1) {
-    destroyRoom(roomId)
     // make ramaining winner
+    destroyRoom(roomId)
   }
 }
 

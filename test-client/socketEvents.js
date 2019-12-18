@@ -3,6 +3,14 @@ const target = 'http://localhost:3001'
 const socketManager = (token) => {
   socket = io(target, {transports: ['websocket'], query: {token}})
 
+  socket.on('connect', () => {
+    $('#socketId').text(socket.id)
+  })
+
+  socket.on('disconnect', () => {
+    $('#socketId').text('')
+  })
+
   socket.on('errorMessage', function (byets) {
     const bufView = new Uint8Array(byets)
     const buf = new flatbuffersLib.ByteBuffer(bufView)

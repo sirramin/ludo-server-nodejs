@@ -3,7 +3,7 @@
 // $('#username').text(username)
 let socket
 
-$('#connect').click(async () => {
+$('#signInAsGuest').click(async () => {
   // if (!token) {
   const {token: singInToken, username} = await $.ajax({
     url: target + "/user/signInAsGuest",
@@ -16,6 +16,9 @@ $('#connect').click(async () => {
   $('#token').text(token)
   $('#username').text(username)
   // }
+})
+
+$('#connectSocket').click(async () => {
   socketManager(token)
 })
 
