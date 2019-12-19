@@ -26,3 +26,11 @@ const leftRoom = async (socket) => {
     }
   }
 }
+
+const _handleLastPlayer = async (roomId) => {
+  const playersCount = await numberOfPlayersInRoom(roomId)
+  if (playersCount === 1) {
+    // make ramaining winner
+    destroyRoom(roomId)
+  }
+}

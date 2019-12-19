@@ -58,7 +58,7 @@ exp.findUserId = async (roomId, playerNumber) => {
 }
 
 const _decreaseLight = async (roomId, playerNumber) => {
-  const {lightsRanOut} = require('../matchMaking/lightsRanOut')
+  const lightsRanOut = require('../matchMaking/lightsRanOut')
   await decreaseLights(roomId, playerNumber)
   let lights = await getLights(roomId)
   emitToAll('lights', roomId, arrayBuf(lights))

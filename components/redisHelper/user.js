@@ -30,6 +30,10 @@ const redisHelper = {
     await redisClient.hset(users + userId, 'socketId', socketId)
   },
 
+  async removeSocketId(userId) {
+    await redisClient.hdel(users + userId, 'socketId')
+  },
+
   async findUserCurrentRoom(userId) {
     return await redisClient.hget(users + userId, 'room')
   },

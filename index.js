@@ -6,15 +6,9 @@ const http = require('http').Server(app)
 global.io = require('socket.io')(http, {
   transports: 'websocket'
 })
-const redisAdapter = require('socket.io-redis')
-const redisClient = require('./common/redis-client')
 const errorMiddleware = require('./middleware/errorMiddleware')
+require('./common/redis-client')
 
-// io.adapter(redisAdapter({
-//   pubClient: redisClient,
-//   subClient: redisClient
-// }))
-io.adapter(redisAdapter(redisClient))
 const cors = require('cors')
 global.logger = require('./common/logger')
 // global.redisClient = null
@@ -35,7 +29,7 @@ app.use(errorMiddleware)
 
 require('./components/realtime/socket')
 
-const port = 3001
+const port = process.env.PORT || 3001
 http.listen(port, () => {
   logger.info('Server running at http://127.0.0.1:' + port + '. Process PID: ' + process.pid)
 

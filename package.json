@@ -1,12 +1,10 @@
 {
   "name": "mench",
   "version": "1.0.0",
-  "description": "Arta Game Platform",
+  "description": "quick ludo",
   "main": "index.js",
   "scripts": {
-    "remote debug": "nodemon --inspect index.js 9222",
-    "start": "node index.js",
-    "debug": "nodemon index.js"
+    "start": "nodemon index.js"
   },
   "author": "ramin sarmadi",
   "license": "ISC",

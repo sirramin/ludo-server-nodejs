@@ -12,11 +12,9 @@ io
     await redisHelperUser.addOnlineStatus(userId, true)
     await redisHelperUser.changeSocketId(userId, id)
 
-    // const hasRoomBefore = await checkHasRoomBefore(socket.userInfo)
-    // if (hasRoomBefore) matchMaking.returnUserToGame(hasRoomBefore)      //hasRoomBefore = roomId
-
     socket.on('disconnect', async (reason) => {
       await redisHelperUser.addOnlineStatus(userId, false)
+      await redisHelperUser.removeSocketId(userId, id)
       // await matchMaking.kickUserFromRoomByDC()
     })
 

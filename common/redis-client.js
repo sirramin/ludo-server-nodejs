@@ -1,13 +1,32 @@
 const Redis = require("ioredis")
-const redis = new Redis();
+const redisAdapter = require('socket.io-redis')
 
-// const cluster = new Redis.Cluster([{
-//   host: process.env.REDIS1_host,
-//   port: parseInt(process.env.REDIS1_port),
-// },
-//   {
-//     host: process.env.REDIS2_host,
-//     port: parseInt(process.env.REDIS2_port),
-//   }]);
+let redis
+if (!process.env.docker) {
+  redis = new Redis()
+  io.adapter(redisAdapter(redis))
+} else {
+  // const port = parseInt(process.env.REDIS_port1)
+  redis = new Redis(process.env.REDIS_URL)
+  io.adapter(redisAdapter(process.env.REDIS_URL))
+
+  // redis = new Redis.Cluster([
+  //   {
+  //     host: process.env.REDIS_host,
+  //     port: parseInt(process.env.REDIS_port1),
+  //   },
+  //   {
+  //     host: process.env.REDIS_host,
+  //     port: parseInt(process.env.REDIS_port2),
+  //   }
+  // ])
+
+  // io.adapter(redisAdapter({
+  //   pubClient: redis, //TODO maybe must be 2 instances
+  //   subClient: redis
+  // }))
+
+}
+
 
 module.exports = redis
