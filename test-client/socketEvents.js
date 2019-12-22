@@ -1,4 +1,5 @@
-const target = 'http://localhost:3002'
+// const target = 'http://localhost:3002'
+const target = 'http://185.204.100.27:3002'
 
 const socketManager = (token) => {
   socket = io(target, {transports: ['websocket'], query: {token}})
