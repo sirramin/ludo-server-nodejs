@@ -1,5 +1,5 @@
 // const target = 'http://localhost:3002'
-const target = 'http://185.204.100.27'
+const target = 'http://185.204.100.27:3005'
 // const target = 'http://34.240.9.109'
 
 const socketManager = (token) => {

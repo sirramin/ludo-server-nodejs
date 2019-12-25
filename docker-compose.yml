@@ -5,12 +5,12 @@ services:
     restart: always
     build: .
     ports:
-      - "80:80"
+      - "3005:3005"
     depends_on:
       - redis
       - mongo
     environment:
-      - PORT=80
+      - PORT=3005
       - REDIS_URL=redis://redis
       - MONGO_URL=mongodb://mongo
 #    volumes:
