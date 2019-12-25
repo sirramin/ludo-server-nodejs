@@ -13,12 +13,15 @@ io
     await redisHelperUser.changeSocketId(userId, id)
 
     socket.on('disconnect', async (reason) => {
+      logger.info('disconnect: ' + socket.id) //TODO must remove
       await redisHelperUser.addOnlineStatus(userId, false)
       await redisHelperUser.removeSocketId(userId, id)
       // await matchMaking.kickUserFromRoomByDC()
     })
 
     socket.on('joinRoom', async () => {
+      logger.info
+      ('joinRoom: ' + socket.id) //TODO must remove
       await matchMaking.findAvailableRooms(socket)
     })
 
