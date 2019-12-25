@@ -18,7 +18,7 @@ global.logger = require('./common/logger')
 
 app.use(cors())
 app.use(morgan('combined'))
-const basicAuth = require('basic-auth-connect');
+const basicAuth = require('basic-auth-connect')
 app.use('/docs', [basicAuth('admin', '5179241a'), express.static('apidoc')])
 // app.use('/static', express.static('static'))
 const bodyParser = require('body-parser')

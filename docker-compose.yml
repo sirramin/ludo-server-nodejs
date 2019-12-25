@@ -5,12 +5,12 @@ services:
     restart: always
     build: .
     ports:
-      - "3002:3002"
+      - "80:80"
     depends_on:
       - redis
       - mongo
     environment:
-      - PORT=3002
+      - PORT=80
       - REDIS_URL=redis://redis
       - MONGO_URL=mongodb://mongo
 #    volumes:
@@ -27,3 +27,7 @@ services:
     image: "redis:alpine"
     ports:
       - "6379:6379"
+    entrypoint: redis-server --appendonly yes
+    restart: always
+    volumes:
+      - /home/redis/data:/data
