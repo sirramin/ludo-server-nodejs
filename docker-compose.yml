@@ -1,7 +1,7 @@
 version: "3.7"
 services:
   app:
-    container_name: app
+    image: sirramin/mench
     restart: always
     build: .
     ports:
@@ -15,19 +15,25 @@ services:
       - MONGO_URL=mongodb://mongo
 #    volumes:
 #      - ./:/home/app
+
   mongo:
-    container_name: mongo
     image: mongo
-    volumes:
-      - /home/data:/data/db
     ports:
       - "27018:27018"
+#    volumes:
+#      - /home/data:/data/db
+#    deploy:
+#      placement:
+#        constraints: [node.role == manager]
+
   redis:
-    container_name: redis
-    image: "redis:alpine"
+    image: redis:alpine
     ports:
       - "6379:6379"
     entrypoint: redis-server --appendonly yes
-    restart: always
-    volumes:
-      - /home/redis/data:/data
+#    restart: always
+#    volumes:
+#      - /home/redis/data:/data
+#    deploy:
+#      placement:
+#        constraints: [node.role == manager]
