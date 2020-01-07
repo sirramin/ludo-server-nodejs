@@ -6,25 +6,76 @@ services:
     build: .
     ports:
       - "3005:3005"
+    deploy:
+      replicas: 1
+      placement:
+        constraints: [node.role == manager]
     depends_on:
       - redis
       - mongo
     environment:
       - PORT=3005
       - REDIS_URL=redis://redis
-      - MONGO_URL=mongodb://mongo
-#    volumes:
-#      - ./:/home/app
+      - REDIS_PORT=6379
+      - MONGO_URL=mongodb://mongo1
+  #    volumes:
+  #      - ./:/home/app
 
-  mongo:
+
+
+  mongo1:
     image: mongo
+    command: mongod --replSet rs0
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - mongo-data-1:/data/db
+      - mongo-config-1:/data/configdb
+    networks:
+      - mongo
     ports:
-      - "27018:27018"
-#    volumes:
-#      - /home/data:/data/db
-#    deploy:
-#      placement:
-#        constraints: [node.role == manager]
+      - "27017"
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.labels.mongo.replica == 1
+
+
+  mongo2:
+    image: mongo
+    command: mongod --replSet rs0
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - mongo-data-2:/data/db
+      - mongo-config-2:/data/configdb
+    networks:
+      - mongo
+    ports:
+      - "27017"
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.labels.mongo.replica == 2
+
+
+
+  mongo3:
+    image: mongo
+    command: mongod --replSet rs0
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - mongo-data-3:/data/db
+      - mongo-config-3:/data/configdb
+    networks:
+      - mongo
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.labels.mongo.replica == 3
+
+
 
   redis:
     image: redis:alpine
@@ -34,6 +85,18 @@ services:
 #    restart: always
 #    volumes:
 #      - /home/redis/data:/data
-#    deploy:
-#      placement:
-#        constraints: [node.role == manager]
+    deploy:
+      placement:
+        constraints: [node.role == manager]
+
+
+networks:
+  mongo:
+
+volumes:
+  mongo-data-1:
+  mongo-data-2:
+  mongo-data-3:
+  mongo-config-1:
+  mongo-config-2:
+  mongo-config-3:
