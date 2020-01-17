@@ -1,81 +1,75 @@
 version: "3.7"
 services:
   app:
-    image: sirramin/mench
-    restart: always
-    build: .
+    image: sirramin/mench:latest
     ports:
       - "3005:3005"
     deploy:
       replicas: 1
       placement:
         constraints: [node.role == manager]
-    depends_on:
-      - redis
-      - mongo
     environment:
       - PORT=3005
       - REDIS_URL=redis://redis
       - REDIS_PORT=6379
-      - MONGO_URL=mongodb://mongo1
-  #    volumes:
-  #      - ./:/home/app
-
-
+      - MONGO_URL=mongodb://root@N9pCmSakkw2Nt227:mongo1,mongo2,mongo3
+#    networks:
+#      - infra
 
   mongo1:
-    image: mongo
-    command: mongod --replSet rs0
-    volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - mongo-data-1:/data/db
-      - mongo-config-1:/data/configdb
-    networks:
-      - mongo
+    image: bitnami/mongodb:4.1
+    environment:
+      - MONGODB_ADVERTISED_HOSTNAME=mongo1
+      - MONGODB_REPLICA_SET_MODE=primary
+      - MONGODB_REPLICA_SET_KEY=M9X6DDjmWnYbzJjH
+      - MONGODB_ROOT_PASSWORD=N9pCmSakkw2Nt227
     ports:
-      - "27017"
+      - "27017:27017"
+#    volumes:
+#      - mongodb:/bitnami
+    networks:
+      infra:
+        aliases:
+          - mongo1
     deploy:
       replicas: 1
       placement:
         constraints:
           - node.labels.mongo.replica == 1
 
-
   mongo2:
-    image: mongo
-    command: mongod --replSet rs0
-    volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - mongo-data-2:/data/db
-      - mongo-config-2:/data/configdb
+    image: bitnami/mongodb:4.1
+    environment:
+      - MONGODB_REPLICA_SET_MODE=secondary
+      - MONGODB_PRIMARY_HOST=mongo1
+      - MONGODB_REPLICA_SET_KEY=M9X6DDjmWnYbzJjH
+      - MONGODB_PRIMARY_ROOT_PASSWORD=N9pCmSakkw2Nt227
     networks:
-      - mongo
-    ports:
-      - "27017"
+      infra:
+        aliases:
+          - mongo2
     deploy:
       replicas: 1
       placement:
         constraints:
           - node.labels.mongo.replica == 2
 
-
-
   mongo3:
-    image: mongo
-    command: mongod --replSet rs0
-    volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - mongo-data-3:/data/db
-      - mongo-config-3:/data/configdb
+    image: bitnami/mongodb:4.1
+    environment:
+      - MONGODB_REPLICA_SET_MODE=secondary
+      - MONGODB_PRIMARY_HOST=mongo1
+      - MONGODB_REPLICA_SET_KEY=M9X6DDjmWnYbzJjH
+      - MONGODB_PRIMARY_ROOT_PASSWORD=N9pCmSakkw2Nt227
     networks:
-      - mongo
+      infra:
+        aliases:
+          - mongo3
     deploy:
       replicas: 1
       placement:
         constraints:
           - node.labels.mongo.replica == 3
-
-
 
   redis:
     image: redis:alpine
@@ -88,15 +82,12 @@ services:
     deploy:
       placement:
         constraints: [node.role == manager]
-
+#    networks:
+#      - infra
 
 networks:
-  mongo:
-
-volumes:
-  mongo-data-1:
-  mongo-data-2:
-  mongo-data-3:
-  mongo-config-1:
-  mongo-config-2:
-  mongo-config-3:
+  infra:
+    driver: overlay
+#volumes:
+#  mongodb:
+#    driver: local
