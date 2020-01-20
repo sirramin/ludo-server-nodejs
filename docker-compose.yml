@@ -1,3 +1,5 @@
+# docker stack deploy -c docker-compose.yml menchStack --with-registry-auth
+
 version: "3.7"
 services:
   app:
@@ -12,7 +14,7 @@ services:
       - PORT=3005
       - REDIS_URL=redis://redis
       - REDIS_PORT=6379
-      - MONGO_URL=mongodb://root@N9pCmSakkw2Nt227:mongo1,mongo2,mongo3
+      - MONGO_URL=mongodb://root@N9pCmSakkw2Nt227:mongo1
 #    networks:
 #      - infra
 
@@ -27,10 +29,10 @@ services:
       - "27017:27017"
 #    volumes:
 #      - mongodb:/bitnami
-    networks:
-      infra:
-        aliases:
-          - mongo1
+#    networks:
+#      infra:
+#        aliases:
+#          - mongo1
     deploy:
       replicas: 1
       placement:
@@ -44,10 +46,10 @@ services:
       - MONGODB_PRIMARY_HOST=mongo1
       - MONGODB_REPLICA_SET_KEY=M9X6DDjmWnYbzJjH
       - MONGODB_PRIMARY_ROOT_PASSWORD=N9pCmSakkw2Nt227
-    networks:
-      infra:
-        aliases:
-          - mongo2
+#    networks:
+#      infra:
+#        aliases:
+#          - mongo2
     deploy:
       replicas: 1
       placement:
@@ -61,10 +63,10 @@ services:
       - MONGODB_PRIMARY_HOST=mongo1
       - MONGODB_REPLICA_SET_KEY=M9X6DDjmWnYbzJjH
       - MONGODB_PRIMARY_ROOT_PASSWORD=N9pCmSakkw2Nt227
-    networks:
-      infra:
-        aliases:
-          - mongo3
+#    networks:
+#      infra:
+#        aliases:
+#          - mongo3
     deploy:
       replicas: 1
       placement:
@@ -85,9 +87,9 @@ services:
 #    networks:
 #      - infra
 
-networks:
-  infra:
-    driver: overlay
+#networks:
+#  infra:
+#    driver: overlay
 #volumes:
 #  mongodb:
 #    driver: local
