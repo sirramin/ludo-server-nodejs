@@ -1,6 +1,6 @@
 const mongooseClient = require('mongoose')
 const mongoUrl = process.env.MONGO_URL || 'mongodb://localhost'
-const connections = mongooseClient.connect(mongoUrl + '/mench',
+const connections = mongooseClient.connect(mongoUrl + '/mench?replicaSet=replicaset',
   {
     useNewUrlParser: true,
     autoReconnect: true
