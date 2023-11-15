@@ -1,33 +1,101 @@
+# docker stack deploy -c docker-compose.yml menchStack --with-registry-auth
+
 version: "3.7"
 services:
   app:
-    container_name: app
-    restart: always
-    build: .
+    image: sirramin/mench:latest
     ports:
-      - "80:80"
-    depends_on:
-      - redis
-      - mongo
+      - "3005:3005"
+    deploy:
+      replicas: 1
+      placement:
+        constraints: [node.role == manager]
     environment:
-      - PORT=80
+      - PORT=3005
       - REDIS_URL=redis://redis
-      - MONGO_URL=mongodb://mongo
-#    volumes:
-#      - ./:/home/app
-  mongo:
-    container_name: mongo
-    image: mongo
-    volumes:
-      - /home/data:/data/db
+      - REDIS_PORT=6379
+      - MONGO_URL=mongodb://root:N9pCmSakkw2Nt227@mongo1,mongo2,mongo3/mench
+    networks:
+      - infra
+
+  mongo1:
+    image: bitnami/mongodb:4.2
+    environment:
+      - MONGODB_ADVERTISED_HOSTNAME=mongo1
+      - MONGODB_REPLICA_SET_MODE=primary
+      - MONGODB_REPLICA_SET_KEY=M9X6DDjmWnYbzJjH
+      - MONGODB_ROOT_PASSWORD=N9pCmSakkw2Nt227
     ports:
-      - "27018:27018"
+      - "27017:27017"
+    volumes:
+      - mongodb:/bitnami
+    networks:
+      infra:
+        aliases:
+          - mongo1
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.labels.mongo.replica == 1
+
+  mongo2:
+    image: bitnami/mongodb:4.2
+    environment:
+      - MONGODB_ADVERTISED_HOSTNAME=mongo2
+      - MONGODB_REPLICA_SET_MODE=secondary
+      - MONGODB_PRIMARY_HOST=mongo1
+      - MONGODB_REPLICA_SET_KEY=M9X6DDjmWnYbzJjH
+      - MONGODB_PRIMARY_ROOT_PASSWORD=N9pCmSakkw2Nt227
+#    ports:
+#      - "27018:27018"
+    networks:
+      infra:
+        aliases:
+          - mongo2
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.labels.mongo.replica == 2
+
+  mongo3:
+    image: bitnami/mongodb:4.2
+    environment:
+      - MONGODB_ADVERTISED_HOSTNAME=mongo2
+      - MONGODB_REPLICA_SET_MODE=secondary
+      - MONGODB_PRIMARY_HOST=mongo1
+      - MONGODB_REPLICA_SET_KEY=M9X6DDjmWnYbzJjH
+      - MONGODB_PRIMARY_ROOT_PASSWORD=N9pCmSakkw2Nt227
+#    ports:
+#      - "27019:27019"
+    networks:
+      infra:
+        aliases:
+          - mongo3
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.labels.mongo.replica == 3
+
   redis:
-    container_name: redis
-    image: "redis:alpine"
+    image: redis:alpine
     ports:
       - "6379:6379"
     entrypoint: redis-server --appendonly yes
-    restart: always
-    volumes:
-      - /home/redis/data:/data
+#    restart: always
+#    volumes:
+#      - /home/redis/data:/data
+    deploy:
+      placement:
+        constraints: [node.role == manager]
+    networks:
+      - infra
+
+networks:
+  infra:
+    driver: overlay
+volumes:
+  mongodb:
+    driver: local

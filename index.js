@@ -4,7 +4,8 @@ const morgan = require('morgan')
 const app = express()
 const http = require('http').Server(app)
 global.io = require('socket.io')(http, {
-  transports: 'websocket'
+  transports: 'websocket',
+  // pingTimeout: 20000
 })
 const errorMiddleware = require('./middleware/errorMiddleware')
 require('./common/redis-client')
